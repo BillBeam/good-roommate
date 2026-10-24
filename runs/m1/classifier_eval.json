@@ -1,0 +1,310 @@
+{
+ "model": "grok-4.20-0309-non-reasoning",
+ "n": 30,
+ "exact_set_accuracy": 0.9666666666666667,
+ "items": [
+  {
+   "question": "你有什么忌口或者过敏的吗？",
+   "gold": [
+    "饮食"
+   ],
+   "pred": [
+    "饮食"
+   ],
+   "match": true
+  },
+  {
+   "question": "平时爱吃什么菜？能吃辣吗？",
+   "gold": [
+    "口味"
+   ],
+   "pred": [
+    "口味"
+   ],
+   "match": true
+  },
+  {
+   "question": "这顿饭人均大概想控制在多少？",
+   "gold": [
+    "预算"
+   ],
+   "pred": [
+    "预算"
+   ],
+   "match": true
+  },
+  {
+   "question": "你家住哪个区？",
+   "gold": [
+    "住处"
+   ],
+   "pred": [
+    "住处"
+   ],
+   "match": true
+  },
+  {
+   "question": "公司在哪个区？",
+   "gold": [
+    "公司"
+   ],
+   "pred": [
+    "公司"
+   ],
+   "match": true
+  },
+  {
+   "question": "你平时开车吗？需要停车位吗？",
+   "gold": [
+    "出行"
+   ],
+   "pred": [
+    "出行"
+   ],
+   "match": true
+  },
+  {
+   "question": "家里有小朋友或者宠物吗？",
+   "gold": [
+    "家庭"
+   ],
+   "pred": [
+    "家庭"
+   ],
+   "match": true
+  },
+  {
+   "question": "最近生活上有什么变化吗？",
+   "gold": [
+    "近况"
+   ],
+   "pred": [
+    "近况"
+   ],
+   "match": true
+  },
+  {
+   "question": "晚上一般几点得回家？",
+   "gold": [
+    "家庭"
+   ],
+   "pred": [
+    "家庭"
+   ],
+   "match": true
+  },
+  {
+   "question": "还在控制碳水吗？",
+   "gold": [
+    "饮食"
+   ],
+   "pred": [
+    "饮食"
+   ],
+   "match": true
+  },
+  {
+   "question": "你还住在滨江吗？",
+   "gold": [
+    "住处"
+   ],
+   "pred": [
+    "住处"
+   ],
+   "match": true
+  },
+  {
+   "question": "有没有花生过敏？预算大概多少？",
+   "gold": [
+    "饮食",
+    "预算"
+   ],
+   "pred": [
+    "饮食",
+    "预算"
+   ],
+   "match": true
+  },
+  {
+   "question": "想吃辣的还是清淡的？在哪个区上班？",
+   "gold": [
+    "口味",
+    "公司"
+   ],
+   "pred": [
+    "口味",
+    "公司"
+   ],
+   "match": true
+  },
+  {
+   "question": "酒店需要能带宠物吗？早餐有什么要求？",
+   "gold": [
+    "家庭",
+    "饮食"
+   ],
+   "pred": [
+    "饮食",
+    "家庭"
+   ],
+   "match": true
+  },
+  {
+   "question": "这次一共几个人？",
+   "gold": [],
+   "pred": [],
+   "match": true
+  },
+  {
+   "question": "你想哪天去？",
+   "gold": [],
+   "pred": [],
+   "match": true
+  },
+  {
+   "question": "要我帮你算一下每人多少钱吗？",
+   "gold": [],
+   "pred": [],
+   "match": true
+  },
+  {
+   "question": "住酒店一晚预算多少？需要停车吗？",
+   "gold": [
+    "预算",
+    "出行"
+   ],
+   "pred": [
+    "预算",
+    "出行"
+   ],
+   "match": true
+  },
+  {
+   "question": "宝宝需要婴儿床吗？",
+   "gold": [
+    "家庭"
+   ],
+   "pred": [
+    "家庭"
+   ],
+   "match": true
+  },
+  {
+   "question": "你现在吃素吗？",
+   "gold": [
+    "饮食"
+   ],
+   "pred": [
+    "饮食"
+   ],
+   "match": true
+  },
+  {
+   "question": "你最喜欢哪种菜系？",
+   "gold": [
+    "口味"
+   ],
+   "pred": [
+    "口味"
+   ],
+   "match": true
+  },
+  {
+   "question": "最近工作有变动吗？还在原来的公司上班吗？",
+   "gold": [
+    "近况",
+    "公司"
+   ],
+   "pred": [
+    "公司",
+    "近况"
+   ],
+   "match": true
+  },
+  {
+   "question": "你现在怎么去上班，坐地铁还是开车？",
+   "gold": [
+    "出行"
+   ],
+   "pred": [
+    "公司",
+    "出行"
+   ],
+   "match": false
+  },
+  {
+   "question": "你是想在家附近吃，还是公司附近？",
+   "gold": [
+    "住处",
+    "公司"
+   ],
+   "pred": [
+    "住处",
+    "公司"
+   ],
+   "match": true
+  },
+  {
+   "question": "这次的预算和平时一样吗？",
+   "gold": [
+    "预算"
+   ],
+   "pred": [
+    "预算"
+   ],
+   "match": true
+  },
+  {
+   "question": "你说的嗓子发炎，是这次不能吃辣，还是以后都不吃了？",
+   "gold": [
+    "口味"
+   ],
+   "pred": [
+    "口味"
+   ],
+   "match": true
+  },
+  {
+   "question": "搬家以后新家在哪个区？",
+   "gold": [
+    "住处"
+   ],
+   "pred": [
+    "住处"
+   ],
+   "match": true
+  },
+  {
+   "question": "你对价格敏感吗，偏好高档一点还是实惠一点？",
+   "gold": [
+    "预算"
+   ],
+   "pred": [
+    "预算"
+   ],
+   "match": true
+  },
+  {
+   "question": "养狗以后晚上是不是得早点回去？",
+   "gold": [
+    "家庭"
+   ],
+   "pred": [
+    "家庭"
+   ],
+   "match": true
+  },
+  {
+   "question": "有乳制品过敏吗？还爱吃日料吗？",
+   "gold": [
+    "饮食",
+    "口味"
+   ],
+   "pred": [
+    "饮食",
+    "口味"
+   ],
+   "match": true
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "n_users": 24,
+ "n_sessions_per_user": 8,
+ "n_sessions_total": 192,
+ "events_multi_attr": 29,
+ "events_single_attr": 4,
+ "temp_situations": 24,
+ "unrelated_sessions": 24,
+ "stale_trap_sessions": 111,
+ "temp_trap_sessions": 23,
+ "events_by_type": {
+  "养了狗": 5,
+  "搬家": 7,
+  "开始健身": 3,
+  "升职调岗": 6,
+  "怀孕": 3,
+  "体检血糖偏高": 4,
+  "换工作降薪": 3,
+  "家里添了宝宝": 2
+ },
+ "temps_by_type": {
+  "嗓子发炎": 6,
+  "公司报销": 4,
+  "这顿想省点": 8,
+  "这次换个区聚": 6
+ },
+ "world_hash": "726f4d7fb0a1ff1b"
+}

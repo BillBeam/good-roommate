@@ -1,0 +1,294 @@
+{
+ "benchmark": "ATRBench",
+ "commit": "a2cfefec1832804caf143b230de3a6be86c698b7",
+ "license": "代码 Apache-2.0；数据 CC BY 4.0（派生自 NVIDIA Nemotron-Personas-USA）",
+ "estimated_cost_usd": 0.10417214999999999,
+ "cost_note": "按 token 数与 xAI 官方单价估算（ATRBench 的请求不经过本项目的计费账本）",
+ "cells": [
+  {
+   "persona_id": "cassandra_tovar",
+   "variant": "oracle_target",
+   "model": "grok-4.20-0309-non-reasoning",
+   "seed": 0,
+   "n_test_sessions": 11,
+   "n_success": 10,
+   "accuracy": 0.9090909090909091,
+   "sessions": [
+    {
+     "session_id": "cassandra_tovar_commerce_01_test",
+     "domain": "commerce",
+     "check_type": "tool_identity",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_commerce_02_test",
+     "domain": "commerce",
+     "check_type": "param_id",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_communication_01_test",
+     "domain": "communication",
+     "check_type": "tool_identity",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_reservation_01_test",
+     "domain": "reservation",
+     "check_type": "param_id",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_reservation_02_test",
+     "domain": "reservation",
+     "check_type": "param_id",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_reservation_05_test",
+     "domain": "reservation",
+     "check_type": "confirm",
+     "task_success": false
+    },
+    {
+     "session_id": "cassandra_tovar_scheduling_01_test",
+     "domain": "scheduling",
+     "check_type": "tool_identity",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_scheduling_03_test",
+     "domain": "scheduling",
+     "check_type": "param_enum",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_travel_01_test",
+     "domain": "travel",
+     "check_type": "tool_identity",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_travel_02_test",
+     "domain": "travel",
+     "check_type": "param_id",
+     "task_success": true
+    },
+    {
+     "session_id": "cassandra_tovar_travel_03_test",
+     "domain": "travel",
+     "check_type": "param_id",
+     "task_success": true
+    }
+   ]
+  }
+ ],
+ "evaluator_summary_raw": {
+  "args": {
+   "personas": [
+    "cassandra_tovar"
+   ],
+   "seeds": [
+    0
+   ],
+   "variants": [
+    "oracle_target"
+   ],
+   "models": [
+    "grok-4.20-0309-non-reasoning"
+   ],
+   "variant": null,
+   "model": null,
+   "strict": true,
+   "hook": false,
+   "no_trace_footers": false,
+   "workers": 4
+  },
+  "rows": [
+   {
+    "cell_id": "cassandra_tovar/_oracle/oracle_target__model-grok-4.20-0309-non-reasoning__layer-context__seed000",
+    "variant": "oracle_target",
+    "model": "grok-4.20-0309-non-reasoning",
+    "seed": 0,
+    "ok": true,
+    "incomplete": false,
+    "duration_sec": 0.0,
+    "payoff_accuracy": 0.9091,
+    "ts_payoff_accuracy": 0.9091,
+    "success_count": 10,
+    "total_test": 11,
+    "missing_test_sessions": [],
+    "missing_learning_sessions": [],
+    "by_check_type": {
+     "tool_identity": {
+      "total": 4,
+      "success": 4,
+      "accuracy": 1.0
+     },
+     "param_id": {
+      "total": 5,
+      "success": 5,
+      "accuracy": 1.0
+     },
+     "confirm": {
+      "total": 1,
+      "success": 0,
+      "accuracy": 0.0
+     },
+     "param_enum": {
+      "total": 1,
+      "success": 1,
+      "accuracy": 1.0
+     }
+    },
+    "by_domain": {
+     "commerce": {
+      "total": 2,
+      "success": 2,
+      "accuracy": 1.0,
+      "by_check_type": {
+       "tool_identity": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       },
+       "param_id": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       }
+      }
+     },
+     "communication": {
+      "total": 1,
+      "success": 1,
+      "accuracy": 1.0,
+      "by_check_type": {
+       "tool_identity": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       }
+      }
+     },
+     "reservation": {
+      "total": 3,
+      "success": 2,
+      "accuracy": 0.6667,
+      "by_check_type": {
+       "param_id": {
+        "total": 2,
+        "success": 2,
+        "accuracy": 1.0
+       },
+       "confirm": {
+        "total": 1,
+        "success": 0,
+        "accuracy": 0.0
+       }
+      }
+     },
+     "scheduling": {
+      "total": 2,
+      "success": 2,
+      "accuracy": 1.0,
+      "by_check_type": {
+       "tool_identity": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       },
+       "param_enum": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       }
+      }
+     },
+     "travel": {
+      "total": 3,
+      "success": 3,
+      "accuracy": 1.0,
+      "by_check_type": {
+       "tool_identity": {
+        "total": 1,
+        "success": 1,
+        "accuracy": 1.0
+       },
+       "param_id": {
+        "total": 2,
+        "success": 2,
+        "accuracy": 1.0
+       }
+      }
+     }
+    },
+    "total_learning": 0,
+    "ls_send_calls_routed_rule": 0,
+    "ls_cls_hits": 0,
+    "ls_cls_classified": 0,
+    "ls_send_calls_total": 0,
+    "ls_send_calls_routed_task": 0,
+    "ls_cls_misses": 0,
+    "ls_cls_errors": 0,
+    "ls_plain_text_leaks": 0,
+    "ls_off_protocol_asks": 0,
+    "ls_hook_appended": 0,
+    "ls_hook_rescued_sends": 0,
+    "ls_native_send_calls": 0,
+    "repeated_hits": {},
+    "rule_coverage": {
+     "hit_count": 0,
+     "total": 11,
+     "per_rule_hit_map": {}
+    },
+    "covered_hit_pass": 0,
+    "covered_hit_fail": 0,
+    "covered_miss_pass": 9,
+    "covered_miss_fail": 1,
+    "uncovered_hit_pass": 0,
+    "uncovered_hit_fail": 0,
+    "uncovered_miss_pass": 1,
+    "uncovered_miss_fail": 0,
+    "termination_breakdown": {
+     "test": {
+      "agent_stop": 11
+     }
+    },
+    "step_stats": {
+     "test": {
+      "avg": 5.18,
+      "min": 3.0,
+      "p50": 5.0,
+      "p95": 6.0,
+      "max": 12.0
+     }
+    },
+    "duration_stats": {
+     "test": {
+      "avg": 5.48,
+      "min": 2.94,
+      "p50": 5.29,
+      "p95": 5.82,
+      "max": 13.49
+     }
+    },
+    "token_usage": {
+     "agent": {
+      "prompt_tokens": 161765,
+      "completion_tokens": 1859,
+      "total_tokens": 163624,
+      "cached_tokens": 97792,
+      "prompt_cache_hit_tokens": 0,
+      "reasoning_tokens": 0,
+      "calls": 57
+     }
+    },
+    "total_tokens": 163624,
+    "input_tokens": 161765,
+    "output_tokens": 1859,
+    "cached_tokens": 97792
+   }
+  ]
+ }
+}

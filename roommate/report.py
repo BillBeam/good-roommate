@@ -113,10 +113,15 @@ def write(out, report_path):
     add("## 一句话结果")
     add("")
     if best:
-        verdict = "**环境过于简单**" if too_easy else "未超过 80% 的闸门，环境没有过于简单"
-        add(f"最强基线 `{best[4:]}` 的得分只有知道真实状态的标准策略的 {L.n(best_ratio, bp, 'pct')}，{verdict}；"
-            f"三个现成模型都没能稳定地记住偏好、察觉隐式变化，"
-            f"最强基线在有过时记忆陷阱的任务上仍有 {L.n(llm[best]['stale_error_rate'], bp, 'pct')} 选了按过时偏好看是对的选项。")
+        b = llm[best]
+        if too_easy:
+            add(f"**环境过于简单**：最强基线 `{best[4:]}` 不经训练就拿到知道真实状态的标准策略得分的 "
+                f"{L.n(best_ratio, bp, 'pct')}，超过 80% 的闸门；但它在有过时记忆陷阱的任务上仍有 "
+                f"{L.n(b['stale_error_rate'], bp, 'pct')} 选了按过时偏好看是对的选项。")
+        else:
+            add(f"最强基线 `{best[4:]}` 的得分是知道真实状态的标准策略的 {L.n(best_ratio, bp, 'pct')}，"
+                f"低于 80% 的闸门；它在有过时记忆陷阱的任务上有 {L.n(b['stale_error_rate'], bp, 'pct')} "
+                "选了按过时偏好看是对的选项。")
     add("")
     if too_easy:
         add(f"> **环境过于简单**：最强基线得分达到标准策略的 {L.n(best_ratio, bp, 'pct')}（≥ 80%）。")
@@ -210,6 +215,11 @@ def write(out, report_path):
         add("")
         add(f"最强基线 `{best[4:]}` 的得分占标准策略得分的 {L.n(best_ratio, bp, 'pct')}"
             + ("，达到 80%：**环境过于简单**。" if too_easy else "，低于 80% 的闸门。"))
+        b = llm[best]
+        add(f"它与满分的差距来自两块：选错少拿 {L.n(1 - b['success_rate'], bp)} 分，提问成本 "
+            f"{L.n(QUESTION_COST * b['avg_questions'], bp)} 分（平均每次会话 {L.n(b['avg_questions'], bp, 'f2')} 问 × {QUESTION_COST}）。"
+            + ("也就是说，一个会写记忆的强模型在这一版环境里不经训练就能把大部分偏好记住、把大部分变化接住；"
+               "下一轮需要加难（见 docs/log.md 的\"下一步\"）。" if too_easy else ""))
         add("")
         add("**按会话类型的成功率**")
         add("")

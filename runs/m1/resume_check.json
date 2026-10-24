@@ -1,0 +1,23 @@
+{
+ "llm:grok-4.20-0309-non-reasoning": {
+  "k": 4,
+  "checkpoint_bytes": 771898,
+  "uninterrupted": "1030aa5a761486fc",
+  "resumed": "1030aa5a761486fc",
+  "identical": true
+ },
+ "llm:grok-4.3": {
+  "k": 4,
+  "checkpoint_bytes": 670767,
+  "uninterrupted": "73947a235f6bf545",
+  "resumed": "73947a235f6bf545",
+  "identical": true
+ },
+ "llm:grok-4.7": {
+  "k": 4,
+  "checkpoint_bytes": 868780,
+  "uninterrupted": "be34d3d47478d396",
+  "resumed": "be34d3d47478d396",
+  "identical": true
+ }
+}

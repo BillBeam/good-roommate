@@ -1,0 +1,33 @@
+# python -m unittest discover -s tests -t . -v   （2026-10-24T12:33:41Z）
+test_checkpoint_contains_true_state_and_memory (tests.test_checkpoint.CheckpointTest.test_checkpoint_contains_true_state_and_memory) ... /home/user/good-roommate/tests/test_checkpoint.py:62: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmphvs3mr00/inspect.json' mode='r' encoding='utf-8'>
+  data = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_dropping_memory_changes_results (tests.test_checkpoint.CheckpointTest.test_dropping_memory_changes_results)
+反例：恢复时丢掉 agent 记忆，结果就不同——说明上面的一致性检验是有效的。 ... /home/user/good-roommate/tests/test_checkpoint.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmphvs3mr00/nomem.json' mode='r' encoding='utf-8'>
+  data = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/user/good-roommate/tests/test_checkpoint.py:81: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmphvs3mr00/nomem.json' mode='w' encoding='utf-8'>
+  json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_every_boundary (tests.test_checkpoint.CheckpointTest.test_every_boundary) ... ok
+test_agent_prompt_hides_true_state (tests.test_grading.GradingTest.test_agent_prompt_hides_true_state) ... ok
+test_ask_all_solves_everything_but_pays (tests.test_grading.GradingTest.test_ask_all_solves_everything_but_pays) ... ok
+test_exactly_one_correct_and_traps_valid (tests.test_grading.GradingTest.test_exactly_one_correct_and_traps_valid) ... ok
+test_nothing_zero (tests.test_grading.GradingTest.test_nothing_zero) ... ok
+test_oracle_full_score (tests.test_grading.GradingTest.test_oracle_full_score) ... ok
+test_scenario_mix (tests.test_grading.GradingTest.test_scenario_mix) ... ok
+test_stale_error_counted (tests.test_grading.GradingTest.test_stale_error_counted) ... ok
+test_env_code_never_references_benchmarks (tests.test_isolation.IsolationTest.test_env_code_never_references_benchmarks) ... ok
+test_external_dir_ignored (tests.test_isolation.IsolationTest.test_external_dir_ignored) ... ok
+test_world_generation_reads_no_files (tests.test_isolation.IsolationTest.test_world_generation_reads_no_files) ... ok
+test_llm_rerun_hits_cache (tests.test_repro.ReproTest.test_llm_rerun_hits_cache) ... ok
+test_offline_cache_miss_raises (tests.test_repro.ReproTest.test_offline_cache_miss_raises) ... ok
+test_scripted_identical (tests.test_repro.ReproTest.test_scripted_identical) ... ok
+test_world_depends_only_on_seed (tests.test_repro.ReproTest.test_world_depends_only_on_seed) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 6.856s
+
+OK
