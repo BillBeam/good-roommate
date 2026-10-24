@@ -7,7 +7,10 @@
 import json
 import os
 import random
+import sys
 from collections import Counter
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "runs", "m1", "policies")
 OUT = os.path.join(os.path.dirname(__file__), "..", "runs", "m1", "review_stats.json")
@@ -64,6 +67,36 @@ def misroutes(rs):
     }
 
 
+BLANKET_DIET = "饮食上没什么特别限制"
+HEALTH_EVENTS = {"怀孕"}
+
+
+def contradictions(world, recs):
+    """用户因健康原因不能吃辣（怀孕事件之后，或本次临时情况是嗓子发炎这类），
+    被问到时却说"饮食上没什么特别限制"、且同一句回答里没提不吃辣：用户自相矛盾。
+    单纯不爱吃辣的用户说"没什么特别限制"不算矛盾，不计入。"""
+    from roommate.usersim import SimUser
+    health = {}
+    for u in world["users"]:
+        sim, preg = SimUser(u), False
+        for s in u["sessions"]:
+            sim.begin_session(s)
+            if s.get("event") and s["event"]["cn"] in HEALTH_EVENTS:
+                preg = True
+            t = s.get("temp")
+            health[(u["uid"], s["idx"])] = sim.effective()["spicy"] == "不吃辣" and (
+                preg or bool(t and t["attr"] == "spicy"))
+            sim.end_session()
+    out = {}
+    for m in MODELS:
+        hits = [{"uid": r["uid"], "idx": r["idx"], "question": q["text"], "answer": q["answer"],
+                 "session_success": r["grade"]["success"]}
+                for r in recs[m] for q in r["questions"]
+                if health[(r["uid"], r["idx"])] and BLANKET_DIET in q["answer"] and "不吃辣" not in q["answer"]]
+        out[m] = {"n": len(hits), "cases": hits}
+    return {"note": "用户因健康原因不能吃辣，回答里却说'" + BLANKET_DIET + "'且没提不吃辣", "by_model": out}
+
+
 def main():
     recs = {n: load(n) for n in TRIVIAL + MODELS + ["oracle"]}
     tot = {n: per_user_totals(rs) for n, rs in recs.items()}
@@ -110,6 +143,8 @@ def main():
                                              Counter((r["type"], r["domain"], r["chosen_role"]) for r in fails).most_common()],
         }
     out["simulator_misroutes"] = misroutes(recs["llm_grok-4.7"])
+    with open(os.path.join(ROOT, "..", "world.json"), encoding="utf-8") as f:
+        out["simulator_contradictions"] = contradictions(json.load(f), recs)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(json.dumps(out, ensure_ascii=False, indent=2))
