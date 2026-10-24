@@ -29,6 +29,41 @@ def per_user_totals(records):
     return tot
 
 
+TASTE_WORDS = ["辣", "清淡", "口味", "菜系", "火锅"]
+TOO_MANY = "一下问太多了"
+# 人工逐条核对后认定的"答非所问"：问题只问辣不辣／清淡（属于"口味"话题），
+# 却被归类成"饮食"（过敏、饮食限制）来回答。(用户, 会话序号, 第几个问题)
+MISROUTED = [("u07", 3, 0), ("u11", 5, 0), ("u19", 6, 1), ("u20", 4, 1)]
+
+
+def misroutes(rs):
+    """模拟用户把关于口味的问题答成了别的话题。"""
+    by = {(r["uid"], r["idx"]): r for r in rs}
+    qs = [(r, q) for r in rs for q in r["questions"]]
+    screen = [(r, q) for r, q in qs if any(w in q["text"] for w in TASTE_WORDS) and "口味" not in q["topics"]]
+    cases = []
+    for uid, idx, qi in MISROUTED:
+        r = by[(uid, idx)]
+        q = r["questions"][qi]
+        cases.append({"uid": uid, "idx": idx, "question": q["text"], "answered_topics": q["topics"],
+                      "answer": q["answer"], "session_success": r["grade"]["success"]})
+    # u07：第 4 次会话（idx 3）那条误导回答写进记忆后，之后再也没问，后面的会话全部选错
+    later = [by[("u07", i)] for i in range(4, 8)]
+    return {
+        "note": "keyword_screen 是关键词粗筛：问题提到口味相关词、但实际回答的话题里没有'口味'；"
+                "其中大多是一次问了两个以上方面、用户已明说'一下问太多了'，属于设计内的限制。"
+                "cases 是人工核对后确认的答非所问。",
+        "total_questions": len(qs),
+        "keyword_screen": len(screen),
+        "keyword_screen_with_too_many_notice": sum(TOO_MANY in q["answer"] for _, q in screen),
+        "cases": cases,
+        "direct_failures": sum(not c["session_success"] for c in cases),
+        "u07_later_sessions": [{"idx": r["idx"], "n_questions": r["grade"]["n_questions"],
+                                "chosen_role": r["chosen_role"], "success": r["grade"]["success"]} for r in later],
+        "grok47_total_failures": sum(not r["grade"]["success"] for r in rs),
+    }
+
+
 def main():
     recs = {n: load(n) for n in TRIVIAL + MODELS + ["oracle"]}
     tot = {n: per_user_totals(rs) for n, rs in recs.items()}
@@ -74,6 +109,7 @@ def main():
             "failures_by_type_domain_role": [[f"{t}|{d}|{role}", c] for (t, d, role), c in
                                              Counter((r["type"], r["domain"], r["chosen_role"]) for r in fails).most_common()],
         }
+    out["simulator_misroutes"] = misroutes(recs["llm_grok-4.7"])
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(json.dumps(out, ensure_ascii=False, indent=2))

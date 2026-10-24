@@ -239,5 +239,83 @@
         ]
       ]
     }
+  },
+  "simulator_misroutes": {
+    "note": "keyword_screen 是关键词粗筛：问题提到口味相关词、但实际回答的话题里没有'口味'；其中大多是一次问了两个以上方面、用户已明说'一下问太多了'，属于设计内的限制。cases 是人工核对后确认的答非所问。",
+    "total_questions": 126,
+    "keyword_screen": 28,
+    "keyword_screen_with_too_many_notice": 22,
+    "cases": [
+      {
+        "uid": "u07",
+        "idx": 3,
+        "question": "你家在哪个区？孕期医生要求的清淡饮食现在还要遵守吗？",
+        "answered_topics": [
+          "住处",
+          "饮食"
+        ],
+        "answer": "我住在余杭。我没有过敏的东西；饮食上没什么特别限制。",
+        "session_success": false
+      },
+      {
+        "uid": "u11",
+        "idx": 5,
+        "question": "你现在还是要清淡、不辣吗？周六晚上大概几点到、需不需要停车位？",
+        "answered_topics": [
+          "饮食",
+          "出行"
+        ],
+        "answer": "我没有过敏的东西；饮食上没什么特别限制。我一般骑车。",
+        "session_success": false
+      },
+      {
+        "uid": "u19",
+        "idx": 6,
+        "question": "这次请几位同事？有没有人不能吃辣、或必须清淡？",
+        "answered_topics": [
+          "饮食"
+        ],
+        "answer": "我没有过敏的东西；我现在在控制碳水，得选有低碳水菜品的。",
+        "session_success": true
+      },
+      {
+        "uid": "u20",
+        "idx": 4,
+        "question": "清淡的火锅可以吗，还是想要更养嗓子的粤菜？大概想订几点？",
+        "answered_topics": [
+          "饮食"
+        ],
+        "answer": "我没有过敏的东西；饮食上没什么特别限制。",
+        "session_success": true
+      }
+    ],
+    "direct_failures": 2,
+    "u07_later_sessions": [
+      {
+        "idx": 4,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 5,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 6,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 7,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      }
+    ],
+    "grok47_total_failures": 17
   }
 }
