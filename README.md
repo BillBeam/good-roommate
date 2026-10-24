@@ -65,7 +65,12 @@
 - `research/01-literature.md`：早期调研，主题是编程 agent 的 harness 设计与 RL 训练中的奖励作弊（捷径研究的相关文献）
 - `research/02-literature-cross-session.md`：本项目的选题调研与可行性评估
 - `docs/log.md`：工作日志
-- 其余目录随工作推进添加，添加时在这里补一行说明。
+- `roommate/`：模拟环境本身（只用 Python 标准库）。生成模拟用户的"一生"、维护用户的真实状态、提供记忆与提问工具、按真实状态判分，以及接 xAI 模型跑基线；`python -m roommate.run` 一条命令跑完全部并生成报告
+- `tests/`：单元测试（判分自检、任意会话边界存档恢复、复现、与外部基准数据的隔离），`python -m unittest discover -s tests -t .`
+- `bench/`：外部基准的评测入口（目前是 ATRBench），只在评测时手动运行；基准本身克隆到 `external/`，不进仓库
+- `runs/`：每一轮的日志。`runs/m1/` 里有隐藏世界、每个策略的逐次会话记录与对话、判分自检、复现与恢复检查、查价快照、花费账本，以及大模型请求缓存（用于不联网复现）
+- `reports/`：每一轮的报告，由代码从 `runs/` 的日志生成，每个数字都链接到日志
+- `external/`（不进仓库）：外部基准的代码、数据和评测输出
 
 ## 许可证
 
