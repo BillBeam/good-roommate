@@ -97,6 +97,81 @@ def contradictions(world, recs):
     return {"note": "用户因健康原因不能吃辣，回答里却说'" + BLANKET_DIET + "'且没提不吃辣", "by_model": out}
 
 
+# 人工判断：事件改了这些属性，但台词里没有任何线索能推出新值
+CUELESS_CHANGES = [
+    {"event": "开始健身", "attr": "cuisine", "new": "轻食",
+     "why": "台词只说健身、教练管饮食，推不出'最爱的菜系变成轻食'"},
+    {"event": "怀孕", "attr": "cuisine", "new": "粤菜",
+     "why": "台词只说医生让吃清淡，推不出'最爱的菜系变成粤菜'"},
+]
+
+
+def ideal_ceiling(world):
+    """可达的满分参照（估算）：每项属性在第一次需要时问一次（一问两个话题），
+    事件带来的变化全部正确更新（特权：直接用事件的真实改动），临时情况从台词得知，从不重问。"""
+    from roommate.schema import DOMAINS, TOPICS, topics_for_domain
+    from roommate.usersim import SimUser
+    score = {}
+    for u in world["users"]:
+        known, sim = {}, SimUser(u)
+        for s in u["sessions"]:
+            sim.begin_session(s)
+            if s.get("event"):
+                known.update({a: new for a, (old, new) in s["event"]["changes"].items()})
+            if s["domain"] == "util":
+                sc = 1.0
+            else:
+                tmp = {s["temp"]["attr"]} if s.get("temp") else set()
+                need = [a for a in DOMAINS[s["domain"]] if a not in known and a not in tmp]
+                topics = [t for t in topics_for_domain(s["domain"]) if t != "近况" and any(a in need for a in TOPICS[t])]
+                for t in topics:
+                    known.update({a: sim.state[a] for a in TOPICS[t]})
+                sc = 1.0 - QUESTION_COST * ((len(topics) + 1) // 2)
+            score[(u["uid"], s["idx"])] = sc
+            sim.end_session()
+    return score
+
+
+def modal_probe(world):
+    """完全不看用户的规则：选菜系、区域、价位这三项和其他选项撞得最多的那家（平局取期望）。"""
+    from roommate.grading import band_of
+    hit, n, by = 0.0, 0, {}
+    for u in world["users"]:
+        for s in u["sessions"]:
+            d = s["domain"]
+            if d == "util":
+                continue
+            keys = ["cuisine", "area", "band"] if d != "hotel" else ["band"]
+            F = {o["id"]: dict(o, band=band_of(o["price"], d)) for o in s["options"]}
+            mode = {k: Counter(F[i][k] for i in F).most_common(1)[0][0] for k in keys}
+            sc = {i: sum(F[i][k] == mode[k] for k in keys) for i in F}
+            cands = [i for i in F if sc[i] == max(sc.values())]
+            p = 1 / len(cands) if s["correct"] in cands else 0.0
+            hit, n = hit + p, n + 1
+            h, m = by.get(d, (0.0, 0))
+            by[d] = (h + p, m + 1)
+    return {"success": round(hit / n, 4), "random": round(1 / 6, 4),
+            "by_domain": {d: {"success": round(h / m, 4), "n": m} for d, (h, m) in by.items()}}
+
+
+def pref_only(world, recs):
+    """只算与偏好有关的会话（去掉算账换算这类无关会话），并加入可达满分参照。"""
+    ideal = ideal_ceiling(world)
+    keys = [k for k in ideal if not k[0].startswith("_")]
+    dom = {(r["uid"], r["idx"]): r["domain"] for r in recs["oracle"]}
+    pk = [k for k in keys if dom[k] != "util"]
+    out = {"n_sessions": len(pk), "ideal_ceiling": round(sum(ideal[k] for k in pk) / len(pk), 4), "policies": {}}
+    for name, rs in recs.items():
+        by = {(r["uid"], r["idx"]): r["grade"]["score"] for r in rs}
+        out["policies"][name] = round(sum(by[k] for k in pk) / len(pk), 4)
+    best = max(TRIVIAL, key=lambda n: out["policies"][n])
+    out["best_trivial"] = best
+    out["headroom_share_vs_ideal"] = {
+        m: round((out["policies"][m] - out["policies"][best]) / (out["ideal_ceiling"] - out["policies"][best]), 4)
+        for m in MODELS}
+    return out
+
+
 def main():
     recs = {n: load(n) for n in TRIVIAL + MODELS + ["oracle"]}
     tot = {n: per_user_totals(rs) for n, rs in recs.items()}
@@ -144,7 +219,11 @@ def main():
         }
     out["simulator_misroutes"] = misroutes(recs["llm_grok-4.7"])
     with open(os.path.join(ROOT, "..", "world.json"), encoding="utf-8") as f:
-        out["simulator_contradictions"] = contradictions(json.load(f), recs)
+        world = json.load(f)
+    out["simulator_contradictions"] = contradictions(world, recs)
+    out["preference_sessions_only"] = pref_only(world, recs)
+    out["option_leak_modal_probe"] = modal_probe(world)
+    out["cueless_changes"] = CUELESS_CHANGES
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(json.dumps(out, ensure_ascii=False, indent=2))
