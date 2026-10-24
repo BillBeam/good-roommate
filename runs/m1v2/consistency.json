@@ -1,0 +1,87 @@
+{
+ "n_answers_checked": 62984,
+ "n_problems": 0,
+ "all_pass": true,
+ "by_seed": {
+  "0": {
+   "refuse_told": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 99,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2805,
+    "first_answers_truthful": 2805,
+    "first_answer_failures": []
+   },
+   "always_answer": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 99,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2805,
+    "first_answers_truthful": 2805,
+    "first_answer_failures": []
+   }
+  },
+  "1": {
+   "refuse_told": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 105,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2807,
+    "first_answers_truthful": 2807,
+    "first_answer_failures": []
+   },
+   "always_answer": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 105,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2807,
+    "first_answers_truthful": 2807,
+    "first_answer_failures": []
+   }
+  },
+  "2": {
+   "refuse_told": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 108,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2830,
+    "first_answers_truthful": 2830,
+    "first_answer_failures": []
+   },
+   "always_answer": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 108,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2830,
+    "first_answers_truthful": 2830,
+    "first_answer_failures": []
+   }
+  },
+  "3": {
+   "refuse_told": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 102,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2845,
+    "first_answers_truthful": 2845,
+    "first_answer_failures": []
+   },
+   "always_answer": {
+    "n_answers_checked": 7873,
+    "n_event_lines": 102,
+    "n_problems": 0,
+    "problems": [],
+    "n_first_answers": 2845,
+    "first_answers_truthful": 2845,
+    "first_answer_failures": []
+   }
+  }
+ }
+}

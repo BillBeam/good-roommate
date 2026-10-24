@@ -1,0 +1,12 @@
+{
+ "rules": "第一版（legacy/roommate_v1，提交 d3871eb）",
+ "world": "runs/m1/world.json 里的 u07",
+ "agent_model": "deepseek-v4-pro",
+ "classifier_model": "deepseek-flash",
+ "classifier_model_v1_original": "grok-4.20-0309-non-reasoning（已停用）",
+ "transport_changes": [
+  "请求改走 DeepSeek",
+  "agent 循环回传 reasoning_content",
+  "去掉 seed 参数"
+ ]
+}

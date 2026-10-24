@@ -1,0 +1,85 @@
+{
+ "worlds": {
+  "0": {
+   "saved": "1a3c1f326bb02381",
+   "regenerated": "1a3c1f326bb02381"
+  },
+  "1": {
+   "saved": "82a67a69fabb96dc",
+   "regenerated": "82a67a69fabb96dc"
+  },
+  "2": {
+   "saved": "2e4572a9e9b229a2",
+   "regenerated": "2e4572a9e9b229a2"
+  },
+  "3": {
+   "saved": "69faac5c0c617094",
+   "regenerated": "69faac5c0c617094"
+  },
+  "u07_replay": {
+   "saved": "6055fc9587fce52d",
+   "regenerated": "6055fc9587fce52d"
+  }
+ },
+ "scripted": {
+  "0/oracle": true,
+  "0/ideal": true,
+  "0/nothing": true,
+  "0/random": true,
+  "0/ask_all": true,
+  "0/remember_all_reask": true,
+  "0/remember_no_update": true,
+  "0/conservative": true,
+  "0/modal": true,
+  "1/oracle": true,
+  "1/ideal": true,
+  "1/nothing": true,
+  "1/random": true,
+  "1/ask_all": true,
+  "1/remember_all_reask": true,
+  "1/remember_no_update": true,
+  "1/conservative": true,
+  "1/modal": true,
+  "2/oracle": true,
+  "2/ideal": true,
+  "2/nothing": true,
+  "2/random": true,
+  "2/ask_all": true,
+  "2/remember_all_reask": true,
+  "2/remember_no_update": true,
+  "2/conservative": true,
+  "2/modal": true,
+  "3/oracle": true,
+  "3/ideal": true,
+  "3/nothing": true,
+  "3/random": true,
+  "3/ask_all": true,
+  "3/remember_all_reask": true,
+  "3/remember_no_update": true,
+  "3/conservative": true,
+  "3/modal": true,
+  "u07_replay/ask_all": true,
+  "u07_replay/ideal": true,
+  "u07_replay/oracle": true
+ },
+ "llm": {
+  "1/llm_deepseek-flash": true,
+  "1/llm_deepseek-flash_true_memory": true,
+  "1/llm_deepseek-v4-pro": true,
+  "1/llm_deepseek-v4-pro_true_memory": true,
+  "1/llm_grok-4.7": true,
+  "1/llm_grok-4.7_true_memory": true,
+  "2/llm_deepseek-flash": true,
+  "2/llm_deepseek-flash_true_memory": true,
+  "2/llm_deepseek-v4-pro": true,
+  "2/llm_grok-4.7": true,
+  "2/llm_grok-4.7_true_memory": true,
+  "3/llm_deepseek-flash": true,
+  "3/llm_deepseek-flash_true_memory": true,
+  "3/llm_deepseek-v4-pro": true,
+  "3/llm_grok-4.7": true,
+  "3/llm_grok-4.7_true_memory": true,
+  "u07_replay/llm_deepseek-v4-pro": true
+ },
+ "all_identical": true
+}

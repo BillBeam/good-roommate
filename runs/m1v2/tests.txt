@@ -1,0 +1,17 @@
+/home/user/good-roommate/tests/test_checkpoint.py:63: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp3cwu54ir/inspect.json' mode='r' encoding='utf-8'>
+  data = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+./home/user/good-roommate/tests/test_checkpoint.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp3cwu54ir/nomem.json' mode='r' encoding='utf-8'>
+  data = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/user/good-roommate/tests/test_checkpoint.py:83: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp3cwu54ir/nomem.json' mode='w' encoding='utf-8'>
+  json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......................../home/user/good-roommate/tests/test_llm_cache.py:60: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp0vu9dg0g/c/fake-model.jsonl' mode='r' encoding='utf-8'>
+  lines = [json.loads(x) for x in open(path, encoding="utf-8")]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.................
+----------------------------------------------------------------------
+Ran 42 tests in 75.768s
+
+OK

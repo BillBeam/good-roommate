@@ -1,0 +1,1963 @@
+{
+ "version": 2,
+ "seed": 0,
+ "n_users": 1,
+ "n_sessions": 8,
+ "events": [
+  "fitness",
+  "move",
+  "baby",
+  "dog",
+  "promotion",
+  "pregnancy",
+  "newjob",
+  "checkup"
+ ],
+ "config": {
+  "repeat_mode": "refuse_told",
+  "question_cost": 0.15
+ },
+ "near_miss_balance": {
+  "dinner|baby": {
+   "post": 1,
+   "pre": 1
+  },
+  "dinner|checkup": {
+   "post": 4,
+   "pre": 4
+  },
+  "dinner|dog": {
+   "post": 3,
+   "pre": 3
+  },
+  "dinner|elsewhere": {
+   "post": 11,
+   "pre": 11
+  },
+  "dinner|fitness": {
+   "post": 1,
+   "pre": 1
+  },
+  "dinner|frugal": {
+   "post": 6,
+   "pre": 6
+  },
+  "dinner|move": {
+   "post": 10,
+   "pre": 10
+  },
+  "dinner|newjob": {
+   "post": 4,
+   "pre": 4
+  },
+  "dinner|pregnancy": {
+   "post": 3,
+   "pre": 3
+  },
+  "dinner|promotion": {
+   "post": 5,
+   "pre": 5
+  },
+  "dinner|throat": {
+   "post": 2,
+   "pre": 2
+  },
+  "lunch|checkup": {
+   "post": 3,
+   "pre": 4
+  },
+  "lunch|expense": {
+   "post": 5,
+   "pre": 5
+  },
+  "lunch|fitness": {
+   "post": 1,
+   "pre": 2
+  },
+  "lunch|frugal": {
+   "post": 7,
+   "pre": 8
+  },
+  "lunch|newjob": {
+   "post": 3,
+   "pre": 3
+  },
+  "lunch|pregnancy": {
+   "post": 5,
+   "pre": 4
+  },
+  "lunch|promotion": {
+   "post": 6,
+   "pre": 6
+  },
+  "lunch|throat": {
+   "post": 3,
+   "pre": 3
+  }
+ },
+ "users": [
+  {
+   "uid": "u07",
+   "init_state": {
+    "allergy": "无",
+    "diet": "普通",
+    "cuisine": "火锅",
+    "spicy": "爱吃辣",
+    "budget": "高",
+    "home": "余杭",
+    "office": "拱墅",
+    "commute": "开车",
+    "kid": "无",
+    "pet": "无",
+    "evening": "要早回"
+   },
+   "sessions": [
+    {
+     "idx": 0,
+     "week": 1,
+     "date": "2026-01-09",
+     "weekday": "五",
+     "type": "P",
+     "event": null,
+     "temp": null,
+     "hist": {
+      "last_event": null,
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "火锅",
+      "spicy": "爱吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "lunch",
+     "request": "中午想在公司附近吃，帮我挑一家。",
+     "user_text": "中午想在公司附近吃，帮我挑一家。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "火锅",
+      "spicy": "爱吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "hyp_prior_event",
+     "near_change": "promotion",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "火锅",
+      "spicy": "爱吃辣",
+      "budget": "中",
+      "office": "余杭"
+     },
+     "correct_is_post": true,
+     "options": [
+      {
+       "cuisine": "粤菜",
+       "area": "西湖",
+       "spice": "清淡",
+       "price": 35,
+       "allergens": [
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "A",
+       "name": "岭南人家"
+      },
+      {
+       "cuisine": "川菜",
+       "area": "上城",
+       "spice": "偏辣",
+       "price": 71,
+       "allergens": [
+        "乳制品"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "B",
+       "name": "川味坊"
+      },
+      {
+       "cuisine": "川菜",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 15,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "C",
+       "name": "辣子鸡馆"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "余杭",
+       "spice": "偏辣",
+       "price": 35,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "D",
+       "name": "一锅鲜"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "西湖",
+       "spice": "清淡",
+       "price": 64,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "E",
+       "name": "早茶记"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 71,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "F",
+       "name": "老灶火锅"
+      }
+     ],
+     "correct": "F",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "decoy",
+      "D": "near_miss",
+      "E": "decoy",
+      "F": "correct"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "中",
+       "office": "西湖"
+      },
+      "B": {
+       "allergy": "花生",
+       "diet": "素食",
+       "cuisine": "川菜",
+       "spicy": "爱吃辣",
+       "budget": "高",
+       "office": "上城"
+      },
+      "C": {
+       "allergy": "花生",
+       "diet": "素食",
+       "cuisine": "川菜",
+       "spicy": "爱吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "中",
+       "office": "余杭"
+      },
+      "E": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "西湖"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      }
+     }
+    },
+    {
+     "idx": 1,
+     "week": 3,
+     "date": "2026-01-25",
+     "weekday": "日",
+     "type": "U",
+     "event": null,
+     "temp": null,
+     "domain": "util",
+     "request": "我们 5 个人吃饭一共花了 770 元，AA 的话每人多少钱？",
+     "user_text": "我们 5 个人吃饭一共花了 770 元，AA 的话每人多少钱？",
+     "options": [
+      {
+       "id": "A",
+       "name": "147 元"
+      },
+      {
+       "id": "B",
+       "name": "151 元"
+      },
+      {
+       "id": "C",
+       "name": "158 元"
+      },
+      {
+       "id": "D",
+       "name": "169 元"
+      },
+      {
+       "id": "E",
+       "name": "154 元"
+      },
+      {
+       "id": "F",
+       "name": "142 元"
+      }
+     ],
+     "correct": "E",
+     "roles": {
+      "A": "distractor",
+      "B": "distractor",
+      "C": "distractor",
+      "D": "distractor",
+      "E": "correct",
+      "F": "distractor"
+     },
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "火锅",
+      "spicy": "爱吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "eff_state": null,
+     "near_miss": null
+    },
+    {
+     "idx": 2,
+     "week": 4,
+     "date": "2026-02-01",
+     "weekday": "日",
+     "type": "E",
+     "event": {
+      "type": "pregnancy",
+      "cn": "怀孕",
+      "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+      "cues": {
+       "spicy": "明说",
+       "cuisine": "明说"
+      },
+      "changes": {
+       "spicy": [
+        "爱吃辣",
+        "不吃辣"
+       ],
+       "cuisine": [
+        "火锅",
+        "粤菜"
+       ]
+      }
+     },
+     "temp": null,
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "lunch",
+     "request": "帮我在公司附近找个工作日能常去吃午饭的地方。",
+     "user_text": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。帮我在公司附近找个工作日能常去吃午饭的地方。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "stale",
+     "near_change": "pregnancy",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "火锅",
+      "spicy": "爱吃辣",
+      "budget": "高",
+      "office": "拱墅"
+     },
+     "correct_is_post": true,
+     "options": [
+      {
+       "cuisine": "粤菜",
+       "area": "西湖",
+       "spice": "清淡",
+       "price": 23,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "A",
+       "name": "粤香园"
+      },
+      {
+       "cuisine": "西餐",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 85,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "B",
+       "name": "布鲁克林餐厅"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "西湖",
+       "spice": "偏辣",
+       "price": 22,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "C",
+       "name": "椰子鸡火锅"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 81,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "D",
+       "name": "牛油锅子"
+      },
+      {
+       "cuisine": "西餐",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 26,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "E",
+       "name": "橄榄树"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 58,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "F",
+       "name": "点都德茶楼"
+      }
+     ],
+     "correct": "F",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "decoy",
+      "D": "near_miss",
+      "E": "decoy",
+      "F": "correct"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "花生",
+       "diet": "素食",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "西湖"
+      },
+      "B": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "西餐",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      },
+      "C": {
+       "allergy": "花生",
+       "diet": "素食",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "低",
+       "office": "西湖"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      },
+      "E": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "西餐",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      }
+     }
+    },
+    {
+     "idx": 3,
+     "week": 6,
+     "date": "2026-02-15",
+     "weekday": "日",
+     "type": "P",
+     "event": null,
+     "temp": null,
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "dinner",
+     "request": "这周六晚上想约两个朋友在家附近吃顿饭，帮我挑一家。",
+     "user_text": "这周六晚上想约两个朋友在家附近吃顿饭，帮我挑一家。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "hyp_event",
+     "near_change": "newjob",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "低",
+      "home": "余杭",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "correct_is_post": false,
+     "options": [
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 220,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水",
+        "低糖"
+       ],
+       "slot": "20:30",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "A",
+       "name": "广府小厨"
+      },
+      {
+       "cuisine": "面食",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 195,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖",
+        "素食友好"
+       ],
+       "slot": "17:30",
+       "parking": false,
+       "kid_ok": false,
+       "pet_ok": false,
+       "id": "B",
+       "name": "葱油面铺"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 60,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水",
+        "素食友好"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "C",
+       "name": "早茶记"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 260,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水",
+        "低糖"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "D",
+       "name": "陶陶居"
+      },
+      {
+       "cuisine": "面食",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 240,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖",
+        "素食友好"
+       ],
+       "slot": "17:30",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "E",
+       "name": "一碗好面"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 235,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水",
+        "低糖"
+       ],
+       "slot": "18:00",
+       "parking": false,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "F",
+       "name": "岭南人家"
+      }
+     ],
+     "correct": "D",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "near_miss",
+      "D": "correct",
+      "E": "decoy",
+      "F": "decoy"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "余杭",
+       "commute": "地铁",
+       "kid": "无",
+       "pet": "无",
+       "evening": "下班晚"
+      },
+      "B": {
+       "allergy": "花生",
+       "diet": "低糖",
+       "cuisine": "面食",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "拱墅",
+       "commute": "骑车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "C": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "E": {
+       "allergy": "花生",
+       "diet": "普通",
+       "cuisine": "面食",
+       "spicy": "爱吃辣",
+       "budget": "高",
+       "home": "拱墅",
+       "commute": "骑车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "F": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "余杭",
+       "commute": "地铁",
+       "kid": "无",
+       "pet": "有狗",
+       "evening": "要早回"
+      }
+     }
+    },
+    {
+     "idx": 4,
+     "week": 9,
+     "date": "2026-03-02",
+     "weekday": "一",
+     "type": "P",
+     "event": null,
+     "temp": null,
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "lunch",
+     "request": "中午想在公司附近吃，帮我挑一家。",
+     "user_text": "中午想在公司附近吃，帮我挑一家。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "hyp_prior_temp",
+     "near_change": "expense",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "低",
+      "office": "拱墅"
+     },
+     "correct_is_post": true,
+     "options": [
+      {
+       "cuisine": "日料",
+       "area": "上城",
+       "spice": "清淡",
+       "price": 62,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "A",
+       "name": "竹笙割烹"
+      },
+      {
+       "cuisine": "面食",
+       "area": "西湖",
+       "spice": "清淡",
+       "price": 22,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "B",
+       "name": "西北面庄"
+      },
+      {
+       "cuisine": "面食",
+       "area": "西湖",
+       "spice": "清淡",
+       "price": 87,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "C",
+       "name": "葱油面铺"
+      },
+      {
+       "cuisine": "日料",
+       "area": "上城",
+       "spice": "清淡",
+       "price": 28,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "D",
+       "name": "鮨一"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 63,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "E",
+       "name": "岭南人家"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 24,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "F",
+       "name": "广府小厨"
+      }
+     ],
+     "correct": "E",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "decoy",
+      "D": "decoy",
+      "E": "correct",
+      "F": "near_miss"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "无",
+       "diet": "低糖",
+       "cuisine": "日料",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "上城"
+      },
+      "B": {
+       "allergy": "花生",
+       "diet": "低糖",
+       "cuisine": "面食",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "西湖"
+      },
+      "C": {
+       "allergy": "花生",
+       "diet": "低糖",
+       "cuisine": "面食",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "西湖"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "低糖",
+       "cuisine": "日料",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "上城"
+      },
+      "E": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      }
+     }
+    },
+    {
+     "idx": 5,
+     "week": 12,
+     "date": "2026-03-27",
+     "weekday": "五",
+     "type": "T",
+     "event": null,
+     "temp": {
+      "type": "elsewhere",
+      "cn": "这次换个区聚",
+      "reason": "换个区聚",
+      "attr": "home",
+      "value": "拱墅",
+      "long_value": "余杭"
+     },
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "拱墅",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "dinner",
+     "request": "周末想跟老同学聚一下，帮我选家店。",
+     "user_text": "这次聚会定在拱墅，朋友们都住那边，就在那附近找吧。周末想跟老同学聚一下，帮我选家店。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "temp_ignored",
+     "near_change": "elsewhere",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "correct_is_post": true,
+     "options": [
+      {
+       "cuisine": "火锅",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 130,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "slot": "17:30",
+       "parking": false,
+       "kid_ok": true,
+       "pet_ok": false,
+       "id": "A",
+       "name": "老灶火锅"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 65,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "slot": "18:00",
+       "parking": false,
+       "kid_ok": true,
+       "pet_ok": false,
+       "id": "B",
+       "name": "牛油锅子"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 230,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "slot": "17:30",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": false,
+       "id": "C",
+       "name": "早茶记"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 210,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "D",
+       "name": "粤香园"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 70,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "slot": "17:30",
+       "parking": false,
+       "kid_ok": true,
+       "pet_ok": false,
+       "id": "E",
+       "name": "椰子鸡火锅"
+      },
+      {
+       "cuisine": "火锅",
+       "area": "拱墅",
+       "spice": "偏辣",
+       "price": 255,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "slot": "18:00",
+       "parking": false,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "F",
+       "name": "围炉小馆"
+      }
+     ],
+     "correct": "D",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "near_miss",
+      "D": "correct",
+      "E": "decoy",
+      "F": "decoy"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "花生",
+       "diet": "低糖",
+       "cuisine": "火锅",
+       "spicy": "不吃辣",
+       "budget": "中",
+       "home": "余杭",
+       "commute": "地铁",
+       "kid": "有婴儿",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "B": {
+       "allergy": "花生",
+       "diet": "低糖",
+       "cuisine": "火锅",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "地铁",
+       "kid": "有婴儿",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "C": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "拱墅",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "E": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "低",
+       "home": "拱墅",
+       "commute": "地铁",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "火锅",
+       "spicy": "爱吃辣",
+       "budget": "高",
+       "home": "拱墅",
+       "commute": "地铁",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      }
+     }
+    },
+    {
+     "idx": 6,
+     "week": 15,
+     "date": "2026-04-18",
+     "weekday": "六",
+     "type": "P",
+     "event": null,
+     "temp": null,
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": {
+       "type": "elsewhere",
+       "attr": "home",
+       "value": "拱墅"
+      }
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "dinner",
+     "request": "周五请同事吃饭，就在我家附近，帮我订个地方。",
+     "user_text": "周五请同事吃饭，就在我家附近，帮我订个地方。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "temp_trap",
+     "near_change": "elsewhere",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "correct_is_post": false,
+     "options": [
+      {
+       "cuisine": "西餐",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 40,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "A",
+       "name": "布鲁克林餐厅"
+      },
+      {
+       "cuisine": "轻食",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 55,
+       "allergens": [
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "slot": "17:30",
+       "parking": true,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "B",
+       "name": "麦田轻食"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 270,
+       "allergens": [
+        "乳制品"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "C",
+       "name": "点都德茶楼"
+      },
+      {
+       "cuisine": "川菜",
+       "area": "余杭",
+       "spice": "偏辣",
+       "price": 65,
+       "allergens": [
+        "乳制品"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": true,
+       "pet_ok": true,
+       "id": "D",
+       "name": "川味坊"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 250,
+       "allergens": [
+        "花生"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "slot": "18:00",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "E",
+       "name": "早茶记"
+      },
+      {
+       "cuisine": "川菜",
+       "area": "余杭",
+       "spice": "偏辣",
+       "price": 45,
+       "allergens": [
+        "花生"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "slot": "20:30",
+       "parking": true,
+       "kid_ok": false,
+       "pet_ok": true,
+       "id": "F",
+       "name": "麻婆小院"
+      }
+     ],
+     "correct": "C",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "correct",
+      "D": "decoy",
+      "E": "near_miss",
+      "F": "decoy"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "乳制品",
+       "diet": "普通",
+       "cuisine": "西餐",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "有婴儿",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "B": {
+       "allergy": "乳制品",
+       "diet": "控碳水",
+       "cuisine": "轻食",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "有婴儿",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "C": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "余杭",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "D": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "川菜",
+       "spicy": "爱吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "骑车",
+       "kid": "无",
+       "pet": "有狗",
+       "evening": "要早回"
+      },
+      "E": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "home": "拱墅",
+       "commute": "开车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "要早回"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "川菜",
+       "spicy": "爱吃辣",
+       "budget": "低",
+       "home": "余杭",
+       "commute": "骑车",
+       "kid": "无",
+       "pet": "无",
+       "evening": "下班晚"
+      }
+     }
+    },
+    {
+     "idx": 7,
+     "week": 17,
+     "date": "2026-04-27",
+     "weekday": "一",
+     "type": "P",
+     "event": null,
+     "temp": null,
+     "hist": {
+      "last_event": {
+       "type": "pregnancy",
+       "cn": "怀孕",
+       "mention": "最近查出来怀孕了，医生让我吃得清淡些，辣的一口都不能碰，现在只想吃粤菜那种清淡的。",
+       "cues": {
+        "spicy": "明说",
+        "cuisine": "明说"
+       },
+       "changes": {
+        "spicy": [
+         "爱吃辣",
+         "不吃辣"
+        ],
+        "cuisine": [
+         "火锅",
+         "粤菜"
+        ]
+       }
+      },
+      "last_temp": null
+     },
+     "eff_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "domain": "lunch",
+     "request": "帮我在公司附近找个工作日能常去吃午饭的地方。",
+     "user_text": "帮我在公司附近找个工作日能常去吃午饭的地方。",
+     "long_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "高",
+      "home": "余杭",
+      "office": "拱墅",
+      "commute": "开车",
+      "kid": "无",
+      "pet": "无",
+      "evening": "要早回"
+     },
+     "near_miss": "hyp_temp",
+     "near_change": "frugal",
+     "near_miss_state": {
+      "allergy": "无",
+      "diet": "普通",
+      "cuisine": "粤菜",
+      "spicy": "不吃辣",
+      "budget": "低",
+      "office": "拱墅"
+     },
+     "correct_is_post": false,
+     "options": [
+      {
+       "cuisine": "西餐",
+       "area": "余杭",
+       "spice": "清淡",
+       "price": 80,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "A",
+       "name": "白鸽西餐"
+      },
+      {
+       "cuisine": "日料",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 62,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "B",
+       "name": "竹笙割烹"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 28,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低糖"
+       ],
+       "id": "C",
+       "name": "粤香园"
+      },
+      {
+       "cuisine": "日料",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 26,
+       "allergens": [
+        "乳制品",
+        "海鲜"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "D",
+       "name": "海之味料理"
+      },
+      {
+       "cuisine": "粤菜",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 76,
+       "allergens": [
+        "乳制品",
+        "花生"
+       ],
+       "diet_tags": [
+        "素食友好"
+       ],
+       "id": "E",
+       "name": "陶陶居"
+      },
+      {
+       "cuisine": "西餐",
+       "area": "拱墅",
+       "spice": "清淡",
+       "price": 19,
+       "allergens": [
+        "海鲜",
+        "花生"
+       ],
+       "diet_tags": [
+        "低碳水"
+       ],
+       "id": "F",
+       "name": "小酒馆"
+      }
+     ],
+     "correct": "E",
+     "roles": {
+      "A": "decoy",
+      "B": "decoy",
+      "C": "near_miss",
+      "D": "decoy",
+      "E": "correct",
+      "F": "decoy"
+     },
+     "option_states": {
+      "A": {
+       "allergy": "无",
+       "diet": "控碳水",
+       "cuisine": "西餐",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "余杭"
+      },
+      "B": {
+       "allergy": "花生",
+       "diet": "普通",
+       "cuisine": "日料",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      },
+      "C": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      },
+      "D": {
+       "allergy": "花生",
+       "diet": "普通",
+       "cuisine": "日料",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      },
+      "E": {
+       "allergy": "无",
+       "diet": "普通",
+       "cuisine": "粤菜",
+       "spicy": "不吃辣",
+       "budget": "高",
+       "office": "拱墅"
+      },
+      "F": {
+       "allergy": "无",
+       "diet": "控碳水",
+       "cuisine": "西餐",
+       "spicy": "不吃辣",
+       "budget": "低",
+       "office": "拱墅"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "scripted_users": [
+  "u07"
+ ],
+ "replay_of": {
+  "source": "runs/m1/world.json",
+  "uid": "u07",
+  "script": [
+   {
+    "type": "P",
+    "week": 1,
+    "domain": "lunch",
+    "event": null,
+    "temp": null
+   },
+   {
+    "type": "U",
+    "week": 3,
+    "domain": "util",
+    "event": null,
+    "temp": null
+   },
+   {
+    "type": "E",
+    "week": 4,
+    "domain": "lunch",
+    "event": "pregnancy",
+    "temp": null
+   },
+   {
+    "type": "P",
+    "week": 6,
+    "domain": "dinner",
+    "event": null,
+    "temp": null
+   },
+   {
+    "type": "P",
+    "week": 9,
+    "domain": "lunch",
+    "event": null,
+    "temp": null
+   },
+   {
+    "type": "T",
+    "week": 12,
+    "domain": "dinner",
+    "event": null,
+    "temp": [
+     "elsewhere",
+     "拱墅"
+    ]
+   },
+   {
+    "type": "P",
+    "week": 15,
+    "domain": "dinner",
+    "event": null,
+    "temp": null
+   },
+   {
+    "type": "P",
+    "week": 17,
+    "domain": "lunch",
+    "event": null,
+    "temp": null
+   }
+  ]
+ }
+}

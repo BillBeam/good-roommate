@@ -1,0 +1,14 @@
+世界 0： 1a3c1f326bb02381
+世界 1： 82a67a69fabb96dc
+世界 2： 2e4572a9e9b229a2
+世界 3： 69faac5c0c617094
+种子 0： {'oracle': 1.0, 'ideal': 0.938, 'nothing': 0.0, 'random': 0.119, 'ask_all': -0.263, 'remember_all_reask': 0.094, 'remember_no_update': 0.478, 'conservative': 0.173, 'modal': 0.155, 'v1mode:ask_all': 0.368, 'v1mode:remember_all_reask': 0.368, 'v1mode:ideal': 0.938} 自检通过
+种子 1： {'oracle': 1.0, 'ideal': 0.938, 'nothing': 0.0, 'random': 0.143, 'ask_all': -0.269, 'remember_all_reask': 0.046, 'remember_no_update': 0.431, 'conservative': 0.125, 'modal': 0.095, 'v1mode:ask_all': 0.368, 'v1mode:remember_all_reask': 0.368, 'v1mode:ideal': 0.938} 自检通过
+种子 2： {'oracle': 1.0, 'ideal': 0.937, 'nothing': 0.0, 'random': 0.196, 'ask_all': -0.204, 'remember_all_reask': 0.094, 'remember_no_update': 0.437, 'conservative': 0.185, 'modal': 0.196, 'v1mode:ask_all': 0.404, 'v1mode:remember_all_reask': 0.404, 'v1mode:ideal': 0.937} 自检通过
+种子 3： {'oracle': 1.0, 'ideal': 0.935, 'nothing': 0.0, 'random': 0.196, 'ask_all': -0.218, 'remember_all_reask': 0.062, 'remember_no_update': 0.437, 'conservative': 0.179, 'modal': 0.167, 'v1mode:ask_all': 0.371, 'v1mode:remember_all_reask': 0.371, 'v1mode:ideal': 0.935} 自检通过
+一致性检查 种子 0： {'refuse_told': 0, 'always_answer': 0}
+一致性检查 种子 1： {'refuse_told': 0, 'always_answer': 0}
+一致性检查 种子 2： {'refuse_told': 0, 'always_answer': 0}
+一致性检查 种子 3： {'refuse_told': 0, 'always_answer': 0}
+泄题检验： {'modal': 0.16703042328042325, 'conservative': 0.1636904761904762, 'position_best': 0.19246031746031747} 0.16865079365079366 {'statistic': 6.095238095238096, 'df': 5, 'p_value': 0.297061858637167}
+台词校验： 173 / 174 {'deepseek-v4-pro': 1.0, 'grok-4.7': 0.9942528735632183}

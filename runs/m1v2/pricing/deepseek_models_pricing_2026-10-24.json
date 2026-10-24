@@ -1,0 +1,126 @@
+{
+ "fetched_at": "2026-10-24T15:42:37+00:00",
+ "source": "GET https://api.deepseek.com/models（模型列表）、https://api-docs.deepseek.com/quick_start/pricing（英文价目页，美元）、https://api-docs.deepseek.com/zh-cn/quick_start/pricing（中文价目页，人民币）",
+ "unit_note": "每百万 tokens。高峰时段：北京时间周一至周五（不含法定节假日）9:00–12:00、14:00–18:00；其余为空闲时段，价格为高峰的一半。账本按每次调用的时刻取价。",
+ "models_endpoint": {
+  "object": "list",
+  "data": [
+   {
+    "id": "deepseek-flash",
+    "object": "model",
+    "owned_by": "deepseek",
+    "name": "DeepSeek-V4.1-Flash",
+    "context_window": 1048576,
+    "max_output_tokens": 393216,
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "effort": {
+     "supported_levels": [
+      "low",
+      "high",
+      "max"
+     ],
+     "default_level": "high"
+    },
+    "api_capabilities": {
+     "anthropic_messages": {
+      "system_prompt_update": "in-history",
+      "tool_update": "addition-only"
+     }
+    }
+   },
+   {
+    "id": "deepseek-v4-pro",
+    "object": "model",
+    "owned_by": "deepseek",
+    "name": "DeepSeek-V4-Pro",
+    "context_window": 1048576,
+    "max_output_tokens": 393216,
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ],
+    "effort": {
+     "supported_levels": [
+      "low",
+      "high",
+      "max"
+     ],
+     "default_level": "high"
+    },
+    "api_capabilities": {
+     "anthropic_messages": {
+      "system_prompt_update": "leading-only",
+      "tool_update": "leading-only"
+     }
+    }
+   }
+  ]
+ },
+ "pricing_page_text": "Model Details | ​ | MODEL | deepseek-flash | (1) | deepseek-v4-pro | BASE URL (OpenAI Format) | https://api.deepseek.com | BASE URL (Anthropic Format) | https://api.deepseek.com/anthropic | MODEL VERSION | DeepSeek-V4.1-Flash-1017 | DeepSeek-V4-Pro-0813 | THINKING MODE | Supports both non-thinking and thinking (default) modes | See | Thinking Mode | for how to switch | CONTEXT LENGTH | 1M | MAX OUTPUT | MAXIMUM: 384K | FEATURES | Json Output | ✓ | ✓ | Tool Calls | ✓ | ✓ | Responses API | ✓ | ✓ | Anthropic API | ✓ | ✓ | Chat Prefix Completion（Beta） | ✓ | ✓ | FIM Completion（Beta） | Non-thinking mode only | Non-thinking mode only | Vision | ✓ | Not supported | PRICING | (2) | 1M INPUT TOKENS | (CACHE HIT) | OFF-PEAK | $0.003 | $0.022 | PEAK | $0.006 | $0.044 | 1M INPUT TOKENS | (CACHE MISS) | OFF-PEAK | $0.15 | $0.66 | PEAK | $0.3 | $1.32 | 1M OUTPUT TOKENS | OFF-PEAK | $0.6 | $1.98 | PEAK | $1.2 | $3.96 | Concurrency Limit | (3) | 2500 | 500 | (1) Use | deepseek-flash | as the model name. The legacy names | deepseek-v4-flash | and | deepseek-v4-flash-vision-exp | are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash-1017 model and billed at the Flash price. | (2) Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full. | (3) For more details on concurrency limits, please refer to | Rate Limit & Isolation | . | ",
+ "zh_fetched_at": "2026-10-24T17:02:20+00:00",
+ "prices": {
+  "deepseek-flash": {
+   "model_version": "DeepSeek-V4.1-Flash-1017",
+   "usd": {
+    "peak": {
+     "input_cache_hit": 0.006,
+     "input_cache_miss": 0.3,
+     "output": 1.2
+    },
+    "off_peak": {
+     "input_cache_hit": 0.003,
+     "input_cache_miss": 0.15,
+     "output": 0.6
+    }
+   },
+   "cny": {
+    "peak": {
+     "input_cache_hit": 0.04,
+     "input_cache_miss": 2.0,
+     "output": 8.0
+    },
+    "off_peak": {
+     "input_cache_hit": 0.02,
+     "input_cache_miss": 1.0,
+     "output": 4.0
+    }
+   }
+  },
+  "deepseek-v4-pro": {
+   "model_version": "DeepSeek-V4-Pro-0813",
+   "usd": {
+    "peak": {
+     "input_cache_hit": 0.044,
+     "input_cache_miss": 1.32,
+     "output": 3.96
+    },
+    "off_peak": {
+     "input_cache_hit": 0.022,
+     "input_cache_miss": 0.66,
+     "output": 1.98
+    }
+   },
+   "cny": {
+    "peak": {
+     "input_cache_hit": 0.3,
+     "input_cache_miss": 9.0,
+     "output": 27.0
+    },
+    "off_peak": {
+     "input_cache_hit": 0.15,
+     "input_cache_miss": 4.5,
+     "output": 13.5
+    }
+   }
+  }
+ },
+ "pricing_page_text_zh": "模型细节 | ​ | 模型 | deepseek-flash | (1) | deepseek-v4-pro | BASE URL (OpenAI 格式) | https://api.deepseek.com | BASE URL (Anthropic 格式) | https://api.deepseek.com/anthropic | 模型版本 | DeepSeek-V4.1-Flash-1017 | DeepSeek-V4-Pro-0813 | 思考模式 | 支持非思考与思考模式（默认） | 切换方式详见 | 思考模式 | 上下文长度 | 1M | 输出长度 | 最大 384K | 功能 | Json Output | 支持 | 支持 | Tool Calls | 支持 | 支持 | Responses API | 支持 | 支持 | Anthropic API | 支持 | 支持 | 对话前缀续写（Beta） | 支持 | 支持 | FIM 补全（Beta） | 仅非思考模式支持 | 仅非思考模式支持 | 图像理解 | 支持 | 不支持 | 价格 | (2) | 百万tokens输入 | （缓存命中） | 空闲时段 | 0.02元 | 0.15元 | 高峰时段 | 0.04元 | 0.30元 | 百万tokens输入 | （缓存未命中） | 空闲时段 | 1元 | 4.5元 | 高峰时段 | 2元 | 9.0元 | 百万tokens输出 | 空闲时段 | 4元 | 13.5元 | 高峰时段 | 8元 | 27.0元 | 并发限制 | (3) | 2500 | 500 | (1) 模型名请使用 | deepseek-flash | 。旧模型名 | deepseek-v4-flash | 、 | deepseek-v4-flash-vision-exp | 仍可调用，但对应模型已下线，请求将由 DeepSeek-V4.1-Flash-1017 模型提供服务，并按 Flash 价格计费。 | (2) 空闲时段价格为高峰时段价格的一半。北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。 | (3) 更多并发限制细节，请参考 | 限速与隔离 | 。 | "
+}

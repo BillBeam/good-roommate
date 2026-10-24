@@ -1,0 +1,6 @@
+种子 1 llm:deepseek-flash:true_memory       平均分 0.982  累计花费 9.29 美元
+种子 2 llm:deepseek-flash:true_memory       平均分 0.994  累计花费 9.74 美元
+种子 3 llm:deepseek-flash:true_memory       平均分 0.993  累计花费 10.31 美元
+种子 1 llm:grok-4.7:true_memory             平均分 0.993  累计花费 14.03 美元
+种子 2 llm:grok-4.7:true_memory             平均分 0.999  累计花费 18.92 美元
+种子 3 llm:grok-4.7:true_memory             平均分 0.196  累计花费 19.85 美元
