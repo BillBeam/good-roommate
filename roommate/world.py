@@ -278,8 +278,9 @@ def hyp_options(state, domain, events):
     return out
 
 
-def generate_life(rng, uid, n_sessions, events):
-    init = sample_initial_state(rng)
+def generate_life(rng, uid, n_sessions, events, script=None, init=None):
+    """script（可选）：逐次会话固定 type、week、domain、event、temp（用于把第一版某个用户的经历按第二版规则重放）。"""
+    init = dict(init) if init else sample_initial_state(rng)
     state = dict(init)
     types = ["P"] * n_sessions
     e1 = rng.choice([2, 3])
@@ -290,6 +291,8 @@ def generate_life(rng, uid, n_sessions, events):
         types[n_sessions - 2] = "E"
     free = [i for i in range(1, n_sessions) if types[i] == "P" and types[i - 1] not in ("E", "T")]
     types[rng.choice(free)] = "U"
+    if script:
+        types = [x["type"] for x in script]
 
     sessions, week, used_events, prev_domain = [], 1, set(), None
     last_event = None   # {"changes": {a: [old, new]}}：最近一次事件
@@ -298,12 +301,14 @@ def generate_life(rng, uid, n_sessions, events):
     for idx, typ in enumerate(types):
         if idx > 0:
             week += rng.choice([1, 2, 2, 3])
+        if script:
+            week = script[idx]["week"]
         date = BASE_DATE + dt.timedelta(days=(week - 1) * 7 + rng.randint(0, 6))
         sess = {"idx": idx, "week": week, "date": date.isoformat(), "weekday": WEEKDAYS[date.weekday()],
                 "type": typ, "event": None, "temp": None}
         mention = ""
         if typ == "E":
-            etype = _pick_event(rng, state, used_events, events)
+            etype = script[idx]["event"] if script else _pick_event(rng, state, used_events, events)
             if etype is None:
                 typ = sess["type"] = "P"
             else:
@@ -331,6 +336,10 @@ def generate_life(rng, uid, n_sessions, events):
             tv = texts.TEMPS[ttype]
             val = texts.temp_value(ttype, state, rng)
             domain = rng.choice(tv["domains"])
+            if script:
+                ttype, val = script[idx]["temp"]
+                tv = texts.TEMPS[ttype]
+                domain = script[idx]["domain"]
             eff[tv["attr"]] = val
             sess["temp"] = {"type": ttype, "cn": tv["cn"], "reason": tv["reason"], "attr": tv["attr"],
                             "value": val, "long_value": state[tv["attr"]]}
@@ -338,11 +347,15 @@ def generate_life(rng, uid, n_sessions, events):
         elif typ == "E":
             covering = [d for d in DOMAINS if _two_sided_in(sess["event"]["changes"], d)]
             domain = rng.choice(covering) if covering else _pick_domain(rng, set(sess["event"]["changes"]))
+            if script:
+                domain = script[idx]["domain"]
         else:
             want = set(pending) | ({last_temp["attr"]} if last_temp else set())
             domain = _pick_domain(rng, want, avoid=prev_domain if idx <= 1 else None)
             if idx == 0:
                 domain = rng.choice(["dinner", "lunch"])
+            if script:
+                domain = script[idx]["domain"]
         # 记下本次会话之前的历史，第二遍用来为任意领域构造近似项
         sess["hist"] = {"last_event": last_event if typ != "E" else sess["event"],
                         "last_temp": last_temp if typ != "T" else None}
@@ -437,14 +450,18 @@ def _decoy_pairs(rng, domain, same, pool, events, n=2):
     return out
 
 
-def generate_world(seed, n_users=24, n_sessions=8, events=None, config=None):
-    """events：允许出现的事件类型（用于按事件类型划出留出集，见 event_split）；默认全部。"""
+def generate_world(seed, n_users=24, n_sessions=8, events=None, config=None, scripts=None):
+    """events：允许出现的事件类型（用于按事件类型划出留出集，见 event_split）；默认全部。
+    scripts（可选）：{uid: (初始状态, 逐次会话脚本)}，把某个用户的经历固定下来重放（见 generate_life）。"""
     assert n_sessions >= 6
     events = list(ALL_EVENTS if events is None else events)
     cfg = dict(DEFAULT_CONFIG, **(config or {}))
     rng = random.Random(seed)
     user_rngs = [random.Random(rng.random()) for _ in range(n_users)]
-    users = [generate_life(user_rngs[i], f"u{i:02d}", n_sessions, events) for i in range(n_users)]
+    scripts = scripts or {}
+    users = [generate_life(user_rngs[i], f"u{i:02d}", n_sessions, events,
+                           script=scripts.get(f"u{i:02d}", (None, None))[1],
+                           init=scripts.get(f"u{i:02d}", (None, None))[0]) for i in range(n_users)]
     balance = _assign_near_misses(random.Random(f"{seed}|balance"), users, events)
     # 先为每次任务定下近似项
     for u in users:
@@ -473,8 +490,11 @@ def generate_world(seed, n_users=24, n_sessions=8, events=None, config=None):
         for s in u["sessions"]:
             s.pop("_near", None)
             s.pop("near_miss_candidates", None)
-    return {"version": VERSION, "seed": seed, "n_users": n_users, "n_sessions": n_sessions,
-            "events": events, "config": cfg, "near_miss_balance": balance, "users": users}
+    out = {"version": VERSION, "seed": seed, "n_users": n_users, "n_sessions": n_sessions,
+           "events": events, "config": cfg, "near_miss_balance": balance, "users": users}
+    if scripts:
+        out["scripted_users"] = sorted(scripts)
+    return out
 
 
 def event_split(holdout):

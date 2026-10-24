@@ -85,6 +85,8 @@ class LLMAgent:
         for turns in range(1, MAX_TURNS + 1):
             body = {"model": self.model, "messages": messages, "tools": tools(cfg["question_cost"]),
                     "tool_choice": "auto", "temperature": 0, "seed": sid, **self.extra}
+            if self.model.startswith("deepseek"):
+                body.pop("seed")  # DeepSeek 接口没有 seed 参数；复现靠缓存
             resp = self.client.chat(body, role="control" if self.inject_true_memory else "agent")
             msg = resp["choices"][0]["message"]
             calls = msg.get("tool_calls") or []
