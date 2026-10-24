@@ -3,7 +3,8 @@
 import hashlib
 import json
 
-from roommate.llm import XAIClient
+from roommate.llm import LLMClient
+from roommate.schema import ATTR_CN
 
 
 def _h(x):
@@ -12,17 +13,16 @@ def _h(x):
 
 def fake_response(body):
     msgs = body["messages"]
-    if "tools" not in body:  # 提问归类
-        q = msgs[-1]["content"]
-        topics = [t for t, kw in (("饮食", "忌口"), ("预算", "预算"), ("住处", "住"), ("近况", "最近")) if kw in q]
-        return {"choices": [{"message": {"role": "assistant", "content": json.dumps({"topics": topics})}}],
+    if "tools" not in body:  # 台词校验
+        return {"choices": [{"message": {"role": "assistant", "content": json.dumps({"changes": {}})}}],
                 "usage": {"cost_in_usd_ticks": 0}}
     n_tool = sum(m["role"] == "tool" for m in msgs)
     h = _h(msgs)
+    names = list(ATTR_CN.values())
     if n_tool == 0:
         call = ("memory_read", {})
     elif n_tool == 1 and h % 3 == 0:
-        call = ("ask_user", {"question": ["你有什么忌口？预算多少？", "你住哪里？", "最近怎么样？"][h % 7 % 3]})
+        call = ("ask_user", {"question": "问一下", "attributes": [names[h % 11], names[(h // 11) % 11]]})
     elif n_tool <= 2:
         call = ("memory_write", {"key": f"k{h % 5}", "value": msgs[-1]["content"][:30]})
     else:
@@ -32,7 +32,7 @@ def fake_response(body):
             "usage": {"cost_in_usd_ticks": 0}}
 
 
-class FakeClient(XAIClient):
+class FakeClient(LLMClient):
     """走真实的缓存逻辑，只把网络请求换成 fake_response，并统计真正"发出"的请求数。"""
 
     def __init__(self, cache_dir, ledger, offline=False):

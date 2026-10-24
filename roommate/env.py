@@ -1,7 +1,7 @@
 """会话循环、agent 工具、存档与恢复。
 
 一个 Episode 对应一个模拟用户的一生；Env 管理全部用户，按会话序号一轮一轮推进，
-因此可以在任意会话边界保存完整状态（用户真实状态、agent 记忆、已产生的判分记录）并恢复。
+因此可以在任意会话边界保存完整状态（用户真实状态、用户记着的"告诉过 agent 的值"、agent 记忆、判分记录）并恢复。
 策略本身不保存跨会话状态：大模型 agent 和脚本策略的跨会话信息都只在记忆里。
 """
 
@@ -9,29 +9,26 @@ import json
 import random
 from concurrent.futures import ThreadPoolExecutor
 
+from . import texts
 from .grading import grade_session
 from .llm import BudgetExceeded, CacheMiss
 from .memory import MemoryStore
+from .schema import ATTR_CN, ATTR_ORDER, CN_ATTR, DOMAINS
 from .usersim import SimUser
 
-CHECKPOINT_VERSION = 1
+CHECKPOINT_VERSION = 2
 
 
 def render_option(o, domain):
     if domain == "util":
         return f"{o['id']}. {o['name']}"
     yn = lambda b: "有" if b else "无"
-    if domain == "hotel":
-        parts = [o["name"], f"每晚 {o['price']} 元", "早餐：" + ("、".join(o["diet_tags"]) or "普通"),
-                 f"停车位：{yn(o['parking'])}", f"婴儿床：{yn(o['kid_ok'])}",
-                 "可带宠物：" + ("是" if o["pet_ok"] else "否")]
-    else:
-        parts = [o["name"], o["cuisine"], o["area"], f"人均 {o['price']} 元", f"口味：{o['spice']}",
-                 "饮食：" + ("、".join(o["diet_tags"]) or "无特别标注"),
-                 "含：" + ("、".join(o["allergens"]) or "无常见过敏原")]
-        if domain == "dinner":
-            parts[4:4] = [f"可订 {o['slot']}"]
-            parts += [f"停车位：{yn(o['parking'])}", f"宝宝椅：{yn(o['kid_ok'])}"]
+    parts = [o["name"], o["cuisine"], o["area"], f"人均 {o['price']} 元", f"口味：{o['spice']}",
+             "饮食：" + "、".join(o["diet_tags"]), "含：" + "、".join(o["allergens"])]
+    if domain == "dinner":
+        parts[4:4] = [f"可订 {o['slot']}"]
+        parts += [f"停车位：{yn(o['parking'])}", f"宝宝椅：{yn(o['kid_ok'])}",
+                  "可带宠物：" + ("是" if o["pet_ok"] else "否")]
     return f"{o['id']}. " + "｜".join(parts)
 
 
@@ -41,13 +38,37 @@ def render_session(sess):
     return f"{head}\n用户：{sess['user_text']}\n\n候选选项：\n{opts}"
 
 
+def render_true_state(state, temp, spicy_reason=None):
+    """"知道真实状态"对照组：把用户当前的真实情况写成记忆条目。"""
+    out = {}
+    for a in ATTR_ORDER:
+        v = texts.phrase(a, state[a], spicy_reason)
+        if temp and temp["attr"] == a:
+            v = f"平时：{v}；本次（{temp['cn']}）：{texts.phrase(a, temp['value'])}"
+        out[f"用户当前真实情况·{ATTR_CN[a]}"] = v
+    return out
+
+
+def parse_attrs(raw):
+    """把 agent 声明的属性（中文名或英文键）解析成属性键；返回 (有效键, 无效项)。"""
+    if isinstance(raw, str):
+        raw = [x for x in raw.replace("，", ",").replace("、", ",").split(",")]
+    good, bad = [], []
+    for x in raw or []:
+        x = str(x).strip()
+        if not x:
+            continue
+        k = CN_ATTR.get(x) or (x if x in ATTR_CN else None)
+        (good if k else bad).append(k or x)
+    return good, bad
+
+
 class SessionContext:
     """一次会话里 agent 能做的事。"""
 
-    def __init__(self, episode, sess, classify):
+    def __init__(self, episode, sess):
         self.ep = episode
         self.sess = sess
-        self.classify = classify
         self.prompt = render_session(sess)
         self.questions = []
         self.memory_ops = []
@@ -68,19 +89,22 @@ class SessionContext:
         self.memory_ops.append(["delete", key])
         return self.ep.memory.delete(key)
 
-    # 提问工具（计成本）
-    def ask(self, question, topics=None):
-        if topics is None:
-            topics = self.classify(question)
-        text, answered, rep = self.ep.user.answer(topics)
-        self.questions.append({"text": question, "topics": answered,
-                               "repeated": bool(answered) and all(rep), "answer": text})
-        return text
+    # 提问工具（计成本）：必须声明问哪几项属性
+    def ask(self, question, attributes):
+        good, bad = parse_attrs(attributes)
+        if not good:
+            return texts.NO_ATTR_ERROR + (f"（无法识别：{'、'.join(bad)}）" if bad else "")
+        r = self.ep.user.answer(good)
+        self.questions.append({"text": question, "attributes": r["answered"], "declared": good,
+                               "invalid": bad, "answer": r["text"], "status": r["status"],
+                               "too_many": r["too_many"],
+                               "repeated": all(st in ("told_before", "answered_again") for st in r["status"].values())})
+        return r["text"]
 
-    def ask_structured(self, topics):
-        """脚本策略专用：提问照常计数，额外拿到结构化取值。"""
-        self.ask("／".join(topics), topics=topics)
-        return self.ep.user.structured(topics[:2])
+    def ask_structured(self, attrs):
+        """脚本策略专用：照常提问计数，并按回答的文字（texts.parse_claims）拿到其中的陈述。"""
+        text = self.ask("／".join(ATTR_CN[a] for a in attrs), [ATTR_CN[a] for a in attrs])
+        return texts.parse_claims(text)
 
     def choose(self, option_id):
         if self.done:
@@ -93,7 +117,7 @@ class SessionContext:
         self.done = True
         return f"已选择 {option_id}，本次会话结束。"
 
-    # 特权接口：只有"标准策略"会调用，用于判分自检
+    # 特权接口：只有标准策略、理想记忆策略（只用于更新）和对照组会用到，用于判分自检与参照
     def oracle_state(self):
         return self.ep.user.effective()
 
@@ -102,10 +126,11 @@ class SessionContext:
 
 
 class Episode:
-    def __init__(self, plan, seed):
+    def __init__(self, plan, seed, config):
         self.plan = plan
         self.seed = seed
-        self.user = SimUser(plan)
+        self.config = config
+        self.user = SimUser(plan, config["repeat_mode"])
         self.memory = MemoryStore()
         self.next_idx = 0
         self.records = []
@@ -114,10 +139,13 @@ class Episode:
     def finished(self):
         return self.next_idx >= len(self.plan["sessions"])
 
-    def run_session(self, policy, classify):
+    def run_session(self, policy):
         sess = self.plan["sessions"][self.next_idx]
         self.user.begin_session(sess)
-        ctx = SessionContext(self, sess, classify)
+        if getattr(policy, "inject_true_memory", False):
+            self.memory.entries = {k: {"value": v, "week": sess["week"]}
+                                   for k, v in render_true_state(self.user.state, sess.get("temp"), self.user.spicy_reason).items()}
+        ctx = SessionContext(self, sess)
         error = None
         try:
             policy.run_session(ctx)
@@ -134,7 +162,8 @@ class Episode:
             "chosen_role": sess["roles"].get(ctx.chosen) if ctx.chosen else None,
             "questions": ctx.questions, "memory_ops": ctx.memory_ops,
             "memory_after": {k: v["value"] for k, v in self.memory.entries.items()},
-            "grade": grade_session(sess, ctx.chosen, len(ctx.questions)),
+            "told_after": dict(self.user.told),
+            "grade": grade_session(sess, ctx.chosen, len(ctx.questions), self.config["question_cost"]),
             "error": error, **ctx.notes,
         }
         self.records.append(rec)
@@ -154,10 +183,11 @@ class Episode:
 
 
 class Env:
-    def __init__(self, world, classify):
+    def __init__(self, world, config=None):
+        """config 覆盖世界自带的配置（repeat_mode、question_cost）。"""
         self.world = world
-        self.classify = classify
-        self.episodes = [Episode(u, world["seed"]) for u in world["users"]]
+        self.config = dict(world["config"], **(config or {}))
+        self.episodes = [Episode(u, world["seed"], self.config) for u in world["users"]]
 
     def run(self, policy, until=None, workers=1):
         """推进到会话序号 until（不含）；None 表示跑完。按会话序号逐轮推进，各用户之间并行。"""
@@ -167,23 +197,23 @@ class Env:
                 todo = [e for e in self.episodes if e.next_idx < n]
                 if not todo:
                     break
-                list(pool.map(lambda e: e.run_session(policy, self.classify), todo))
+                list(pool.map(lambda e: e.run_session(policy), todo))
 
     def records(self):
         return sorted((r for e in self.episodes for r in e.records), key=lambda r: (r["uid"], r["idx"]))
 
     def save(self, path):
-        data = {"version": CHECKPOINT_VERSION, "world": self.world,
+        data = {"version": CHECKPOINT_VERSION, "world": self.world, "config": self.config,
                 "episodes": [e.state_dict() for e in self.episodes]}
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
 
     @classmethod
-    def load(cls, path, classify):
+    def load(cls, path):
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         assert data["version"] == CHECKPOINT_VERSION
-        env = cls(data["world"], classify)
+        env = cls(data["world"], data["config"])
         for e, d in zip(env.episodes, data["episodes"]):
             e.load_state_dict(d)
         return env

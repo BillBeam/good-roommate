@@ -5,15 +5,15 @@ import unittest
 
 from roommate.agent_llm import LLMAgent
 from roommate.env import Env
-from roommate.llm import CacheMiss, Ledger, make_classifier
+from roommate.llm import CacheMiss, Ledger
 from roommate.policies import SCRIPTED
 from roommate.world import generate_world, world_hash
 
 from .fake import FakeClient
 
 
-def run(world, pol, clf=None):
-    env = Env(world, clf)
+def run(world, pol):
+    env = Env(world)
     env.run(pol, workers=4)
     return json.dumps(env.records(), ensure_ascii=False, sort_keys=True)
 
@@ -33,10 +33,10 @@ class ReproTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             cache = os.path.join(td, "cache")
             c1 = FakeClient(cache, Ledger(None, 1))
-            a = run(w, LLMAgent(c1, "fake-model"), make_classifier(c1))
+            a = run(w, LLMAgent(c1, "fake-model"))
             self.assertGreater(c1.posts, 0)
             c2 = FakeClient(cache, Ledger(None, 1), offline=True)
-            b = run(w, LLMAgent(c2, "fake-model"), make_classifier(c2))
+            b = run(w, LLMAgent(c2, "fake-model"))
             self.assertEqual(c2.posts, 0)
             self.assertEqual(a, b)
 
@@ -45,7 +45,7 @@ class ReproTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             c = FakeClient(os.path.join(td, "empty"), Ledger(None, 1), offline=True)
             with self.assertRaises(CacheMiss):
-                run(w, LLMAgent(c, "fake-model"), make_classifier(c))
+                run(w, LLMAgent(c, "fake-model"))
 
 
 if __name__ == "__main__":
