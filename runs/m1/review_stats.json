@@ -1,0 +1,243 @@
+{
+  "note": "比例都以标准策略（oracle）的总分为分母；剩余空间比例 = (模型分 - 最简单策略中最高分) / (oracle 分 - 最简单策略中最高分)",
+  "n_users": 24,
+  "n_bootstrap": 5000,
+  "ratio_to_oracle": {
+    "ask_all": 0.6742,
+    "conservative": 0.3125,
+    "remember_no_update": 0.4935,
+    "majority": 0.2292,
+    "random": 0.1667,
+    "nothing": 0.0,
+    "llm_grok-4.7": 0.813,
+    "llm_grok-4.3": 0.5698,
+    "llm_grok-4.20-0309-non-reasoning": 0.4164,
+    "oracle": 1.0
+  },
+  "best_trivial_policy": "ask_all",
+  "models": {
+    "llm_grok-4.7": {
+      "ratio_to_oracle": 0.813,
+      "ratio_to_oracle_ci95": [
+        0.7565,
+        0.8565
+      ],
+      "p_ratio_below_0.80": 0.284,
+      "headroom_share": 0.4261,
+      "headroom_share_ci95": [
+        0.2526,
+        0.5591
+      ],
+      "loss_from_questions_per_session": 0.0984,
+      "loss_from_failures_per_session": 0.0885,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          6
+        ],
+        [
+          "P|hotel|temp_trap",
+          2
+        ],
+        [
+          "P|lunch|stale_trap",
+          2
+        ],
+        [
+          "P|lunch|distractor",
+          2
+        ],
+        [
+          "T|dinner|stale_trap",
+          1
+        ],
+        [
+          "P|dinner|stale_trap",
+          1
+        ],
+        [
+          "T|dinner|distractor",
+          1
+        ],
+        [
+          "E|lunch|distractor",
+          1
+        ],
+        [
+          "E|lunch|stale_trap",
+          1
+        ]
+      ]
+    },
+    "llm_grok-4.3": {
+      "ratio_to_oracle": 0.5698,
+      "ratio_to_oracle_ci95": [
+        0.5073,
+        0.6279
+      ],
+      "p_ratio_below_0.80": 1.0,
+      "headroom_share": -0.3205,
+      "headroom_share_ci95": [
+        -0.5098,
+        -0.1408
+      ],
+      "loss_from_questions_per_session": 0.1125,
+      "loss_from_failures_per_session": 0.3177,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          10
+        ],
+        [
+          "P|lunch|distractor",
+          9
+        ],
+        [
+          "P|hotel|distractor",
+          8
+        ],
+        [
+          "E|dinner|distractor",
+          5
+        ],
+        [
+          "T|dinner|stale_trap",
+          5
+        ],
+        [
+          "P|dinner|stale_trap",
+          5
+        ],
+        [
+          "T|dinner|distractor",
+          4
+        ],
+        [
+          "P|dinner|temp_trap",
+          4
+        ],
+        [
+          "T|lunch|distractor",
+          3
+        ],
+        [
+          "E|hotel|distractor",
+          2
+        ],
+        [
+          "E|lunch|distractor",
+          2
+        ],
+        [
+          "T|hotel|distractor",
+          1
+        ],
+        [
+          "P|lunch|temp_trap",
+          1
+        ],
+        [
+          "E|lunch|temp_trap",
+          1
+        ],
+        [
+          "P|hotel|stale_trap",
+          1
+        ]
+      ]
+    },
+    "llm_grok-4.20-0309-non-reasoning": {
+      "ratio_to_oracle": 0.4164,
+      "ratio_to_oracle_ci95": [
+        0.3526,
+        0.4807
+      ],
+      "p_ratio_below_0.80": 1.0,
+      "headroom_share": -0.7914,
+      "headroom_share_ci95": [
+        -0.9889,
+        -0.5921
+      ],
+      "loss_from_questions_per_session": 0.1617,
+      "loss_from_failures_per_session": 0.4219,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          18
+        ],
+        [
+          "P|lunch|distractor",
+          10
+        ],
+        [
+          "P|dinner|stale_trap",
+          9
+        ],
+        [
+          "P|hotel|distractor",
+          7
+        ],
+        [
+          "T|dinner|distractor",
+          6
+        ],
+        [
+          "T|dinner|stale_trap",
+          5
+        ],
+        [
+          "P|dinner|temp_trap",
+          4
+        ],
+        [
+          "E|dinner|distractor",
+          4
+        ],
+        [
+          "T|lunch|distractor",
+          3
+        ],
+        [
+          "P|lunch|stale_trap",
+          3
+        ],
+        [
+          "P|hotel|temp_trap",
+          2
+        ],
+        [
+          "P|hotel|stale_trap",
+          2
+        ],
+        [
+          "U|util|distractor",
+          2
+        ],
+        [
+          "E|hotel|distractor",
+          1
+        ],
+        [
+          "E|lunch|stale_trap",
+          1
+        ],
+        [
+          "P|lunch|temp_trap",
+          1
+        ],
+        [
+          "U|util|None",
+          1
+        ],
+        [
+          "T|lunch|stale_trap",
+          1
+        ],
+        [
+          "E|lunch|distractor",
+          1
+        ]
+      ]
+    }
+  }
+}
