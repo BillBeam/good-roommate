@@ -1,0 +1,14 @@
+{
+ "total_usd": 0.8185479999999996,
+ "by_model_role": {
+  "grok-4.7|cuecheck": {
+   "api_calls": 174,
+   "cache_hits": 0,
+   "prompt_tokens": 299828,
+   "cached_prompt_tokens": 245760,
+   "completion_tokens": 2931,
+   "reasoning_tokens": 94991,
+   "cost_usd": 0.8185479999999996
+  }
+ }
+}

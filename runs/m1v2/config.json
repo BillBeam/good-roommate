@@ -1,0 +1,47 @@
+{
+ "written_at": "2026-10-24T15:30:50+00:00",
+ "world_config": {
+  "repeat_mode": "refuse_told",
+  "question_cost": 0.15
+ },
+ "gate_seeds": [
+  1,
+  2,
+  3
+ ],
+ "compare_seed": 0,
+ "classifier_train_seeds": [
+  100,
+  159
+ ],
+ "models": [
+  "deepseek-v4-flash",
+  "deepseek-v4-pro",
+  "grok-4.7"
+ ],
+ "control_models": [
+  "deepseek-v4-flash",
+  "deepseek-v4-pro",
+  "grok-4.7"
+ ],
+ "compare_models": [
+  "grok-4.7"
+ ],
+ "cue_judges": [
+  "deepseek-v4-pro",
+  "grok-4.7"
+ ],
+ "model_extra": {},
+ "echo_reasoning": {
+  "deepseek-v4-flash": true,
+  "deepseek-v4-pro": true
+ },
+ "budget_usd": 40.0,
+ "v1_mode_policies": [
+  "ask_all",
+  "remember_all_reask",
+  "ideal"
+ ],
+ "stages": "worlds,scripted",
+ "offline": false
+}
