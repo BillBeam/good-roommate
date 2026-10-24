@@ -1,0 +1,57 @@
+{
+ "world_hash": "726f4d7fb0a1ff1b",
+ "scripted": {
+  "oracle": {
+   "first": "ab9da3dd684d88bb",
+   "rerun": "ab9da3dd684d88bb",
+   "identical": true
+  },
+  "nothing": {
+   "first": "5ac30948f0f42a90",
+   "rerun": "5ac30948f0f42a90",
+   "identical": true
+  },
+  "ask_all": {
+   "first": "6e49a6f6c0f25f6c",
+   "rerun": "6e49a6f6c0f25f6c",
+   "identical": true
+  },
+  "conservative": {
+   "first": "465ceb231549e562",
+   "rerun": "465ceb231549e562",
+   "identical": true
+  },
+  "random": {
+   "first": "e054d5939de11ea8",
+   "rerun": "e054d5939de11ea8",
+   "identical": true
+  },
+  "remember_no_update": {
+   "first": "c78e4df9f45c6439",
+   "rerun": "c78e4df9f45c6439",
+   "identical": true
+  },
+  "majority": {
+   "first": "98f0708e40d48e6e",
+   "rerun": "98f0708e40d48e6e",
+   "identical": true
+  }
+ },
+ "llm": {
+  "llm:grok-4.20-0309-non-reasoning": {
+   "first": "1030aa5a761486fc",
+   "rerun_from_cache": "1030aa5a761486fc",
+   "identical": true
+  },
+  "llm:grok-4.3": {
+   "first": "73947a235f6bf545",
+   "rerun_from_cache": "73947a235f6bf545",
+   "identical": true
+  },
+  "llm:grok-4.7": {
+   "first": "be34d3d47478d396",
+   "rerun_from_cache": "be34d3d47478d396",
+   "identical": true
+  }
+ }
+}

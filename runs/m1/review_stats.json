@@ -1,0 +1,472 @@
+{
+  "note": "比例都以标准策略（oracle）的总分为分母；剩余空间比例 = (模型分 - 最简单策略中最高分) / (oracle 分 - 最简单策略中最高分)",
+  "n_users": 24,
+  "n_bootstrap": 5000,
+  "ratio_to_oracle": {
+    "ask_all": 0.6742,
+    "conservative": 0.3125,
+    "remember_no_update": 0.4935,
+    "majority": 0.2292,
+    "random": 0.1667,
+    "nothing": 0.0,
+    "llm_grok-4.7": 0.813,
+    "llm_grok-4.3": 0.5698,
+    "llm_grok-4.20-0309-non-reasoning": 0.4164,
+    "oracle": 1.0
+  },
+  "best_trivial_policy": "ask_all",
+  "models": {
+    "llm_grok-4.7": {
+      "ratio_to_oracle": 0.813,
+      "ratio_to_oracle_ci95": [
+        0.7565,
+        0.8565
+      ],
+      "p_ratio_below_0.80": 0.284,
+      "headroom_share": 0.4261,
+      "headroom_share_ci95": [
+        0.2526,
+        0.5591
+      ],
+      "loss_from_questions_per_session": 0.0984,
+      "loss_from_failures_per_session": 0.0885,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          6
+        ],
+        [
+          "P|hotel|temp_trap",
+          2
+        ],
+        [
+          "P|lunch|stale_trap",
+          2
+        ],
+        [
+          "P|lunch|distractor",
+          2
+        ],
+        [
+          "T|dinner|stale_trap",
+          1
+        ],
+        [
+          "P|dinner|stale_trap",
+          1
+        ],
+        [
+          "T|dinner|distractor",
+          1
+        ],
+        [
+          "E|lunch|distractor",
+          1
+        ],
+        [
+          "E|lunch|stale_trap",
+          1
+        ]
+      ]
+    },
+    "llm_grok-4.3": {
+      "ratio_to_oracle": 0.5698,
+      "ratio_to_oracle_ci95": [
+        0.5073,
+        0.6279
+      ],
+      "p_ratio_below_0.80": 1.0,
+      "headroom_share": -0.3205,
+      "headroom_share_ci95": [
+        -0.5098,
+        -0.1408
+      ],
+      "loss_from_questions_per_session": 0.1125,
+      "loss_from_failures_per_session": 0.3177,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          10
+        ],
+        [
+          "P|lunch|distractor",
+          9
+        ],
+        [
+          "P|hotel|distractor",
+          8
+        ],
+        [
+          "E|dinner|distractor",
+          5
+        ],
+        [
+          "T|dinner|stale_trap",
+          5
+        ],
+        [
+          "P|dinner|stale_trap",
+          5
+        ],
+        [
+          "T|dinner|distractor",
+          4
+        ],
+        [
+          "P|dinner|temp_trap",
+          4
+        ],
+        [
+          "T|lunch|distractor",
+          3
+        ],
+        [
+          "E|hotel|distractor",
+          2
+        ],
+        [
+          "E|lunch|distractor",
+          2
+        ],
+        [
+          "T|hotel|distractor",
+          1
+        ],
+        [
+          "P|lunch|temp_trap",
+          1
+        ],
+        [
+          "E|lunch|temp_trap",
+          1
+        ],
+        [
+          "P|hotel|stale_trap",
+          1
+        ]
+      ]
+    },
+    "llm_grok-4.20-0309-non-reasoning": {
+      "ratio_to_oracle": 0.4164,
+      "ratio_to_oracle_ci95": [
+        0.3526,
+        0.4807
+      ],
+      "p_ratio_below_0.80": 1.0,
+      "headroom_share": -0.7914,
+      "headroom_share_ci95": [
+        -0.9889,
+        -0.5921
+      ],
+      "loss_from_questions_per_session": 0.1617,
+      "loss_from_failures_per_session": 0.4219,
+      "failures_by_type_domain_role": [
+        [
+          "P|dinner|distractor",
+          18
+        ],
+        [
+          "P|lunch|distractor",
+          10
+        ],
+        [
+          "P|dinner|stale_trap",
+          9
+        ],
+        [
+          "P|hotel|distractor",
+          7
+        ],
+        [
+          "T|dinner|distractor",
+          6
+        ],
+        [
+          "T|dinner|stale_trap",
+          5
+        ],
+        [
+          "P|dinner|temp_trap",
+          4
+        ],
+        [
+          "E|dinner|distractor",
+          4
+        ],
+        [
+          "T|lunch|distractor",
+          3
+        ],
+        [
+          "P|lunch|stale_trap",
+          3
+        ],
+        [
+          "P|hotel|temp_trap",
+          2
+        ],
+        [
+          "P|hotel|stale_trap",
+          2
+        ],
+        [
+          "U|util|distractor",
+          2
+        ],
+        [
+          "E|hotel|distractor",
+          1
+        ],
+        [
+          "E|lunch|stale_trap",
+          1
+        ],
+        [
+          "P|lunch|temp_trap",
+          1
+        ],
+        [
+          "U|util|None",
+          1
+        ],
+        [
+          "T|lunch|stale_trap",
+          1
+        ],
+        [
+          "E|lunch|distractor",
+          1
+        ]
+      ]
+    }
+  },
+  "simulator_misroutes": {
+    "note": "keyword_screen 是关键词粗筛：问题提到口味相关词、但实际回答的话题里没有'口味'；其中大多是一次问了两个以上方面、用户已明说'一下问太多了'，属于设计内的限制。cases 是人工核对后确认的答非所问。",
+    "total_questions": 126,
+    "keyword_screen": 28,
+    "keyword_screen_with_too_many_notice": 22,
+    "cases": [
+      {
+        "uid": "u07",
+        "idx": 3,
+        "question": "你家在哪个区？孕期医生要求的清淡饮食现在还要遵守吗？",
+        "answered_topics": [
+          "住处",
+          "饮食"
+        ],
+        "answer": "我住在余杭。我没有过敏的东西；饮食上没什么特别限制。",
+        "session_success": false
+      },
+      {
+        "uid": "u11",
+        "idx": 5,
+        "question": "你现在还是要清淡、不辣吗？周六晚上大概几点到、需不需要停车位？",
+        "answered_topics": [
+          "饮食",
+          "出行"
+        ],
+        "answer": "我没有过敏的东西；饮食上没什么特别限制。我一般骑车。",
+        "session_success": false
+      },
+      {
+        "uid": "u19",
+        "idx": 6,
+        "question": "这次请几位同事？有没有人不能吃辣、或必须清淡？",
+        "answered_topics": [
+          "饮食"
+        ],
+        "answer": "我没有过敏的东西；我现在在控制碳水，得选有低碳水菜品的。",
+        "session_success": true
+      },
+      {
+        "uid": "u20",
+        "idx": 4,
+        "question": "清淡的火锅可以吗，还是想要更养嗓子的粤菜？大概想订几点？",
+        "answered_topics": [
+          "饮食"
+        ],
+        "answer": "我没有过敏的东西；饮食上没什么特别限制。",
+        "session_success": true
+      }
+    ],
+    "direct_failures": 2,
+    "u07_later_sessions": [
+      {
+        "idx": 4,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 5,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 6,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      },
+      {
+        "idx": 7,
+        "n_questions": 0,
+        "chosen_role": "stale_trap",
+        "success": false
+      }
+    ],
+    "grok47_total_failures": 17
+  },
+  "simulator_contradictions": {
+    "note": "用户因健康原因不能吃辣，回答里却说'饮食上没什么特别限制'且没提不吃辣",
+    "by_model": {
+      "llm_grok-4.7": {
+        "n": 4,
+        "cases": [
+          {
+            "uid": "u07",
+            "idx": 3,
+            "question": "你家在哪个区？孕期医生要求的清淡饮食现在还要遵守吗？",
+            "answer": "我住在余杭。我没有过敏的东西；饮食上没什么特别限制。",
+            "session_success": false
+          },
+          {
+            "uid": "u11",
+            "idx": 5,
+            "question": "你现在还是要清淡、不辣吗？周六晚上大概几点到、需不需要停车位？",
+            "answer": "我没有过敏的东西；饮食上没什么特别限制。我一般骑车。",
+            "session_success": false
+          },
+          {
+            "uid": "u20",
+            "idx": 4,
+            "question": "清淡的火锅可以吗，还是想要更养嗓子的粤菜？大概想订几点？",
+            "answer": "我没有过敏的东西；饮食上没什么特别限制。",
+            "session_success": true
+          },
+          {
+            "uid": "u23",
+            "idx": 3,
+            "question": "这周六晚上约的两个朋友，有没有人不能吃海鲜，或者对花生过敏？你们大概想几点到？",
+            "answer": "我对乳制品过敏，这个一定要避开；饮食上没什么特别限制。",
+            "session_success": true
+          }
+        ]
+      },
+      "llm_grok-4.3": {
+        "n": 1,
+        "cases": [
+          {
+            "uid": "u23",
+            "idx": 5,
+            "question": "家在哪个区？同事有忌口吗？",
+            "answer": "我住在西湖。我对乳制品过敏，这个一定要避开；饮食上没什么特别限制。",
+            "session_success": false
+          }
+        ]
+      },
+      "llm_grok-4.20-0309-non-reasoning": {
+        "n": 6,
+        "cases": [
+          {
+            "uid": "u00",
+            "idx": 5,
+            "question": "公司附近是哪个区？有无过敏或忌口（如花生、乳制品、海鲜）？",
+            "answer": "我在余杭上班。我对海鲜过敏，这个一定要避开；饮食上没什么特别限制。",
+            "session_success": false
+          },
+          {
+            "uid": "u07",
+            "idx": 4,
+            "question": "你对海鲜过敏吗？或者能吃海鲜吗？",
+            "answer": "我没有过敏的东西；饮食上没什么特别限制。",
+            "session_success": true
+          },
+          {
+            "uid": "u07",
+            "idx": 6,
+            "question": "周末聚会大概几个人？是否有宝宝参加或特殊饮食需求（如过敏、素食）？",
+            "answer": "我没有过敏的东西；饮食上没什么特别限制。家里没有小孩；没养宠物；晚上几点回家都行。",
+            "session_success": false
+          },
+          {
+            "uid": "u11",
+            "idx": 4,
+            "question": "有海鲜、乳制品过敏吗？午饭人均预算多少？",
+            "answer": "我没有过敏的东西；饮食上没什么特别限制。我花钱比较省：晚饭人均 40–80 元，午饭 15–28 元，酒店一晚 250–400 元。",
+            "session_success": true
+          },
+          {
+            "uid": "u23",
+            "idx": 3,
+            "question": "孕期有宝宝椅需求吗？想吃粤菜还是其他？人均预算多少？",
+            "answer": "我对乳制品过敏，这个一定要避开；饮食上没什么特别限制。我不太在意价格，太便宜的反而不想去：晚饭人均 180–300 元，午饭 58–90 元，酒店一晚 900–1500 元。",
+            "session_success": true
+          },
+          {
+            "uid": "u23",
+            "idx": 5,
+            "question": "这次请同事吃饭是几个人？有宝宝或小孩吗？需要避开乳制品或海鲜吗？",
+            "answer": "我对乳制品过敏，这个一定要避开；饮食上没什么特别限制。家里没有小孩；没养宠物；晚上几点回家都行。",
+            "session_success": false
+          }
+        ]
+      }
+    }
+  },
+  "preference_sessions_only": {
+    "n_sessions": 168,
+    "ideal_ceiling": 0.9179,
+    "policies": {
+      "ask_all": 0.6277,
+      "conservative": 0.2143,
+      "remember_no_update": 0.4211,
+      "majority": 0.2381,
+      "random": 0.1667,
+      "nothing": 0.0,
+      "llm_grok-4.7": 0.7863,
+      "llm_grok-4.3": 0.5083,
+      "llm_grok-4.20-0309-non-reasoning": 0.3812,
+      "oracle": 1.0
+    },
+    "best_trivial": "ask_all",
+    "headroom_share_vs_ideal": {
+      "llm_grok-4.7": 0.5465,
+      "llm_grok-4.3": -0.4114,
+      "llm_grok-4.20-0309-non-reasoning": -0.8494
+    }
+  },
+  "option_leak_modal_probe": {
+    "success": 0.2908,
+    "random": 0.1667,
+    "by_domain": {
+      "dinner": {
+        "success": 0.3591,
+        "n": 81
+      },
+      "hotel": {
+        "success": 0.1633,
+        "n": 30
+      },
+      "lunch": {
+        "success": 0.2608,
+        "n": 57
+      }
+    }
+  },
+  "cueless_changes": [
+    {
+      "event": "开始健身",
+      "attr": "cuisine",
+      "new": "轻食",
+      "why": "台词只说健身、教练管饮食，推不出'最爱的菜系变成轻食'"
+    },
+    {
+      "event": "怀孕",
+      "attr": "cuisine",
+      "new": "粤菜",
+      "why": "台词只说医生让吃清淡，推不出'最爱的菜系变成粤菜'"
+    }
+  ]
+}

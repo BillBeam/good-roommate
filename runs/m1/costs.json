@@ -1,0 +1,128 @@
+{
+ "cumulative": {
+  "total_usd": 5.109740349999999,
+  "by_model_role": {
+   "grok-4.20-0309-non-reasoning|pilot:agent": {
+    "api_calls": 213,
+    "cache_hits": 0,
+    "prompt_tokens": 243036,
+    "cached_prompt_tokens": 149248,
+    "completion_tokens": 7102,
+    "reasoning_tokens": 0,
+    "cost_usd": 0.16483960000000006
+   },
+   "grok-4.20-0309-non-reasoning|pilot:usersim": {
+    "api_calls": 93,
+    "cache_hits": 25,
+    "prompt_tokens": 41418,
+    "cached_prompt_tokens": 28800,
+    "completion_tokens": 1027,
+    "reasoning_tokens": 0,
+    "cost_usd": 0.024100000000000007
+   },
+   "grok-4.3|pilot:usersim": {
+    "api_calls": 25,
+    "cache_hits": 0,
+    "prompt_tokens": 10528,
+    "cached_prompt_tokens": 6272,
+    "completion_tokens": 286,
+    "reasoning_tokens": 11881,
+    "cost_usd": 0.0369919
+   },
+   "grok-4.7|pilot:agent": {
+    "api_calls": 47,
+    "cache_hits": 0,
+    "prompt_tokens": 104394,
+    "cached_prompt_tokens": 76160,
+    "completion_tokens": 1824,
+    "reasoning_tokens": 39507,
+    "cost_usd": 0.34253399999999995
+   },
+   "grok-4.3|pilot:agent": {
+    "api_calls": 36,
+    "cache_hits": 0,
+    "prompt_tokens": 0,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost_usd": 0.0753,
+    "note": "并发写入时丢失的条目，按该进程自己打印的账本补回（token 数未保留）"
+   },
+   "grok-4.20-0309-non-reasoning|usersim": {
+    "api_calls": 470,
+    "cache_hits": 0,
+    "prompt_tokens": 213374,
+    "cached_prompt_tokens": 177024,
+    "completion_tokens": 4720,
+    "reasoning_tokens": 0,
+    "cost_usd": 0.09264230000000001
+   },
+   "grok-4.20-0309-non-reasoning|agent": {
+    "api_calls": 739,
+    "cache_hits": 0,
+    "prompt_tokens": 800772,
+    "cached_prompt_tokens": 603136,
+    "completion_tokens": 20142,
+    "reasoning_tokens": 0,
+    "cost_usd": 0.4180272000000004
+   },
+   "grok-4.3|agent": {
+    "api_calls": 423,
+    "cache_hits": 0,
+    "prompt_tokens": 440093,
+    "cached_prompt_tokens": 286848,
+    "completion_tokens": 5599,
+    "reasoning_tokens": 207268,
+    "cost_usd": 0.7810933500000005
+   },
+   "grok-4.7|agent": {
+    "api_calls": 562,
+    "cache_hits": 0,
+    "prompt_tokens": 1257145,
+    "cached_prompt_tokens": 1028480,
+    "completion_tokens": 24523,
+    "reasoning_tokens": 342584,
+    "cost_usd": 3.174212
+   }
+  }
+ },
+ "this_run": {
+  "grok-4.20-0309-non-reasoning|usersim": {
+   "api_calls": 0,
+   "cache_hits": 507,
+   "prompt_tokens": 0,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 0,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.0
+  },
+  "grok-4.20-0309-non-reasoning|agent": {
+   "api_calls": 0,
+   "cache_hits": 739,
+   "prompt_tokens": 0,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 0,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.0
+  },
+  "grok-4.3|agent": {
+   "api_calls": 0,
+   "cache_hits": 423,
+   "prompt_tokens": 0,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 0,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.0
+  },
+  "grok-4.7|agent": {
+   "api_calls": 0,
+   "cache_hits": 562,
+   "prompt_tokens": 0,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 0,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.0
+  }
+ },
+ "stopped": null
+}

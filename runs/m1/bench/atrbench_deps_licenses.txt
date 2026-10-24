@@ -1,0 +1,24 @@
+# ATRBench 评测依赖（只装在 external/venv-atr，不随本仓库分发）；许可证取自各包元数据
+annotated-types==0.8.0	MIT
+anyio==4.15.1	MIT
+docstring_parser==0.18.0	MIT License
+h11==0.16.0	MIT License
+httpcore2==2.16.0	BSD-3-Clause
+httpx2==2.16.0	BSD-3-Clause
+idna==3.20	BSD-3-Clause
+jiter==0.18.0	MIT
+markdown-it-py==4.2.0	MIT License
+mdurl==0.1.2	MIT License
+openai==3.37.0	Apache-2.0
+pip==26.2.2	MIT
+pydantic==2.14.1	MIT
+pydantic_core==2.50.1	MIT
+Pygments==2.21.0	BSD-2-Clause
+PyYAML==6.0.3	MIT License
+rich==15.0.0	MIT License
+sniffio==1.3.1	MIT License
+socksio==1.0.0	MIT License
+tenacity==9.2.1	Apache-2.0
+truststore==0.10.5	MIT
+typing-inspection==0.4.4	MIT
+typing_extensions==4.16.0	PSF-2.0

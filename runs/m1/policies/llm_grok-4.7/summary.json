@@ -1,0 +1,34 @@
+{
+ "n_sessions": 192,
+ "mean_score": 0.8130208333333333,
+ "success_rate": 0.9114583333333334,
+ "followup_success_rate": 0.9166666666666666,
+ "n_followup": 144,
+ "avg_questions": 0.65625,
+ "avg_questions_util": 0.0,
+ "repeat_question_rate": 0.16666666666666666,
+ "n_questions": 126,
+ "stale_error_rate": 0.06306306306306306,
+ "n_stale_trap": 111,
+ "temp_error_rate": 0.08695652173913043,
+ "n_temp_trap": 23,
+ "no_choice": 0,
+ "by_type": {
+  "P": {
+   "n": 111,
+   "success_rate": 0.8828828828828829
+  },
+  "E": {
+   "n": 33,
+   "success_rate": 0.9393939393939394
+  },
+  "T": {
+   "n": 24,
+   "success_rate": 0.9166666666666666
+  },
+  "U": {
+   "n": 24,
+   "success_rate": 1.0
+  }
+ }
+}
