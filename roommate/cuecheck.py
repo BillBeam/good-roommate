@@ -23,6 +23,7 @@ VALUE_NOTES = {
     "cuisine": {},
 }
 ATTR_NOTES = {"cuisine": "菜系（最爱吃的）", "office": "公司（在哪个区上班）", "home": "住处（住在哪个区）",
+              "kid": "小孩（家里现在有没有已经出生、吃饭要用宝宝椅的婴儿）", "pet": "宠物（家里有没有养狗）",
               "evening": "晚归（晚上的作息）", "commute": "出行（平时怎么出门）"}
 
 PROMPT = """下面是一位用户原来的情况，以及他今天和私人助理聊天时顺口说的一句话。
@@ -113,37 +114,51 @@ def judge(client, model, item, extra=None):
     raw = resp["choices"][0]["message"].get("content") or ""
     try:
         got = json.loads(raw[raw.find("{"):raw.rfind("}") + 1])["changes"]
-        got = {CN_ATTR.get(k, k): v for k, v in got.items()}
+        # 模型有时把可选取值后面的括号说明一起抄回来（如"要早回（晚饭只能订 18:30 以前）"），只取括号前的取值
+        got = {CN_ATTR.get(k.split("（")[0].strip(), k): str(v).split("（")[0].strip() for k, v in got.items()}
     except (ValueError, KeyError, TypeError, AttributeError):
         return {"raw": raw, "pred": None, "ok": False}
     pred = {a: v for a, v in got.items() if not (a in item["old"] and item["old"][a] == v)}
     return {"raw": raw, "pred": pred, "ok": pred == item["changes"]}
 
 
-def validate(client, models, items, extras=None, workers=8):
+def validate(client, models, items, extras=None, workers=8, required=("deepseek-v4-pro",)):
+    """每个模型判每句台词。只读缓存的评判模型（如已停用的 grok-4.7）在缓存里没有判定时记"未判"。
+    一句台词合格 = 判过它的每个模型都推对，且 required 里的模型都判过。"""
     from concurrent.futures import ThreadPoolExecutor
+
+    from .llm import CacheMiss
     extras = extras or {}
+
+    def one(m, it):
+        try:
+            return judge(client, m, it, extras.get(m))
+        except CacheMiss:
+            return {"raw": None, "pred": None, "ok": None}
     rows = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         for m in models:
-            res = list(pool.map(lambda it: judge(client, m, it, extras.get(m)), items))
+            res = list(pool.map(lambda it: one(m, it), items))
             for it, r in zip(items, res):
                 rows.append({"model": m, **{k: it[k] for k in ("source", "event", "line", "changes")},
-                             "pred": r["pred"], "ok": r["ok"], "raw": r["raw"]})
-    by_line = {}
+                             "pred": r["pred"], "ok": r["ok"], "raw": r["raw"], "judged": r["ok"] is not None})
+    inst = {}
     for r in rows:
-        e = by_line.setdefault(r["line"] + "|" + json.dumps(r["changes"], ensure_ascii=False, sort_keys=True),
-                               {"line": r["line"], "event": r["event"], "n": 0, "ok": {}})
-        e["ok"].setdefault(r["model"], []).append(r["ok"])
-    instances_ok = {}
-    for r in rows:
-        k = (r["source"], r["line"])
-        instances_ok.setdefault(k, []).append(r["ok"])
-    per_model = {m: sum(r["ok"] for r in rows if r["model"] == m) / max(1, sum(r["model"] == m for r in rows))
+        e = inst.setdefault((r["source"], r["line"]), {"source": r["source"], "line": r["line"], "event": r["event"],
+                                                         "judged_by": [], "ok_by": {}})
+        if r["judged"]:
+            e["judged_by"].append(r["model"])
+            e["ok_by"][r["model"]] = r["ok"]
+    for e in inst.values():
+        e["pass"] = all(e["ok_by"].values()) and set(required) <= set(e["judged_by"])
+    judged = [r for r in rows if r["judged"]]
+    per_model = {m: (sum(r["ok"] for r in judged if r["model"] == m) / max(1, sum(r["model"] == m for r in judged)))
                  for m in models}
-    n_inst = len(instances_ok)
-    n_pass = sum(all(v) and len(v) == len(models) for v in instances_ok.values())
-    failures = [r for r in rows if not r["ok"]]
-    return {"models": models, "n_items": n_inst, "n_items_pass_all_models": n_pass,
-            "all_pass": n_pass == n_inst, "accuracy_by_model": per_model,
-            "failures": failures, "rows": rows}
+    n_judged = {m: sum(r["model"] == m for r in judged) for m in models}
+    single = [e for e in inst.values() if len(e["judged_by"]) < len(models)]
+    n_pass = sum(e["pass"] for e in inst.values())
+    return {"models": models, "required_judges": list(required), "n_items": len(inst),
+            "n_items_pass_all_models": n_pass, "all_pass": n_pass == len(inst),
+            "accuracy_by_model": per_model, "n_judged_by_model": n_judged,
+            "items_judged_by_fewer_models": single,
+            "failures": [r for r in judged if not r["ok"]], "instances": list(inst.values()), "rows": rows}

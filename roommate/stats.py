@@ -18,7 +18,7 @@ import random
 from .policies import TRIVIAL
 
 N_BOOT = 5000
-GATE4_MODELS = ["deepseek-v4-pro", "grok-4.7"]
+GATE4_MODELS = ["deepseek-v4-pro"]   # grok 停用后，闸门④用 V4 Pro
 LIMIT3 = 1 / 6 + 0.05
 
 
@@ -128,11 +128,16 @@ def model_detail(recs):
 def write(out, gate_seeds, compare_seed):
     pols = {s: load_policies(out, s) for s in gate_seeds}
     v1m = {s: load_policies(out, s, "policies_v1mode") for s in gate_seeds}
-    keys = sorted(set.intersection(*[set(p) for p in pols.values()]))
     for s in gate_seeds:
-        for k in keys:
-            for r in pols[s][k]:
+        for recs in pols[s].values():
+            for r in recs:
                 r["_seed"] = s
+    n_pref = {s: len([r for r in pols[s]["oracle"] if r["domain"] != "util"]) for s in gate_seeds}
+    # 完整的：三个闸门世界都有、且每个世界的偏好会话一个不缺；其余（只跑了部分世界、或缓存截断的）单独报
+    allkeys = sorted(set().union(*[set(p) for p in pols.values()]))
+    keys = [k for k in allkeys if all(k in pols[s] and
+                                      sum(r["domain"] != "util" for r in pols[s][k]) == n_pref[s] for s in gate_seeds)]
+    partial = [k for k in allkeys if k not in keys]
     per = {k: {s: per_user(pols[s][k]) for s in gate_seeds} for k in keys}
     means = {k: pooled_mean(per[k]) for k in keys}
     boot = bootstrap(per, gate_seeds, lambda m: m)
@@ -147,6 +152,17 @@ def write(out, gate_seeds, compare_seed):
         allr = [r for s in gate_seeds for r in pols[s][k]]
         res["policies"][k] = dict(mean_score=means[k], ci95=ci[k], **model_detail(allr),
                                   by_seed={s: pooled_mean({s: per[k][s]}) for s in gate_seeds})
+    res["partial_runs"] = {}
+    for k in partial:
+        rs = [r for s in gate_seeds if k in pols[s] for r in pols[s][k] if r["domain"] != "util"]
+        res["partial_runs"][k] = {
+            "mean_score": sum(r["grade"]["score"] for r in rs) / len(rs), "n_sessions": len(rs),
+            "by_seed": {s: {"n_sessions": sum(r["domain"] != "util" for r in pols[s][k]),
+                            "n_full": n_pref[s],
+                            "mean_score": (lambda x: sum(r["grade"]["score"] for r in x) / len(x) if x else None)(
+                                [r for r in pols[s][k] if r["domain"] != "util"])}
+                        for s in gate_seeds if k in pols[s]},
+            **model_detail(rs)}
     # v1 行为（总会重新回答）下的对照
     res["v1_mode"] = {}
     for k in sorted(set.intersection(*[set(p) for p in v1m.values()])) if all(v1m.values()) else []:
@@ -163,7 +179,8 @@ def write(out, gate_seeds, compare_seed):
           "cue_judges": cue["models"] if cue else None,
           "cue_items": cue["n_items"] if cue else None,
           "cue_items_pass": cue["n_items_pass_all_models"] if cue else None,
-          "cue_pass": bool(cue and cue["all_pass"] and set(cue["models"]) >= {"deepseek-v4-pro", "grok-4.7"})}
+          "cue_items_single_judge": len(cue.get("items_judged_by_fewer_models", [])) if cue else None,
+          "cue_pass": bool(cue and cue["all_pass"])}
     g1["pass"] = g1["selfcheck_pass"] and g1["consistency_pass"] and g1["cue_pass"]
 
     # ② 记忆是必需的
@@ -195,21 +212,27 @@ def write(out, gate_seeds, compare_seed):
                                   "headroom_share": (means[kk] - means[best_trivial]) / (means["ideal"] - means[best_trivial]),
                                   "headroom_share_ci95": _ci([(b[kk] - b[best_trivial]) / (b["ideal"] - b[best_trivial])
                                                               for b in boot])}
-                              for m, kk in llm_keys.items()})
+                              for m, kk in {k2[4:]: k2 for k2 in keys if k2.startswith("llm_")
+                                            and not k2.endswith("_true_memory")}.items()})
     res["gates"] = {"1": g1, "2": g2, "3": g3, "4": g4}
 
-    # 失分拆解与"知道真实状态"对照
+    # 失分拆解与"知道真实状态"对照：只算有对照组记录的那些会话
     res["loss_breakdown"] = {}
-    for k in keys:
-        if k.startswith("llm_") and not k.endswith("_true_memory"):
-            ck = k + "_true_memory"
-            normal = [r for s in gate_seeds for r in pols[s][k]]
-            control = [r for s in gate_seeds for r in pols[s][ck]] if ck in keys else None
-            res["loss_breakdown"][k] = loss_breakdown(normal, control)
-            if control:
-                cp = [r for r in control if r["domain"] != "util"]
-                res["loss_breakdown"][k]["control_success_rate"] = sum(r["grade"]["success"] for r in cp) / len(cp)
-                res["loss_breakdown"][k]["control_avg_questions"] = sum(len(r["questions"]) for r in cp) / len(cp)
+    llm_all = [k for k in allkeys if k.startswith("llm_") and not k.endswith("_true_memory")]
+    for k in llm_all:
+        ck = k + "_true_memory"
+        control = [r for s in gate_seeds if ck in pols[s] for r in pols[s][ck]]
+        normal = [r for s in gate_seeds if k in pols[s] for r in pols[s][k]]
+        if control:
+            have = {(r["_seed"], r["uid"], r["idx"]) for r in control}
+            normal = [r for r in normal if (r["_seed"], r["uid"], r["idx"]) in have]
+        res["loss_breakdown"][k] = loss_breakdown(normal, control or None)
+        res["loss_breakdown"][k]["seeds"] = sorted({r["_seed"] for r in (control or normal)})
+        if control:
+            cp = [r for r in control if r["domain"] != "util"]
+            res["loss_breakdown"][k]["control_success_rate"] = sum(r["grade"]["success"] for r in cp) / len(cp)
+            res["loss_breakdown"][k]["control_avg_questions"] = sum(len(r["questions"]) for r in cp) / len(cp)
+            res["loss_breakdown"][k]["control_n_sessions"] = len(cp)
     for k in ("ideal", "ask_all", "remember_all_reask", "remember_no_update"):
         normal = [r for s in gate_seeds for r in pols[s][k]]
         oracle = [r for s in gate_seeds for r in pols[s]["oracle"]]

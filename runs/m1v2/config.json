@@ -1,5 +1,5 @@
 {
- "written_at": "2026-10-24T15:30:50+00:00",
+ "written_at": "2026-10-24T17:28:57+00:00",
  "world_config": {
   "repeat_mode": "refuse_told",
   "question_cost": 0.15
@@ -15,25 +15,76 @@
   159
  ],
  "models": [
-  "deepseek-v4-flash",
-  "deepseek-v4-pro",
-  "grok-4.7"
+  "deepseek-flash",
+  "deepseek-v4-pro"
  ],
- "control_models": [
-  "deepseek-v4-flash",
-  "deepseek-v4-pro",
-  "grok-4.7"
+ "control_runs": [
+  [
+   "deepseek-v4-pro",
+   1
+  ]
  ],
  "compare_models": [
-  "grok-4.7"
+  "deepseek-v4-pro"
  ],
+ "cached_only": [
+  [
+   "grok-4.7",
+   1,
+   false
+  ],
+  [
+   "grok-4.7",
+   2,
+   false
+  ],
+  [
+   "grok-4.7",
+   3,
+   false
+  ],
+  [
+   "grok-4.7",
+   1,
+   true
+  ],
+  [
+   "grok-4.7",
+   2,
+   true
+  ],
+  [
+   "grok-4.7",
+   3,
+   true
+  ],
+  [
+   "deepseek-flash",
+   1,
+   true
+  ],
+  [
+   "deepseek-flash",
+   2,
+   true
+  ],
+  [
+   "deepseek-flash",
+   3,
+   true
+  ]
+ ],
+ "blocked_providers": [
+  "xai"
+ ],
+ "deepseek_cny_budget": 40.0,
  "cue_judges": [
   "deepseek-v4-pro",
   "grok-4.7"
  ],
  "model_extra": {},
  "echo_reasoning": {
-  "deepseek-v4-flash": true,
+  "deepseek-flash": true,
   "deepseek-v4-pro": true
  },
  "budget_usd": 40.0,
@@ -42,6 +93,6 @@
   "remember_all_reask",
   "ideal"
  ],
- "stages": "worlds,scripted",
+ "stages": "stats,report",
  "offline": false
 }

@@ -1,0 +1,73 @@
+{
+ "n_sessions": 168,
+ "mean_score": 0.8041666666666666,
+ "success_rate": 0.8809523809523809,
+ "followup_success_rate": 0.8888888888888888,
+ "n_followup": 144,
+ "avg_questions": 0.5119047619047619,
+ "question_loss": 0.0767857142857143,
+ "n_questions": 86,
+ "told_before_rate": 0.12790697674418605,
+ "near_miss_error_rate": 0.07738095238095238,
+ "by_near_miss": {
+  "hyp_prior_temp": {
+   "n": 12,
+   "success": 12,
+   "near_miss_error": 0
+  },
+  "hyp_event": {
+   "n": 50,
+   "success": 39,
+   "near_miss_error": 7
+  },
+  "stale": {
+   "n": 37,
+   "success": 33,
+   "near_miss_error": 3
+  },
+  "hyp_temp": {
+   "n": 18,
+   "success": 16,
+   "near_miss_error": 1
+  },
+  "temp_ignored": {
+   "n": 24,
+   "success": 24,
+   "near_miss_error": 0
+  },
+  "temp_trap": {
+   "n": 18,
+   "success": 17,
+   "near_miss_error": 0
+  },
+  "hyp_prior_event": {
+   "n": 9,
+   "success": 7,
+   "near_miss_error": 2
+  }
+ },
+ "no_choice": 0,
+ "by_type": {
+  "P": {
+   "n": 110,
+   "success_rate": 0.8454545454545455,
+   "mean_score": 0.7404545454545455
+  },
+  "E": {
+   "n": 34,
+   "success_rate": 0.9117647058823529,
+   "mean_score": 0.8808823529411764
+  },
+  "T": {
+   "n": 24,
+   "success_rate": 1.0,
+   "mean_score": 0.9874999999999999
+  }
+ },
+ "util": {
+  "n": 24,
+  "success_rate": 1.0,
+  "mean_score": 1.0,
+  "avg_questions": 0.0
+ }
+}

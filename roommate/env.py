@@ -5,13 +5,14 @@
 策略本身不保存跨会话状态：大模型 agent 和脚本策略的跨会话信息都只在记忆里。
 """
 
+import copy
 import json
 import random
 from concurrent.futures import ThreadPoolExecutor
 
 from . import texts
 from .grading import grade_session
-from .llm import BudgetExceeded, CacheMiss
+from .llm import ApiError, BudgetExceeded, CacheMiss
 from .memory import MemoryStore
 from .schema import ATTR_CN, ATTR_ORDER, CN_ATTR, DOMAINS
 from .usersim import SimUser
@@ -61,6 +62,19 @@ def parse_attrs(raw):
         k = CN_ATTR.get(x) or (x if x in ATTR_CN else None)
         (good if k else bad).append(k or x)
     return good, bad
+
+
+def _advance(choices, keys, client):
+    """把"每个多响应的键用第几个"当作里程表进一位；全部试过返回 False。"""
+    for k in reversed(keys):
+        start = client.default_choice.get(k, 0)
+        n = len(client.alts[k])
+        i = choices.get(k, start)
+        if (i + 1) % n != start:
+            choices[k] = (i + 1) % n
+            return True
+        choices[k] = start
+    return False
 
 
 class SessionContext:
@@ -134,6 +148,7 @@ class Episode:
         self.memory = MemoryStore()
         self.next_idx = 0
         self.records = []
+        self.truncated_at = None
 
     @property
     def finished(self):
@@ -141,18 +156,42 @@ class Episode:
 
     def run_session(self, policy):
         sess = self.plan["sessions"][self.next_idx]
-        self.user.begin_session(sess)
-        if getattr(policy, "inject_true_memory", False):
-            self.memory.entries = {k: {"value": v, "week": sess["week"]}
-                                   for k, v in render_true_state(self.user.state, sess.get("temp"), self.user.spicy_reason).items()}
-        ctx = SessionContext(self, sess)
-        error = None
-        try:
-            policy.run_session(ctx)
-        except Exception as e:  # noqa: BLE001 —— agent 出错按"未作答"记，并留下原因
-            if getattr(policy, "raise_errors", False) or isinstance(e, (BudgetExceeded, CacheMiss)):
-                raise
-            error = f"{type(e).__name__}: {e}"
+        rebuild = getattr(policy, "truncate_on_cache_miss", False)
+        client = getattr(policy, "client", None) if rebuild else None
+        snap = (copy.deepcopy(self.user.state_dict()), copy.deepcopy(self.memory.state_dict())) if rebuild else None
+        choices = {}
+        while True:
+            if client is not None:
+                client.set_choices(choices)
+            self.user.begin_session(sess)
+            if getattr(policy, "inject_true_memory", False):
+                self.memory.entries = {k: {"value": v, "week": sess["week"]}
+                                       for k, v in render_true_state(self.user.state, sess.get("temp"), self.user.spicy_reason).items()}
+            ctx = SessionContext(self, sess)
+            error = None
+            try:
+                policy.run_session(ctx)
+                break
+            except CacheMiss:
+                if not rebuild:
+                    raise
+                # 只用缓存重建。同一个键有多个缓存响应（并发运行时写过两次）：换下一个组合重试这次会话；
+                # 都试过还缺缓存，说明当时没跑完，这个用户从这里起截断，不记录
+                self.user.load_state_dict(copy.deepcopy(snap[0]))
+                self.memory.load_state_dict(copy.deepcopy(snap[1]))
+                if not _advance(choices, client.ambiguous_used() if client else [], client):
+                    self.truncated_at = self.next_idx
+                    self.next_idx = len(self.plan["sessions"])
+                    if client is not None:
+                        client.set_choices(None)
+                    return None
+            except Exception as e:  # noqa: BLE001 —— agent 出错按"未作答"记，并留下原因
+                if getattr(policy, "raise_errors", False) or isinstance(e, (BudgetExceeded, ApiError)):
+                    raise
+                error = f"{type(e).__name__}: {e}"
+                break
+        if client is not None:
+            client.set_choices(None)
         self.user.end_session()
         rec = {
             "uid": self.plan["uid"], "idx": sess["idx"], "week": sess["week"], "type": sess["type"],

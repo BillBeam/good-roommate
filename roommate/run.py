@@ -23,7 +23,7 @@ from . import checks, cuecheck, llm, probes, report, stats
 from .agent_llm import LLMAgent
 from .env import Env
 from .grading import satisfies, summarize
-from .llm import BudgetExceeded, Ledger, LLMClient
+from .llm import ApiError, BudgetExceeded, Ledger, LLMClient
 from .policies import SCRIPTED
 from .world import generate_world, world_hash, world_stats
 
@@ -31,18 +31,25 @@ OUT = "runs/m1v2"
 GATE_SEEDS = [1, 2, 3]
 COMPARE_SEED = 0
 CLASSIFIER_TRAIN_SEEDS = list(range(100, 160))
-MODELS = ["deepseek-v4-flash", "deepseek-v4-pro", "grok-4.7"]
-CONTROL_MODELS = ["deepseek-v4-flash", "deepseek-v4-pro", "grok-4.7"]
-COMPARE_MODELS = ["grok-4.7"]
-CUE_JUDGES = ["deepseek-v4-pro", "grok-4.7"]
+# grok 的余额已耗尽：第二版剩余的调用全部改用 DeepSeek，不再向 xAI 发任何请求（BLOCKED_PROVIDERS）。
+# 已经跑完或已缓存的 grok-4.7 结果保留，只从缓存重建、照实报告（CACHED_ONLY）。
+BLOCKED_PROVIDERS = {"xai"}
+MODELS = ["deepseek-flash", "deepseek-v4-pro"]                 # 闸门世界上的正式基线
+CONTROL_RUNS = [("deepseek-v4-pro", 1)]                        # "知道真实状态"对照：只给 V4 Pro 跑种子 1
+COMPARE_MODELS = ["deepseek-v4-pro"]                           # 种子 0 对照：大模型只跑 u07 的 8 次会话
+# 只从缓存重建的已有结果：(模型, 种子, 是否对照组)。缺缓存的用户从第一次缺的会话起截断（不补跑）。
+CACHED_ONLY = ([("grok-4.7", s, False) for s in (1, 2, 3)] + [("grok-4.7", s, True) for s in (1, 2, 3)]
+               + [("deepseek-flash", s, True) for s in (1, 2, 3)])
+CUE_JUDGES = ["deepseek-v4-pro", "grok-4.7"]                   # grok-4.7 只用缓存里已有的判定
+DEEPSEEK_CNY_BUDGET = 40.0                                     # 第二版剩余部分的 DeepSeek 花费上限（元）
 MODEL_EXTRA = {}          # 各模型额外的请求参数（如思考模式），在 config.json 里记录
 # DeepSeek V4 默认开思考；工具调用循环里要把 reasoning_content 原样带回
-ECHO_REASONING = {"deepseek-v4-flash": True, "deepseek-v4-pro": True}
+ECHO_REASONING = {"deepseek-flash": True, "deepseek-v4-pro": True}
 
 
-def agent(client, m, seed, ctrl=False):
+def agent(client, m, seed, ctrl=False, cache_only=False):
     return LLMAgent(client, m, extra=MODEL_EXTRA.get(m), seed=seed, inject_true_memory=ctrl,
-                    echo_reasoning=ECHO_REASONING.get(m, False))
+                    echo_reasoning=ECHO_REASONING.get(m, False), truncate_on_cache_miss=cache_only)
 V1_MODE_POLICIES = ["ask_all", "remember_all_reask", "ideal"]
 ALL_STAGES = ["worlds", "scripted", "checks", "probes", "cues", "llm", "repro", "stats", "report"]
 
@@ -95,6 +102,8 @@ def run_policy(world, policy, config=None, workers=1):
 def save_policy(seed, key, recs, mode="default"):
     plain, trans = split_transcripts(recs)
     d = pdir(seed, key, mode)
+    if not any(r["domain"] != "util" for r in plain):
+        raise RuntimeError(f"{seed}/{key} 没有任何与偏好有关的会话记录，不覆盖已有文件")
     dump_jsonl(os.path.join(d, "sessions.jsonl"), plain)
     if trans:
         dump_jsonl(os.path.join(d, "transcripts.jsonl"), trans)
@@ -249,7 +258,7 @@ def stage_probes():
 
 def make_client(offline, budget, ledger_path=None):
     ledger = Ledger(ledger_path or os.path.join(OUT, "spend_ledger.json"), budget)
-    return LLMClient(os.path.join(OUT, "llm_cache"), ledger, offline=offline)
+    return LLMClient(os.path.join(OUT, "llm_cache"), ledger, offline=offline, blocked_providers=BLOCKED_PROVIDERS)
 
 
 def load_deepseek_prices():
@@ -257,7 +266,7 @@ def load_deepseek_prices():
     for fn in sorted(os.listdir(pp)) if os.path.isdir(pp) else []:
         if fn.startswith("deepseek_"):
             d = load(os.path.join(pp, fn))
-            llm.DEEPSEEK_PRICES.update(d["prices_usd_per_million"])
+            llm.DEEPSEEK_PRICES.update({m: {"usd": v["usd"], "cny": v["cny"]} for m, v in d["prices"].items()})
 
 
 def stage_cues(client, judges):
@@ -269,30 +278,55 @@ def stage_cues(client, judges):
     print("台词校验：", r["n_items_pass_all_models"], "/", r["n_items"], r["accuracy_by_model"])
 
 
+def llm_plan():
+    """(种子, 模型, 是否对照组, 是否只用缓存)。"""
+    plan = [(sd, m, False, False) for m in MODELS for sd in GATE_SEEDS]
+    plan += [(sd, m, True, False) for m, sd in CONTROL_RUNS]
+    plan += [(REPLAY, m, False, False) for m in COMPARE_MODELS]
+    plan += [(sd, m, c, True) for m, sd, c in CACHED_ONLY]
+    return plan
+
+
+def rebuild_cached(m, seed, ctrl):
+    """只从缓存重建一组已有结果。grok-4.7 的普通运行与对照组在种子 2、3 上曾在两个进程里同时跑，
+    两者第一轮请求完全相同，同一个键被写了两个响应。做法：先重建普通运行（同一会话里缺缓存就换另一个响应重试），
+    记下每个这种键用了哪个；重建对照组时这些键改用另一个。种子 2 上这样重建的结果与当时保存的记录、对话逐字一致。"""
+    c = LLMClient(os.path.join(OUT, "llm_cache"), Ledger(None, 0), offline=True)
+    w = get_world(seed)
+    normal = run_policy(w, agent(c, m, seed, False, cache_only=True), workers=12)
+    if not ctrl:
+        return normal
+    used = dict(c.chosen)
+    c.default_choice = {k: (i + 1) % len(c.alts[k]) for k, i in used.items()}
+    return run_policy(w, agent(c, m, seed, True, cache_only=True), workers=12)
+
+
 def stage_llm(client, budget_stop):
-    plan = []
-    for m in MODELS:
-        for s in GATE_SEEDS:
-            plan.append((s, m, False))
-    for m in CONTROL_MODELS:
-        for s in GATE_SEEDS:
-            plan.append((s, m, True))
-    for m in COMPARE_MODELS:
-        plan.append((COMPARE_SEED, m, False))
-        plan.append((REPLAY, m, False))
+    plan = llm_plan()
+    only = os.environ.get("ROOMMATE_LLM_ONLY")  # 分批跑：如 "deepseek-flash@1,deepseek-v4-pro@1@ctrl"
+    if only:
+        want = set(only.split(","))
+        plan = [p for p in plan if f"{p[1]}@{p[0]}" + ("@ctrl" if p[2] else "") in want]
     stopped = None
-    for seed, m, ctrl in plan:
+    for seed, m, ctrl, cache_only in plan:
         key = f"llm:{m}" + (":true_memory" if ctrl else "")
         world = load(os.path.join(OUT, REPLAY, "world.json")) if seed == REPLAY else get_world(seed)
         aseed = COMPARE_SEED if seed == REPLAY else seed
+        c = client
+        if seed == REPLAY:  # u07 重放单独记账，便于按阶段对账
+            c = LLMClient(client.cache_dir, client.ledger, offline=client.offline, role_prefix="u07_v2rules:",
+                          blocked_providers=client.blocked)
         try:
-            recs = run_policy(world, agent(client, m, aseed, ctrl), workers=12)
-        except BudgetExceeded as e:
-            stopped = str(e)
+            recs = (rebuild_cached(m, seed, ctrl) if cache_only else
+                    run_policy(world, agent(c, m, aseed, ctrl), workers=12))
+        except (BudgetExceeded, ApiError) as e:
+            stopped = f"{type(e).__name__}: {e}"[:300]
             print("停止：", stopped)
             break
         s = save_policy(seed, key, recs)
-        print(f"种子 {seed} {key:36s} 平均分 {s['mean_score']:.3f}  累计花费 {client.ledger.data['total_usd']:.2f} 美元")
+        n = sum(1 for r in recs if r["domain"] != "util")
+        print(f"种子 {seed} {key:36s} 平均分 {s['mean_score']:.3f}（{n} 次偏好会话{'，只用缓存' if cache_only else ''}）"
+              f"  累计 {client.ledger.data['total_usd']:.2f} 美元 / DeepSeek {client.ledger.data.get('deepseek_cny_total', 0):.2f} 元")
     dump(os.path.join(OUT, "costs.json"), {"cumulative": client.ledger._load(), "this_run": client.ledger.session,
                                            "stopped": stopped})
 
@@ -314,8 +348,20 @@ def stage_repro(offline_client):
             ctrl = key.endswith("_true_memory")
             with open(os.path.join(pdir(seed, key), "sessions.jsonl"), encoding="utf-8") as f:
                 saved = [json.loads(x) for x in f]
-            again, _ = split_transcripts(run_policy(w, agent(offline_client, m, seed, ctrl), workers=12))
+            again, _ = split_transcripts(rebuild_cached(m, seed, ctrl))
             repro["llm"][f"{seed}/{key}"] = records_hash(saved) == records_hash(again)
+    rpath = os.path.join(OUT, REPLAY, "world.json")
+    if os.path.exists(rpath):
+        rw = load(rpath)
+        repro["worlds"][REPLAY] = {"saved": world_hash(rw), "regenerated": world_hash(build_replay())}
+        for key in sorted(os.listdir(os.path.join(OUT, REPLAY, "policies"))):
+            with open(os.path.join(pdir(REPLAY, key), "sessions.jsonl"), encoding="utf-8") as f:
+                saved = [json.loads(x) for x in f]
+            if key.startswith("llm_"):
+                again, _ = split_transcripts(run_policy(rw, agent(offline_client, key[4:], COMPARE_SEED, cache_only=True)))
+            else:
+                again = run_policy(build_replay(), SCRIPTED[key]())
+            repro["llm" if key.startswith("llm_") else "scripted"][f"{REPLAY}/{key}"] = records_hash(saved) == records_hash(again)
     repro["all_identical"] = all(v["saved"] == v["regenerated"] for v in repro["worlds"].values()) and \
         all(repro["scripted"].values()) and all(repro["llm"].values())
     dump(os.path.join(OUT, "repro_check.json"), repro)
@@ -349,7 +395,9 @@ def write_config(args):
         "written_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "world_config": DEFAULT_CONFIG, "gate_seeds": GATE_SEEDS, "compare_seed": COMPARE_SEED,
         "classifier_train_seeds": [CLASSIFIER_TRAIN_SEEDS[0], CLASSIFIER_TRAIN_SEEDS[-1]],
-        "models": MODELS, "control_models": CONTROL_MODELS, "compare_models": COMPARE_MODELS,
+        "models": MODELS, "control_runs": CONTROL_RUNS, "compare_models": COMPARE_MODELS,
+        "cached_only": CACHED_ONLY, "blocked_providers": sorted(BLOCKED_PROVIDERS),
+        "deepseek_cny_budget": DEEPSEEK_CNY_BUDGET,
         "cue_judges": CUE_JUDGES, "model_extra": MODEL_EXTRA, "echo_reasoning": ECHO_REASONING,
         "budget_usd": args.budget,
         "v1_mode_policies": V1_MODE_POLICIES, "stages": args.stages, "offline": args.offline})

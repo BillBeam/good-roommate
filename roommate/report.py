@@ -23,7 +23,7 @@ NM_CN = {
     "hyp_event": "多一个没发生的事件", "hyp_temp": "多一个没发生的临时情况",
     "hyp_prior_event": "像是某事件之前的状态（假想）", "hyp_prior_temp": "像是某临时情况之前的状态（假想）",
 }
-MODEL_CN = {"deepseek-v4-flash": "DeepSeek V4 Flash", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7"}
+MODEL_CN = {"deepseek-flash": "DeepSeek Flash（V4.1）", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7"}
 
 
 def _load(p):
@@ -204,6 +204,11 @@ def write(out, report_path):
         w(f"- 合格：{L.n(cue['n_items_pass_all_models'], cp, 'int')} / {L.n(cue['n_items'], cp, 'int')}")
         for m, acc in cue["accuracy_by_model"].items():
             w(f"- {MODEL_CN.get(m, m)} 单独推对的比例：{L.n(acc, cp, 'pct')}")
+        single = cue.get("items_judged_by_fewer_models", [])
+        w(f"- 只有一家判过的台词：{L.n(len(single), cp, 'int')} 句" + ("（grok-4.7 停用后只用缓存里已有的判定，缺判定的只由 DeepSeek V4 Pro 判）：" if single else
+          "（grok-4.7 停用前，每句台词都已有它的判定，缓存里全部找得到）。"))
+        for e in single:
+            w(f"  - \"{e['line']}\"（{e['source']}）：只有 {'、'.join(MODEL_CN.get(m, m) for m in e['judged_by'])} 判过，{'推对' if e['pass'] else '没推对'}")
         if cue["failures"]:
             w("- 没推对的例子：")
             for f in cue["failures"][:10]:
@@ -211,8 +216,16 @@ def write(out, report_path):
     else:
         w("- 还没跑（需要 DeepSeek V4 Pro）。")
     w("")
-    w("改台词的过程：第一轮用 grok-4.7 校验时，\"升职\"那句（\"以后吃饭不用太在意价格了\"）在原预算为\"低\"时被推成\"中\"，"
-      "改成\"以后吃饭就挑高档的地方，不用在意价格了\"后重测。")
+    w("改台词的过程（三轮，花费都算在第 11 节的\"台词线索校验\"里）：")
+    w("")
+    w("1. 只用 grok-4.7：174 句里 172 句推对；没推对的两句都是\"升职\"那句（\"以后吃饭不用太在意价格了\"），原预算为\"低\"时被推成\"中\"。"
+      "改成\"以后吃饭就挑高档的地方，不用在意价格了\"。")
+    w("2. 两家都判：169 / 174。DeepSeek V4 Pro 没推对 5 句：\"养狗\"那句（\"晚上还得按点回家遛它\"）有一次没推出\"要早回\"、"
+      "一次多推了\"出行=开车\"；\"怀孕\"那句三次多推了\"小孩=有婴儿\"。"
+      "\"养狗\"改成\"晚上也得早点回家遛它，不能在外面待太晚\"；评判提示里把\"小孩\"的含义写清楚"
+      "（\"家里现在有没有已经出生、吃饭要用宝宝椅的婴儿\"，和回答模板一致）。")
+    w("3. 两家都判：173 / 174，唯一没对上的是 grok-4.7 把取值后面的括号说明一起抄了回来（\"要早回（晚饭只能订 18:30 以前）\"），"
+      "取值本身是对的；比较时去掉括号说明后 174 / 174。")
     w("")
     w(f"**前后一致**：[consistency.json]({L.rel(P('consistency.json'))}) 遍历 4 个世界的全部用户、会话、属性，"
       "按三种提问历史（从不问、每次全问、随机问）和两种重答配置生成回答，用一个只看文字的反解器（texts.parse_claims）逐条核对九条规则"
@@ -284,22 +297,38 @@ def write(out, report_path):
               f"{L.n(v['avg_questions'], gp, 'f2')} | {L.n(v['told_before_rate'], gp, 'pct')} | {L.n(v['memory_write_session_rate'], gp, 'pct')} | "
               f"{L.n(v['near_miss_error_rate'], gp, 'pct')} | {L.n(hs.get('headroom_share'), gp, 'pct')} | {L.ci(hs.get('headroom_share_ci95'), gp, 'pct')} |")
         w("")
-        w(f"剩余空间比例 = (模型分 − 最简单策略里的最高分 {L.n(g4['best_trivial_score'], gp)}) / (理想记忆策略 {L.n(g4['ideal'], gp)} − 最简单策略里的最高分)。")
+        w(f"剩余空间比例 = (模型分 − 最简单策略里的最高分 {L.n(g4['best_trivial_score'], gp)}) / (理想记忆策略 {L.n(g4['ideal'], gp)} − 最简单策略里的最高分)。"
+          "闸门④按要求只看 DeepSeek V4 Pro。")
         w("")
-        w("**失分拆解**（每次与偏好有关的会话的平均失分；\"没记住或没察觉变化\"与\"选项没对齐\"按同一会话在\"知道真实状态\"对照组里选没选对来分）：")
+        pr = g.get("partial_runs", {})
+        if pr:
+            w("**没有跑全的结果**（照实列出，不补跑；不进闸门，也不算置信区间）：grok-4.7 的 xAI 余额在种子 3 中途耗尽，"
+              "之后第二版不再向 xAI 发任何请求，这里的 grok-4.7 记录全部从缓存重建（缺缓存的用户从第一次缺的会话起截断）；"
+              "对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。")
+            w("")
+            w("| 记录 | 平均每次会话得分 | 偏好会话数 | 各世界（会话数 / 应有数：得分） | 成功率 | 平均每次提问 |")
+            w("|---|---|---|---|---|---|")
+            for k, v in pr.items():
+                nm = MODEL_CN.get(k[4:].replace("_true_memory", ""), k) + ("（知道真实状态）" if k.endswith("_true_memory") else "")
+                seeds = "；".join(f"种子 {sd}：{e['n_sessions']} / {e['n_full']}：{e['mean_score']:.3f}" for sd, e in v["by_seed"].items())
+                w(f"| {nm} | {L.n(v['mean_score'], gp)} | {L.n(v['n_sessions'], gp, 'int')} | {seeds} | {L.n(v['success_rate'], gp, 'pct')} | {L.n(v['avg_questions'], gp, 'f2')} |")
+            w("")
+        w("**失分拆解**（每次与偏好有关的会话的平均失分；\"没记住或没察觉变化\"与\"选项没对齐\"按同一会话在\"知道真实状态\"对照组里选没选对来分，"
+          "所以只算有对照组记录的那些会话）：")
         w("")
-        w("| 策略 | 总失分 | 提问花掉的分 | 没记住或没察觉变化 | 选项没对齐 | 对照组（知道真实状态）成功率 | 对照组平均提问 |")
-        w("|---|---|---|---|---|---|---|")
+        w("| 策略 | 算了哪些会话 | 总失分 | 提问花掉的分 | 没记住或没察觉变化 | 选项没对齐 | 对照组（知道真实状态）成功率 | 对照组平均提问 |")
+        w("|---|---|---|---|---|---|---|---|")
         lb = g["loss_breakdown"]
-        for m in llm_models:
-            v = lb.get(f"llm_{m}")
-            if not v:
+        for k, v in lb.items():
+            if not k.startswith("llm_"):
                 continue
-            w(f"| {MODEL_CN.get(m, m)} | {L.n(v['total_loss'], gp)} | {L.n(v['question_loss'], gp)} | {L.n(v['memory_or_change_loss'], gp)} | "
+            nm = MODEL_CN.get(k[4:], k)
+            scope = f"种子 {'、'.join(str(x) for x in v.get('seeds', []))}，{v['n_sessions']} 次"
+            w(f"| {nm} | {scope} | {L.n(v['total_loss'], gp)} | {L.n(v['question_loss'], gp)} | {L.n(v['memory_or_change_loss'], gp)} | "
               f"{L.n(v['alignment_loss'], gp)} | {L.n(v.get('control_success_rate'), gp, 'pct')} | {L.n(v.get('control_avg_questions'), gp, 'f2')} |")
         for k in ("ideal", "remember_no_update", "remember_all_reask", "ask_all"):
             v = lb[k]
-            w(f"| {REF_CN[k]} | {L.n(v['total_loss'], gp)} | {L.n(v['question_loss'], gp)} | {L.n(v['memory_or_change_loss'], gp)} | "
+            w(f"| {REF_CN[k]} | 三个闸门世界 | {L.n(v['total_loss'], gp)} | {L.n(v['question_loss'], gp)} | {L.n(v['memory_or_change_loss'], gp)} | "
               f"{L.n(v['alignment_loss'], gp)} | （对照用标准策略） | — |")
         w("")
         w("按近似项种类看选对率（三个闸门世界合计）：")
@@ -327,11 +356,13 @@ def write(out, report_path):
         w("| 策略 | 第一版（只算与偏好有关的会话） | 第二版 |")
         w("|---|---|---|")
         for k, k1 in (("ideal", None), ("ask_all", "ask_all"), ("remember_no_update", "remember_no_update"),
-                      ("conservative", "conservative"), ("random", "random"), ("llm_grok-4.7", "llm_grok-4.7")):
+                      ("conservative", "conservative"), ("random", "random")):
             a = (L.n(v1["policies"][k1], v1p) if k1 else f"{L.n(v1['ideal_ceiling_estimate'], v1p)}（审阅时的估算）")
             b = L.n(c0[k]["pref_mean_score"], P(f"seed{cfg['compare_seed']}", "policies", k, "sessions.jsonl")) if k in c0 else "—"
             nm = REF_CN.get(k) or MODEL_CN.get(k[4:], k)
             w(f"| {nm} | {a} | {b} |")
+        w("")
+        w("按缩减后的口径，种子 0 上的大模型只跑 u07 的 8 次会话（见下），整个世界只跑脚本策略。")
         w("")
     w(_u07_section(L, out, cfg))
     w("")
@@ -350,6 +381,11 @@ def write(out, report_path):
             w(f"- 在第 4 个会话边界存档、丢掉内存里的环境再恢复：{L.n(sum(v['identical'] for v in rs.values()), P('resume_check.json'), 'int')} / {len(rs)} 组与不中断时一致。")
     else:
         w("- 还没跑。")
+    w("")
+    w("**运行中出的问题与处理**（日志在 [runs/m1v2/logs/](" + L.rel(P("logs")) + ")）：")
+    w("")
+    for x in RUN_INCIDENTS:
+        w(f"- {x}")
     if os.path.exists(P("tests.txt")):
         w(f"- 单元测试输出：[tests.txt]({L.rel(P('tests.txt'))})。")
     w("")
@@ -362,8 +398,10 @@ def write(out, report_path):
         d = _load(os.path.join(pp, fn))
         w(f"- [{fn}]({L.rel(os.path.join(pp, fn))})：{d.get('source', '')}，查询时间 {d.get('fetched_at', '')}")
     w("")
-    w(f"调试只用 DeepSeek V4 Flash；正式基线跑 {'、'.join(MODEL_CN.get(m, m) for m in cfg['models'])}；"
-      f"\"知道真实状态\"对照组跑 {'、'.join(MODEL_CN.get(m, m) for m in cfg['control_models'])}；种子 0 的前后对照跑 {'、'.join(MODEL_CN.get(m, m) for m in cfg['compare_models'])}。"
+    w(f"调试只用 DeepSeek Flash；正式基线跑 {'、'.join(MODEL_CN.get(m, m) for m in cfg['models'])}（三个闸门世界）；"
+      f"\"知道真实状态\"对照组只跑 " + "、".join(f"{MODEL_CN.get(m, m)} 种子 {sd}" for m, sd in cfg["control_runs"]) +
+      f"；种子 0 的前后对照只用 {'、'.join(MODEL_CN.get(m, m) for m in cfg['compare_models'])} 跑 u07 的 8 次会话（第一版规则、第二版规则各一遍）。"
+      "grok-4.7 的 xAI 余额耗尽后，第二版不再向 xAI 发任何请求（代码里 xAI 只读缓存）；已经跑完或已缓存的 grok-4.7 结果从缓存重建、照实报告。"
       "第一版的 grok-4.20、grok-4.3 不再跑。")
     w("")
 
@@ -371,13 +409,41 @@ def write(out, report_path):
     w("## 11. 花费")
     w("")
     if os.path.exists(P("spend_ledger.json")):
-        led = _load(P("spend_ledger.json"))
-        w(f"本轮累计 {L.n(led['total_usd'], P('spend_ledger.json'), 'usd')}（上限 {cfg['budget_usd']} 美元）。")
+        lp_ = P("spend_ledger.json")
+        led = _load(lp_)
+        w(f"本轮累计 {L.n(led['total_usd'], lp_, 'usd')}（上限 {cfg['budget_usd']} 美元），其中 DeepSeek {L.n(led.get('deepseek_cny_total'), lp_, 'f2')} 元。"
+          "xAI 的金额取自响应里的 cost_in_usd_ticks；DeepSeek 的金额按调用时刻的官方单价（高峰 / 空闲）和响应里的 token 数计算，"
+          "人民币和美元两套价目各算一遍。被 xAI 拒绝（余额耗尽，HTTP 403）的请求不收费，也没有记进账本。")
+        if led.get("deepseek_cny_limit") is not None:
+            w(f"缩减口径之后的 DeepSeek 花费上限：{L.n(led['deepseek_cny_limit'] - led['deepseek_cny_budget_from'], lp_, 'f2')} 元"
+              f"（从累计 {L.n(led['deepseek_cny_budget_from'], lp_, 'f2')} 元算起），实际用了 "
+              f"{L.n(led['deepseek_cny_total'] - led['deepseek_cny_budget_from'], lp_, 'f2')} 元。")
+        if led.get("note"):
+            w("")
+            w("账本说明：" + led["note"])
         w("")
-        w("| 模型 · 用途 | 实际请求 | 花费 |")
-        w("|---|---|---|")
-        for k, v in sorted(led["by_model_role"].items()):
-            w(f"| {k} | {v['api_calls']} | {L.n(v['cost_usd'], P('spend_ledger.json'), 'usd')} |")
+        w("按\"阶段 × 模型\"（含调试和重跑；实际请求数不含缓存命中）：")
+        w("")
+        w("| 阶段 | 模型 | 实际请求 | 输入 tokens（其中缓存命中） | 输出 tokens | 花费（美元） | 花费（元） |")
+        w("|---|---|---|---|---|---|---|")
+        for k, v in sorted(led["by_model_role"].items(), key=lambda kv: (_stage_of(kv[0].split("|")[1]), kv[0])):
+            m, role = k.split("|")
+            w(f"| {_stage_cn(role)} | {MODEL_CN.get(m, m)} | {v['api_calls']} | {v['prompt_tokens']}（{v['cached_prompt_tokens']}） | "
+              f"{v['completion_tokens']} | {L.n(v['cost_usd'], lp_, 'usd')} | {L.n(v.get('cost_cny'), lp_, 'f2')} |")
+        tot = {}
+        for k, v in led["by_model_role"].items():
+            pv = "xAI" if not k.startswith("deepseek") else "DeepSeek"
+            e = tot.setdefault(pv, [0, 0.0, 0.0])
+            e[0] += v["api_calls"]
+            e[1] += v["cost_usd"]
+            e[2] += v.get("cost_cny", 0.0)
+        for pv, (n, usd, cny) in tot.items():
+            w(f"| **合计** | **{pv}** | {n} | | | {L.n(usd, lp_, 'usd')} | {L.n(cny, lp_, 'f2') if pv == 'DeepSeek' else '—'} |")
+        v1l = os.path.join("runs", "m1", "spend_ledger.json")
+        if os.path.exists(v1l):
+            w("")
+            w(f"对账：xAI 后台的本月用量还包括第一版的 {L.n(_load(v1l)['total_usd'], v1l, 'usd')}（runs/m1 的账本）；"
+              "DeepSeek 后台按调用时刻的人民币价扣费，应与上表人民币一列一致（逐次明细见 spend_calls.jsonl，账本更正之前的调用只有汇总）。")
     w("")
 
     # ---------- 12. 局限 ----------
@@ -413,8 +479,44 @@ def write(out, report_path):
         f.write("\n".join(lines))
 
 
+RUN_INCIDENTS = [
+    "xAI 余额在 grok-4.7 跑种子 3 时耗尽（HTTP 403）。当时的代码把接口出错记成\"agent 没作答\"，于是种子 3 的普通运行有 87 次、"
+    "对照组有 150 次、种子 0 有 192 次会话被错记成零分。已改成接口出错就整次停下（llm.ApiError），错记的这几组记录已删除；"
+    "之后不再向 xAI 发任何请求，grok-4.7 的记录全部只从缓存重建，缺缓存的用户从第一次缺的会话起截断。",
+    "DeepSeek V4 Pro 种子 3 的第一次运行（并行进程 A，日志 pA.log）得 0.725，同样有会话因接口出错被记成零分（同一个毛病）。"
+    "修好后从缓存续跑，补发了 39 次请求（1.02 元），最终 0.804。",
+    "grok-4.7 种子 2、3 的普通运行和对照组曾在两个进程里同时跑；两者每次会话的第一轮请求完全相同，缓存里同一个键被写了两个不同的响应"
+    "（237 个键），按\"后写的为准\"读缓存会让普通运行的后续请求对不上。已改成：重建时先重建普通运行（同一会话里缺缓存就换另一个响应重试），"
+    "再让对照组用另一个响应。种子 2 上这样重建的结果与当时保存的记录、对话逐字一致。此后新请求的缓存键带上用途（agent / control），不会再撞。",
+    "一次失败的重建把 grok-4.7 种子 2 普通运行的 sessions.jsonl 覆盖成了空文件；已从缓存重建，与当时保存的 192 段对话、summary.json 逐一核对一致。"
+    "save_policy 现在拒绝用空记录覆盖。",
+    "账本起初把 DeepSeek 一律按高峰美元价记账；这些调用都在 UTC 周六（空闲时段），已按 token 数改用空闲价重算人民币和美元（reports/fix_ledger_offpeak.py），"
+    "之后按调用时刻取价，每次实际调用另记在 spend_calls.jsonl。",
+]
+
+STAGE_CN = [("cuecheck", "台词线索校验（三轮，含重跑）"), ("pilot:agent", "调试（Flash，小世界）"),
+            ("pilot:control", "调试（Flash，对照组）"), ("agent", "闸门世界基线"), ("control", "\"知道真实状态\"对照组"),
+            ("u07_v1rules:agent", "u07 · 第一版规则 · agent"), ("u07_v1rules:usersim", "u07 · 第一版规则 · 模拟用户的提问归类（含归类准确率重测）"),
+            ("u07_v2rules:agent", "u07 · 第二版规则 · agent")]
+
+
+def _stage_of(role):
+    return next((i for i, (r, _) in enumerate(STAGE_CN) if r == role), len(STAGE_CN))
+
+
+def _stage_cn(role):
+    return dict(STAGE_CN).get(role, role)
+
+
 def _limitations(g, cue):
     out = []
+    g4 = g["gates"]["4"]
+    if "model" in g4 and not g4["pass_not_too_easy"]:
+        out.append(f"闸门④没过：DeepSeek V4 Pro 在剩余空间里拿到 {100 * g4['headroom_share']:.1f}%，区间上界 {100 * g4['headroom_share_ci95'][1]:.1f}% ≥ 80%，"
+                   "环境对现成模型偏简单。按约定不自己加难，停下来报数；④ 只决定论文怎么讲，不挡 M2（见 README 路线）。"
+                   "失分拆解显示，现成模型丢的分几乎全在\"提问\"和\"没记住或没察觉变化\"两块，知道真实状态时几乎全对（选项没对齐的失分 ≤ 0.012）。")
+    out.append("grok-4.7 只有种子 1、2 完整，种子 3 只跑完 88 / 168 次偏好会话；它不进闸门，照实列在第 7 节。"
+               "对照组按缩减后的口径只给 V4 Pro 跑了种子 1，所以 V4 Pro 的失分拆解只基于 168 次会话。")
     if not cue or "deepseek-v4-pro" not in (cue or {}).get("models", []):
         out.append("台词线索校验要求 DeepSeek V4 Pro 和 grok-4.7 都推对；DeepSeek 没跑完之前，闸门①只能算部分完成。")
     out.append("去掉了酒店任务：酒店只有\"预算\"一项两向属性，对约束少的用户，6 个选项里只能靠价位区分，"
@@ -427,47 +529,76 @@ def _limitations(g, cue):
     return out
 
 
-def _u07_section(L, out, cfg):
-    """u07 在第一版和第二版下 8 次会话的逐次对照（grok-4.7 与每次都问的策略）。"""
-    lines = ["### u07 的逐次对照", ""]
-    lines.append("三组对照：第一版的 u07（runs/m1，种子 0 的第一版世界）；第一版 u07 的同一段经历（第 2 次会话说怀孕、第 5 次会话临时换个区聚，"
-                 "会话的周次和领域都不变）按第二版规则重放，台词、回答、选项都换成第二版的；以及第二版生成器在种子 0 上自然生成的 u07"
-                 "（初始状态与第一版相同，只有\"晚归\"一项按第二版的含义重新取值，但生活事件不同）。")
+def _u07_table(L, title, sp, world_path, uid="u07"):
+    lines = []
+    if not (os.path.exists(sp) and os.path.exists(world_path)):
+        lines += [f"**{title}**：还没有记录。", ""]
+        return lines, None
+    world = _load(world_path)
+    u = next(x for x in world["users"] if x["uid"] == uid)
+    recs = {r["idx"]: r for r in _jsonl(sp) if r["uid"] == uid}
+    lines.append(f"**{title}**（[记录]({L.rel(sp)})）")
     lines.append("")
-    for ver, base, wpath in (("第一版", os.path.join("runs", "m1", "policies"), os.path.join("runs", "m1", "world.json")),
-                             ("第二版 · 重放第一版 u07 的经历", os.path.join(out, "u07_replay", "policies"),
-                              os.path.join(out, "u07_replay", "world.json")),
-                             ("第二版 · 种子 0 自然生成的 u07", os.path.join(out, f"seed{cfg['compare_seed']}", "policies"),
-                              os.path.join(out, f"seed{cfg['compare_seed']}", "world.json"))):
-        if not os.path.exists(wpath):
+    lines.append("| 次 | 周 | 类型 · 领域 | 用户说 | 问了什么 → 用户怎么答 | 写了什么记忆 | 选了哪个 |")
+    lines.append("|---|---|---|---|---|---|---|")
+    for s in u["sessions"]:
+        r = recs.get(s["idx"])
+        if r is None:
             continue
-        world = _load(wpath)
-        u = next(x for x in world["users"] if x["uid"] == "u07")
-        for pol_key, pol_name in (("llm_grok-4.7", "grok-4.7"), ("ask_all", "每次都问")):
-            sp = os.path.join(base, pol_key, "sessions.jsonl")
-            if not os.path.exists(sp):
-                lines.append(f"**{ver} · {pol_name}**：还没有记录。")
-                lines.append("")
-                continue
-            recs = {r["idx"]: r for r in _jsonl(sp) if r["uid"] == "u07"}
-            lines.append(f"**{ver} · {pol_name}**（[记录]({L.rel(sp)})）")
-            lines.append("")
-            lines.append("| 次 | 周 | 类型 · 领域 | 用户说 | 问了什么 → 用户怎么答 | 写了什么记忆 | 选了哪个 |")
-            lines.append("|---|---|---|---|---|---|---|")
-            for s in u["sessions"]:
-                r = recs.get(s["idx"])
-                if r is None:
-                    continue
-                qa = "<br>".join(
-                    f"问：{_esc(q['text'])}" + (f"（声明：{'、'.join(ATTR_CN.get(a, a) for a in q.get('attributes', []))}）" if "attributes" in q else
-                                               f"（归到：{'、'.join(q.get('topics', []))}）")
-                    + f" → 答：{_esc(q['answer'])}" for q in r["questions"]) or "（没问）"
-                mem = "<br>".join(f"{_esc(op[1])}：{_esc(str(op[2]))}" for op in r["memory_ops"] if op[0] == "write") or "（没写）"
-                ok = "✓" if r["grade"]["success"] else "✗"
-                role = r.get("chosen_role") or "—"
-                lines.append(f"| {s['idx']} | {s['week']} | {s['type']} · {DOMAIN_CN.get(s['domain'], s['domain'])} | {_esc(s['user_text'])} | {qa} | {mem} | "
-                             f"{r['chosen'] or '—'}（正确 {r['correct']}，{ok}，{role}） |")
-            lines.append("")
+        qa = "<br>".join(
+            f"问：{_esc(q['text'])}" + (f"（声明：{'、'.join(ATTR_CN.get(a, a) for a in q.get('attributes', []))}）" if "attributes" in q else
+                                       f"（模拟用户归到：{'、'.join(q.get('topics', [])) or '无'}）")
+            + f" → 答：{_esc(q['answer'])}" for q in r["questions"]) or "（没问）"
+        mem = "<br>".join(f"{_esc(op[1])}：{_esc(str(op[2]))}" for op in r["memory_ops"] if op[0] == "write") or "（没写）"
+        ok = "✓" if r["grade"]["success"] else "✗"
+        role = r.get("chosen_role") or "—"
+        lines.append(f"| {s['idx']} | {s['week']} | {s['type']} · {DOMAIN_CN.get(s['domain'], s['domain'])} | {_esc(s['user_text'])} | {qa} | {mem} | "
+                     f"{r['chosen'] or '—'}（正确 {r['correct']}，{ok}，{role}） |")
+    lines.append("")
+    return lines, recs
+
+
+def _u07_section(L, out, cfg):
+    """u07 的前后对照：同一个模型（DeepSeek V4 Pro）分别在第一版、第二版规则下跑 u07 的 8 次会话。"""
+    v1w = os.path.join("runs", "m1", "world.json")
+    rw = os.path.join(out, "u07_replay", "world.json")
+    cols = [
+        ("第一版规则 · DeepSeek V4 Pro", os.path.join(out, "u07_v1rules", "sessions.jsonl"), v1w),
+        ("第二版规则 · DeepSeek V4 Pro", os.path.join(out, "u07_replay", "policies", "llm_deepseek-v4-pro", "sessions.jsonl"), rw),
+        ("参考：第一版规则 · grok-4.7（第一版报告里的原记录）", os.path.join("runs", "m1", "policies", "llm_grok-4.7", "sessions.jsonl"), v1w),
+        ("参考：第一版规则 · 每次都问", os.path.join("runs", "m1", "policies", "ask_all", "sessions.jsonl"), v1w),
+        ("参考：第二版规则 · 每次都问", os.path.join(out, "u07_replay", "policies", "ask_all", "sessions.jsonl"), rw),
+    ]
+    lines = ["### u07 的逐次对照", ""]
+    lines.append("同一个模型（DeepSeek V4 Pro）在两套规则下跑 u07 的同一段经历：第 2 次会话说怀孕、第 5 次会话临时换个区聚，会话的周次、类型、领域都相同。"
+                 "第一版规则用第一版的环境代码原样运行（legacy/roommate_v1，提交 d3871eb），只把请求改走 DeepSeek；"
+                 "第一版的模拟用户要用模型把问题归到话题上，原来用 grok-4.20，现在改用 DeepSeek Flash"
+                 "（在第一版自带的人工标注集上的归类准确率见 runs/m1v2/u07_v1rules/classifier_eval.json）。"
+                 "第二版规则下，台词、回答、选项都换成第二版的；u07 的初始状态与第一版相同，只有\"晚归\"一项按第二版的含义取值。"
+                 "grok-4.7 与每次都问的两列只作参考。")
+    lines.append("")
+    got = {}
+    for title, sp, wp in cols:
+        t, recs = _u07_table(L, title, sp, wp)
+        lines += t
+        got[title] = recs
+    a, b = got.get(cols[0][0]), got.get(cols[1][0])
+    if a and b:
+        lines.append("两套规则下 V4 Pro 的逐次结果：")
+        lines.append("")
+        lines.append("| 次 | 第一版规则：选对 · 提问次数 | 第二版规则：选对 · 提问次数 |")
+        lines.append("|---|---|---|")
+        for i in sorted(set(a) | set(b)):
+            fa = (f"{'✓' if a[i]['grade']['success'] else '✗'} · {len(a[i]['questions'])}") if i in a else "—"
+            fb = (f"{'✓' if b[i]['grade']['success'] else '✗'} · {len(b[i]['questions'])}") if i in b else "—"
+            lines.append(f"| {i} | {fa} | {fb} |")
+        lines.append("")
+    ce = os.path.join(out, "u07_v1rules", "classifier_eval.json")
+    if os.path.exists(ce):
+        c = _load(ce)
+        lines.append(f"第一版规则下的提问归类换成 {c['model']} 后，在第一版的 {c['n']} 条人工标注问题上的准确率：{L.n(c['exact_set_accuracy'], ce, 'pct')}"
+                     "（第一版用 grok-4.20 时是 96.7%）。")
+        lines.append("")
     return "\n".join(lines)
 
 

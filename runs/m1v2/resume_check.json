@@ -1,0 +1,17 @@
+{
+ "1/llm_deepseek-flash": {
+  "k": 4,
+  "checkpoint_bytes": 1234742,
+  "identical": true
+ },
+ "1/llm_deepseek-v4-pro": {
+  "k": 4,
+  "checkpoint_bytes": 1584527,
+  "identical": true
+ },
+ "1/llm_grok-4.7": {
+  "k": 4,
+  "checkpoint_bytes": 1116737,
+  "identical": true
+ }
+}

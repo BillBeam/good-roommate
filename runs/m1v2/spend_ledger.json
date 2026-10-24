@@ -1,14 +1,143 @@
 {
- "total_usd": 0.8185479999999996,
+ "total_usd": 18.007734110000037,
  "by_model_role": {
   "grok-4.7|cuecheck": {
-   "api_calls": 174,
+   "api_calls": 370,
    "cache_hits": 0,
-   "prompt_tokens": 299828,
-   "cached_prompt_tokens": 245760,
-   "completion_tokens": 2931,
-   "reasoning_tokens": 94991,
-   "cost_usd": 0.8185479999999996
+   "prompt_tokens": 641339,
+   "cached_prompt_tokens": 524672,
+   "completion_tokens": 6220,
+   "reasoning_tokens": 179131,
+   "cost_usd": 1.6077759999999999
+  },
+  "deepseek-flash|pilot:agent": {
+   "api_calls": 45,
+   "cache_hits": 0,
+   "prompt_tokens": 71114,
+   "cached_prompt_tokens": 56448,
+   "completion_tokens": 9587,
+   "reasoning_tokens": 6462,
+   "cost_usd": 0.008121444,
+   "cost_usd_peak_recorded": 0.016242887999999997,
+   "cost_cny": 0.05414296
+  },
+  "deepseek-flash|pilot:control": {
+   "api_calls": 16,
+   "cache_hits": 0,
+   "prompt_tokens": 25216,
+   "cached_prompt_tokens": 19328,
+   "completion_tokens": 4497,
+   "reasoning_tokens": 3234,
+   "cost_usd": 0.003639384,
+   "cost_usd_peak_recorded": 0.0072787680000000006,
+   "cost_cny": 0.024262560000000002
+  },
+  "deepseek-v4-pro|cuecheck": {
+   "api_calls": 348,
+   "cache_hits": 0,
+   "prompt_tokens": 187594,
+   "cached_prompt_tokens": 126976,
+   "completion_tokens": 220181,
+   "reasoning_tokens": 213857,
+   "cost_usd": 0.478759732,
+   "cost_usd_peak_recorded": 0.9575194639999993,
+   "cost_cny": 3.2642709
+  },
+  "deepseek-flash|agent": {
+   "api_calls": 1649,
+   "cache_hits": 0,
+   "prompt_tokens": 2539714,
+   "cached_prompt_tokens": 2102272,
+   "completion_tokens": 338642,
+   "reasoning_tokens": 243841,
+   "cost_usd": 0.27510831599999996,
+   "cost_usd_peak_recorded": 0.5502166320000003,
+   "cost_cny": 1.83405544
+  },
+  "grok-4.7|agent": {
+   "api_calls": 1418,
+   "cache_hits": 0,
+   "prompt_tokens": 3503385,
+   "cached_prompt_tokens": 2891904,
+   "completion_tokens": 61688,
+   "reasoning_tokens": 915311,
+   "cost_usd": 8.530908000000005
+  },
+  "deepseek-v4-pro|agent": {
+   "api_calls": 1501,
+   "cache_hits": 0,
+   "prompt_tokens": 2826819,
+   "cached_prompt_tokens": 2436096,
+   "completion_tokens": 949383,
+   "reasoning_tokens": 863221,
+   "cost_usd": 2.1912496320000017,
+   "cost_usd_peak_recorded": 4.084775111999995,
+   "cost_cny": 14.9403384
+  },
+  "deepseek-flash|control": {
+   "api_calls": 575,
+   "cache_hits": 0,
+   "prompt_tokens": 904978,
+   "cached_prompt_tokens": 687360,
+   "completion_tokens": 161905,
+   "reasoning_tokens": 127111,
+   "cost_usd": 0.13184778,
+   "cost_usd_peak_recorded": 0.26369556000000016,
+   "cost_cny": 0.8789851999999999
+  },
+  "grok-4.7|control": {
+   "api_calls": 650,
+   "cache_hits": 0,
+   "prompt_tokens": 1651215,
+   "cached_prompt_tokens": 1325824,
+   "completion_tokens": 18931,
+   "reasoning_tokens": 482136,
+   "cost_usd": 4.320096000000005
+  },
+  "deepseek-v4-pro|control": {
+   "api_calls": 172,
+   "cache_hits": 0,
+   "prompt_tokens": 313227,
+   "cached_prompt_tokens": 254976,
+   "completion_tokens": 187954,
+   "reasoning_tokens": 179750,
+   "cost_usd": 0.416204052,
+   "cost_usd_peak_recorded": 0.8324081040000003,
+   "cost_cny": 2.8377548999999997
+  },
+  "deepseek-v4-pro|u07_v2rules:agent": {
+   "api_calls": 18,
+   "cache_hits": 0,
+   "prompt_tokens": 27768,
+   "cached_prompt_tokens": 23168,
+   "completion_tokens": 7118,
+   "reasoning_tokens": 6121,
+   "cost_usd": 0.017639336,
+   "cost_cny": 0.1202682
+  },
+  "deepseek-v4-pro|u07_v1rules:agent": {
+   "api_calls": 18,
+   "cache_hits": 0,
+   "prompt_tokens": 26031,
+   "cached_prompt_tokens": 20608,
+   "completion_tokens": 10233,
+   "reasoning_tokens": 9308,
+   "cost_usd": 0.024293896,
+   "cost_cny": 0.1656402
+  },
+  "deepseek-flash|u07_v1rules:usersim": {
+   "api_calls": 33,
+   "cache_hits": 0,
+   "prompt_tokens": 9131,
+   "cached_prompt_tokens": 4096,
+   "completion_tokens": 2205,
+   "reasoning_tokens": 1877,
+   "cost_usd": 0.002090538,
+   "cost_cny": 0.013936920000000005
   }
- }
+ },
+ "deepseek_cny_total": 24.133655680000007,
+ "deepseek_cny_budget_from": 19.98108676,
+ "deepseek_cny_limit": 59.98108676,
+ "note": "DeepSeek 的条目起初一律按高峰美元价记账（cost_usd_peak_recorded）；这些调用全部发生在 2026-10-24 UTC 周六，属于空闲时段，已按 token 数改用空闲价重算美元与人民币。此后的调用按调用时刻取价。缩减口径之后的 DeepSeek 上限 40.0 元，从 19.98 元算起（deepseek-v4-pro|control 整条算作剩余部分）。"
 }

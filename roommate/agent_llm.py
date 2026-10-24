@@ -67,8 +67,10 @@ NUDGE = "（系统提示：用户看不到你直接输出的文字。要提问�
 
 
 class LLMAgent:
-    def __init__(self, client, model, extra=None, seed=0, inject_true_memory=False, echo_reasoning=False):
+    def __init__(self, client, model, extra=None, seed=0, inject_true_memory=False, echo_reasoning=False,
+                 truncate_on_cache_miss=False):
         self.client = client
+        self.truncate_on_cache_miss = truncate_on_cache_miss  # 只用缓存重建已有结果：缺缓存时截断这个用户
         self.echo_reasoning = echo_reasoning   # 有的接口要求工具调用循环里把思考内容原样带回
         self.model = model
         self.inject_true_memory = inject_true_memory   # "知道真实状态"对照组
