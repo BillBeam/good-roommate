@@ -138,8 +138,8 @@ def control_breakdown(normal, control):
     return b
 
 
-def variance_stats(out, mode, seed):
-    base = os.path.join(out, "variance", f"seed{seed}", f"{mode}_t1")
+def variance_stats(out, mode, seed, sub="variance"):
+    base = os.path.join(out, sub, f"seed{seed}", f"{mode}_t1")
     if not os.path.isdir(base):
         return None
     reps = sorted(d for d in os.listdir(base) if os.path.exists(os.path.join(base, d, "sessions.jsonl")))
@@ -301,10 +301,15 @@ def write_stats(out, m1, seeds):
         tc = led1["cost_cny"] / n_v4
         res["teacher_cost"] = {"cny": led1["cost_cny"], "sessions": n_v4, "cny_per_session": tc,
                                "source": os.path.join(m1, "spend_ledger.json")}
+        ip = os.path.join(out, "interim", "interim_stats.json")
+        interim = _load(ip).get("base", {}) if os.path.exists(ip) else {}
         for mode in MODES:
             u = (res["rows"].get(f"llm_{SHORT}_{mode}") or {}).get("usage")
+            src = "种子 1–3 全量、温度 0"
+            if not u and (interim.get(mode) or {}).get("usage"):
+                u, src = interim[mode]["usage"], "中期子集、温度 0（每个用户的前几次会话）"
             if u:
-                res["estimate_by_mode"][mode] = estimate(u, tc)
+                res["estimate_by_mode"][mode] = dict(estimate(u, tc), usage_source=src)
     with open(os.path.join(out, "stats.json"), "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     return res
@@ -398,7 +403,7 @@ def write_report(out, path):
     L = Linker(path)
     P = lambda *a: os.path.join(out, *a)
     sp = P("stats.json")
-    st = _load(sp)
+    st = _load(sp) if os.path.exists(sp) else {"rows": {}, "seeds": [1, 2, 3]}
     cfg = _load(P("config.json"))
     rows = st["rows"]
     lines = []
@@ -415,8 +420,15 @@ def write_report(out, path):
       "Qwen3.5-4B 经硅基流动调用（免费），DeepSeek 两行和两个脚本策略取自 M1 第二版的日志，没有重跑。")
     w("")
 
+    _interim(w, L, P)
+    w("---")
+    w("")
+    w("# 附录：全量运行（后台补跑中，跑完一组更新一组）")
+    w("")
+    w("以下各节由全量运行的结果生成。中期结论不依赖这里的数字；某一组还没跑完时，相应的行或表是空的。")
+    w("")
     # ---------- 结论 ----------
-    w("## 结论")
+    w("## 全量结论")
     w("")
     if best:
         b = rows[q(best)]
@@ -665,16 +677,16 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
     if EM:
         tc = st["teacher_cost"]
         a = next(iter(EM.values()))["assumptions"]
-        w("**估算**。训练用哪种思考模式待定（第 4 节），两种模式各占一行，实测量都取种子 1–3、温度 0 的结果，已经包含兜圈子的开销（第 2 节）。"
+        w("**估算**。训练用哪种思考模式待定（第 4 节），两种模式各占一行，实测量的来源见下表第二列（全量没跑完时取中期子集），已经包含兜圈子的开销。"
           "SFT 之后兜圈子会变少，rollout 会更便宜，所以 GRPO 一栏偏保守。"
           f"老师 DeepSeek V4 Pro 每次会话 {L.n(tc['cny_per_session'], tc['source'], 'f3')} 元，来自 M1 第二版账本。"
           "吞吐、步数、组大小是假设，写在 stats.json 的 `estimate_by_mode.<模式>.assumptions` 里。")
         w("")
-        w("| 模式 | 每次会话调用 / 输入 / 输出 tokens（实测） | 训练序列（估） |")
-        w("|---|---|---|")
+        w("| 模式 | 实测量来自 | 每次会话调用 / 输入 / 输出 tokens（实测） | 训练序列（估） |")
+        w("|---|---|---|---|")
         for mode, e in EM.items():
             m = e["measured"]
-            w(f"| {MODE_CN[mode]} | {L.n(m['qwen_calls_per_session'], sp, 'f2')} / {L.n(m['qwen_prompt_tokens_per_session'], sp, 'int')} / "
+            w(f"| {MODE_CN[mode]} | {e.get('usage_source', '')} | {L.n(m['qwen_calls_per_session'], sp, 'f2')} / {L.n(m['qwen_prompt_tokens_per_session'], sp, 'int')} / "
               f"{L.n(m['qwen_completion_tokens_per_session'], sp, 'int')} | {L.n(m['grpo_train_tokens_per_session_est'], sp, 'int')} |")
         w("")
         w("| 方案 | 模式 | 卡 | 老师轨迹 | 装环境 | SFT | GRPO | 上机合计 | 显卡费（按量） | 显卡费（抢占） | 合计（老师 + 按量显卡） |")
@@ -735,4 +747,112 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
     w("- 硅基流动上的权重和精度只能间接确认；本地 BF16 与硅基流动之间的分数差没有实测。")
     w("- 评测用温度 0 是为了和 M1 可比，但官方不建议思考模式用贪心解码；思考开这一组可能因此被低估。")
     w("- 估算里的显卡吞吐是假设，没有实测。")
+    w("")
+
+
+def _interim(w, L, P):
+    """报告开头的中期结论：只读 runs/m2/interim/interim_stats.json。"""
+    ip = P("interim", "interim_stats.json")
+    if not os.path.exists(ip):
+        return
+    I = _load(ip)
+    B, C, V = I.get("base", {}), I.get("ctrl", {}), I.get("variance")
+    n = lambda v, k="f3": L.n(v, ip, k)
+    w("## 中期结论（只用已跑完的子集）")
+    w("")
+    w("**已完成的范围**（下面每个数字都来自这个子集，不是全量）：")
+    w("")
+    for m, e in B.items():
+        spu = "、".join(f"种子 {s} 每人约 {v:.1f} 次" for s, v in e["sessions_per_user"].items())
+        w(f"- {MODE_CN[m]}、温度 0：种子 {'、'.join(str(s) for s in e['seeds'])}，{n(e['n_users'], 'int')} 个用户，"
+          f"每个用户的前几次会话（{spu}），共 {n(e['n_sessions'], 'int')} 次与偏好有关的会话。")
+    for m, c in C.items():
+        w(f"- \"知道真实状态\"对照组，{MODE_CN[m]}：种子 1，{n(c['n_sessions'], 'int')} 次与偏好有关的会话。")
+    VL = I.get("variance_loose")
+    if VL:
+        cb = "、".join(f"第 {r} 遍 {c}" for r, c in VL["completed_by_rep"].items())
+        w(f"- 组内差异：思考关、温度 1，种子 1。计划是 24 个用户 × 前 3 次会话 × 4 遍；运行被打断时只跑完了第一次会话（{cb} 个用户）。"
+          f"至少 2 遍跑完的用户 {n(VL['n_users_ge2_reps'], 'int')} 个、共 {n(VL['n_completed_first_sessions'], 'int')} 次第一次会话；"
+          f"4 遍都跑完的只有 {n(V['n_users'] if V else 0, 'int')} 个用户。")
+    w("")
+    w("子集是\"每个用户的前 k 次会话\"（全量运行按会话序号一轮一轮推进，从缓存重建时每个用户在第一次缺缓存的会话处截断）。"
+      "前几次会话要先问，分数天然偏低，所以每个比较都在同一批会话上做：DeepSeek V4 Pro、理想记忆策略、记住但不更新也只取这些会话（M1 第二版的完整记录）。"
+      f"区间按用户重抽样。数据：[interim_stats.json]({L.rel(ip)})，生成脚本 `python -m roommate.m2_interim`。")
+    w("")
+    w("**问题一：起点分数是否低于 0.75？**")
+    w("")
+    w("| 温度 0 | 子集会话数 | Qwen3.5-4B 偏好会话得分 | 95% 区间 | 同一批会话上 V4 Pro | 理想记忆策略 | 记住但不更新 | 剩余空间比例 | 低于 0.75 的重抽样比例 |")
+    w("|---|---|---|---|---|---|---|---|---|")
+    for m, e in B.items():
+        r = e["refs_same_sessions"]
+        w(f"| {MODE_CN[m]} | {n(e['n_sessions'], 'int')} | {n(e['mean_score'])} | {L.ci(e['ci95'], ip)} | "
+          f"{n(r['llm_deepseek-v4-pro'])} | {n(r['ideal'])} | {n(r['remember_no_update'])} | "
+          f"{n(e['headroom_share'], 'pct')}（{L.ci(e['headroom_share_ci95'], ip, 'pct')}） | {n(e['p_below_075'], 'pct')} |")
+    w("")
+    w("丢分去向（同一子集）：")
+    w("")
+    w("| 温度 0 | 选错的会话 | └ 没选出任何选项 | └ 其中用满 14 轮 | └ 选了错的 | 每次会话提问扣分 | 兜圈子的会话占比 | 每次会话调用 / 输入 / 输出 tokens |")
+    w("|---|---|---|---|---|---|---|---|")
+    for m, e in B.items():
+        fb, lp, u = e["fail_breakdown"], e["loops"], e["usage"]
+        w(f"| {MODE_CN[m]} | {n(fb['n_fail'], 'int')} / {n(e['n_sessions'], 'int')} | {n(fb['no_choice'], 'int')} | "
+          f"{n(fb['no_choice_hit_max_turns'], 'int')} | {n(fb['wrong_choice'], 'int')} | {n(fb['question_loss_per_session'])} | "
+          f"{n(lp['any_loop_share'], 'pct')}（重复问 {n(lp['repeat_question'], 'int')}、14 轮 {n(lp['hit_max_turns'], 'int')}、空白填充 {n(lp['whitespace_padding'], 'int')}） | "
+          f"{n(u['calls_per_session'], 'f2')} / {n(u['prompt_tokens_per_session'], 'int')} / {n(u['completion_tokens_per_session'], 'int')} |")
+    for m, c in C.items():
+        w(f"| 对照组·{MODE_CN[m]}（种子 1） | 选对率 {n(c['success_rate'], 'pct')} | {n(c['no_choice'], 'int')} | {n(c['hit_max_turns'], 'int')} | — | — | — | — |")
+    w("")
+    w("**问题二：温度大于 0 时，同一用户几遍之间的分数有没有差异？**")
+    w("")
+    VL = I.get("variance_loose")
+    if VL:
+        w(f"- **有差异的用户占比**：第一次会话（各遍 prompt 完全相同）在至少 2 遍里跑完的用户 {n(VL['n_users_ge2_reps'], 'int')} 个，"
+          f"其中几遍分数不全相同的 {n(VL['n_users_differ'], 'int')} 个（{n(VL['share_users_differ'], 'pct')}），"
+          f"选对与否有对有错的 {n(VL['n_users_success_mixed'], 'int')} 个；跑完的 {n(VL['n_completed_first_sessions'], 'int')} 次第一次会话里，"
+          f"用满 14 轮的 {n(VL['n_first_sessions_hit_max_turns'], 'int')} 次。")
+        w("- 注意：组内差异子集只到第一次会话，而且没跑完就被打断（见下面\"运行中断\"）；跑得慢的会话（兜圈子的）更可能没跑完，"
+          "所以子集偏向短会话，用满 14 轮的比例会被低估。第一次会话各遍的 prompt 完全相同，比较是干净的。")
+    if V:
+        w(f"- 严格口径（4 遍都跑完，只有 {n(V['n_users'], 'int')} 个用户，样本太小，只作参考）：几遍分数不全相同的 "
+          f"{n(V['users_with_difference'], 'int')} / {n(V['n_users'], 'int')}。")
+        w(f"- 用户总分的组内标准差：中位数 {n(V['user_total_sd']['median'])}，10% / 90% 分位 {n(V['user_total_sd']['p10'])} / {n(V['user_total_sd']['p90'])}。")
+        w(f"- 按（用户、会话）看：{n(V['session_groups_all_identical'], 'int')} / {n(V['n_session_groups'], 'int')} 组 {n(V['k'], 'int')} 遍分数完全相同"
+          f"（{n(V['session_groups_all_identical_share'], 'pct')}；其中每遍都选对且提问数相同 {n(V['session_groups_identical_all_correct'], 'int')} 组），"
+          f"选对与否有对有错的 {n(V['session_groups_success_mixed'], 'int')} 组；第一次会话（{n(V['k'], 'int')} 遍 prompt 完全相同）分数完全相同的 "
+          f"{n(V['first_session_groups_all_identical'], 'int')} / {n(V['first_session_groups'], 'int')}。")
+        w(f"- 这 {n(V['k'], 'int')} 遍的平均得分 {n(V['mean_score_all_reps'])}；用满 14 轮没选 {n(V['failures_all_reps']['hit_max_turns'], 'int')} 次。")
+    w("")
+    w("")
+    w("**结论属于哪一种**：")
+    w("")
+    for m, e in B.items():
+        fb = e["fail_breakdown"]
+        nc_share = fb["no_choice"] / fb["n_fail"] if fb["n_fail"] else 0
+        hi = e["ci95"][1]
+        if hi < 0.75 and nc_share >= 0.5:
+            cat = "**起点低，且主要丢在格式和兜圈子**"
+            why = (f"得分 {n(e['mean_score'])}（区间上界 {n(hi)}，低于 0.75）；选错的 {n(fb['n_fail'], 'int')} 次里 "
+                   f"{n(fb['no_choice'], 'int')} 次没选出任何选项（{n(nc_share, 'pct')}），全部是用满 14 轮；"
+                   f"另外每次会话被重复提问扣 {n(fb['question_loss_per_session'])} 分。")
+        elif hi < 0.75:
+            cat = ("**起点中等，且组内有差异**" if (V or VL) and m == "nothink" else
+                   "**起点中等**（这一模式在训练温度下的组内差异还没测；思考关上测到有差异）")
+            if e["max_idx"] is not None and e["max_idx"] <= 1:
+                cat += "（证据只到前两次会话，跨会话记忆还没被检验）"
+            why = (f"得分 {n(e['mean_score'])}（区间上界 {n(hi)}，低于 0.75），同一批会话上 V4 Pro {n(e['refs_same_sessions']['llm_deepseek-v4-pro'])}；"
+                   f"丢分主要在提问（每次会话 {n(fb['question_loss_per_session'])}）和选错（{n(fb['wrong_choice'], 'int')} 次），"
+                   f"没选出选项只有 {n(fb['no_choice'], 'int')} 次。")
+        else:
+            cat = "**起点 ≥ 0.75**"
+            why = f"得分 {n(e['mean_score'])}，区间 {L.ci(e['ci95'], ip)}。"
+        w(f"- {MODE_CN[m]}：{cat}。{why}")
+    if VL:
+        w(f"- 两种模式都不属于\"起点 ≥ 0.75，或组内几乎没有差异\"：温度 1 时同一用户几遍之间的分数有差异的占 {n(VL['share_users_differ'], 'pct')}"
+          "（测的是思考关；思考开在训练温度下的组内差异还没测）。所以小模型还有东西可学，GRPO 在组内有信号可用；"
+          "思考关要先解决兜圈子（SFT 的任务），思考开的起点更高、丢分在提问和挑选。训练用哪种模式仍待定（附录第 4 节）。")
+    w("")
+    rp = P("logs", "restarts.txt")
+    w(f"**运行中断**：2026-10-25 约 14:01（UTC）起，本环境的出口代理按网络策略拒绝连接 `api.siliconflow.cn`（CONNECT 返回 403），"
+      f"之后没有新的请求成功；按规则没有重试、没有换渠道。已完成的请求全部在缓存里，网络恢复后用 "
+      f"`python -m roommate.m2 --stages runs` 补跑，已跑过的部分从缓存逐字重放，结果只更新附录。经过见 [restarts.txt]({L.rel(rp)})。")
     w("")

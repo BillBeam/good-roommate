@@ -111,9 +111,13 @@ def make_agent(client, job, cache_only=False):
                     rep=rep, track_format=True)
 
 
-def run_job(client, job, cache_only=False):
+# 中期结论用：只跑每个用户的前 UNTIL 次会话（组内差异的子集）；不设时跑完 8 次
+UNTIL = int(os.environ["ROOMMATE_M2_UNTIL"]) if os.environ.get("ROOMMATE_M2_UNTIL") else None
+
+
+def run_job(client, job, cache_only=False, until=None):
     env = Env(get_world(job[2]))
-    env.run(make_agent(client, job, cache_only), workers=WORKERS)
+    env.run(make_agent(client, job, cache_only), until=until, workers=WORKERS)
     return env.records()
 
 
@@ -128,6 +132,8 @@ def save_job(job, recs):
             trans.append({"uid": r["uid"], "idx": r["idx"], "messages": t})
     if not any(r["domain"] != "util" for r in plain):
         raise RuntimeError(f"{job_name(job)} 没有任何与偏好有关的会话记录，不覆盖已有文件")
+    if job[0] == "var" and UNTIL:   # 子集另存，不和以后补跑的全量混在一起
+        d = d.replace(os.path.join("variance", ""), os.path.join("variance_interim", ""))
     dump_jsonl(os.path.join(d, "sessions.jsonl"), plain)
     with gzip.open(os.path.join(d, "transcripts.jsonl.gz"), "wt", encoding="utf-8") as f:
         for t in trans:
@@ -178,7 +184,7 @@ def stage_runs(client):
 
     def one(job):
         try:
-            recs = run_job(client, job)
+            recs = run_job(client, job, until=UNTIL if job[0] == "var" else None)
         except (BudgetExceeded, ApiError) as e:
             stopped.append(f"{job_name(job)}: {type(e).__name__}: {e}"[:300])
             print("停止：", stopped[-1], flush=True)

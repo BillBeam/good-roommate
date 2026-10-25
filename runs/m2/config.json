@@ -1,5 +1,5 @@
 {
- "written_at": "2026-10-25T13:43:02+00:00",
+ "written_at": "2026-10-25T13:52:47+00:00",
  "model": "Qwen/Qwen3.5-4B",
  "provider": "siliconflow",
  "seeds": [
@@ -34,9 +34,9 @@
  ],
  "cny_budget": 50.0,
  "workers": 24,
- "max_inflight": 24,
- "parallel_jobs": 2,
+ "max_inflight": 64,
+ "parallel_jobs": 4,
  "stages": "runs",
  "offline": false,
- "only": "nothink@2,nothink@3"
+ "only": "var@nothink@1,var@nothink@2,var@nothink@3,var@nothink@4"
 }

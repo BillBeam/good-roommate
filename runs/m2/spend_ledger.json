@@ -3,51 +3,51 @@
  "deepseek_cny_total": 0.0,
  "by_model_role": {
   "Qwen/Qwen3.5-4B|agent": {
-   "api_calls": 5920,
+   "api_calls": 6009,
    "cache_hits": 0,
-   "prompt_tokens": 12651468,
+   "prompt_tokens": 12862576,
    "cached_prompt_tokens": 19200,
-   "completion_tokens": 1089786,
-   "reasoning_tokens": 374784,
+   "completion_tokens": 1133802,
+   "reasoning_tokens": 402331,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|control": {
-   "api_calls": 577,
+   "api_calls": 596,
    "cache_hits": 0,
-   "prompt_tokens": 1115677,
+   "prompt_tokens": 1168514,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 157056,
-   "reasoning_tokens": 88142,
+   "completion_tokens": 160708,
+   "reasoning_tokens": 90672,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|agent_rep3": {
-   "api_calls": 29,
+   "api_calls": 104,
    "cache_hits": 0,
-   "prompt_tokens": 39310,
+   "prompt_tokens": 155306,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 2092,
+   "completion_tokens": 11186,
    "reasoning_tokens": 963,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|agent_rep4": {
-   "api_calls": 24,
+   "api_calls": 99,
    "cache_hits": 0,
-   "prompt_tokens": 32855,
+   "prompt_tokens": 151021,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 2162,
+   "completion_tokens": 13468,
    "reasoning_tokens": 770,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|agent_rep1": {
-   "api_calls": 142,
+   "api_calls": 167,
    "cache_hits": 0,
-   "prompt_tokens": 242121,
+   "prompt_tokens": 299421,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 22000,
+   "completion_tokens": 25160,
    "reasoning_tokens": 2085,
    "cost_usd": 0.0,
    "cost_cny": 0.0
@@ -73,11 +73,11 @@
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|agent_rep2": {
-   "api_calls": 28,
+   "api_calls": 123,
    "cache_hits": 0,
-   "prompt_tokens": 38061,
+   "prompt_tokens": 189231,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 6190,
+   "completion_tokens": 16921,
    "reasoning_tokens": 2613,
    "cost_usd": 0.0,
    "cost_cny": 0.0
