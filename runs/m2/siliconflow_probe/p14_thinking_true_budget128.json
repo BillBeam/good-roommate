@@ -1,0 +1,52 @@
+{
+ "probe": "p14_thinking_true_budget128",
+ "timestamp_utc": "2026-10-25T09:41:37.377933+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "17乘以23等于多少？"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 100,
+  "enable_thinking": true,
+  "thinking_budget": 128
+ },
+ "http_status": 200,
+ "latency_s": 29.85,
+ "response": {
+  "id": "01a1726f717d733b9e24b7d1d8aa1437",
+  "object": "chat.completion",
+  "created": 1792921268,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "\n        ----\n         391\n        ```\n    *   Method 2: Distributive Property (FOIL-like)\n        *   $17 \\times 23 = 17 \\times (20 + 3)$\n        *   $= (17 \\times 20) + (17 \\times 3)$\n        *   $= 340 + 51$\n        *   $= ",
+     "reasoning_content": "Here's a thinking process that leads to the answer:\n\n1.  **Analyze the Request:**\n    *   The user is asking for the result of a multiplication operation: $17 \\times 23$.\n    *   The language is Chinese (\"17 乘以 23 等于多少？\").\n\n2.  **Perform the Calculation:**\n    *   Method 1: Standard Multiplication (Vertical)\n        ```\n          17\n        x 23\n        ----\n          51  (17 * 3)\n         34   (1"
+    },
+    "finish_reason": "length",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 18,
+   "completion_tokens": 228,
+   "total_tokens": 246,
+   "completion_tokens_details": {
+    "reasoning_tokens": 129
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 18
+  },
+  "system_fingerprint": ""
+ }
+}

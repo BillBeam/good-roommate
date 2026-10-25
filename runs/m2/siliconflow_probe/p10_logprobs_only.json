@@ -1,0 +1,51 @@
+{
+ "probe": "p10_logprobs_only",
+ "timestamp_utc": "2026-10-25T09:38:15.947012+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "法国的首都是哪里？只回答城市名。"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 10,
+  "enable_thinking": false,
+  "logprobs": true
+ },
+ "http_status": 200,
+ "latency_s": 1.4,
+ "response": {
+  "id": "01a1726ccdc6bd47627bd23e3a7289d5",
+  "object": "chat.completion",
+  "created": 1792921095,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "巴黎"
+    },
+    "finish_reason": "stop",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 23,
+   "completion_tokens": 1,
+   "total_tokens": 24,
+   "completion_tokens_details": {
+    "reasoning_tokens": 0
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 23
+  },
+  "system_fingerprint": ""
+ }
+}

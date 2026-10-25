@@ -1,0 +1,50 @@
+{
+ "probe": "p13_thinking_default_unset",
+ "timestamp_utc": "2026-10-25T09:40:58.215937+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "17乘以23等于多少？"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 200
+ },
+ "http_status": 200,
+ "latency_s": 55.21,
+ "response": {
+  "id": "01a1726e76552db2724e8ab9a5917c19",
+  "object": "chat.completion",
+  "created": 1792921204,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "\n\n17 乘以 23 等于 **391**。\n\n计算过程如下：\n$$17 \\times 23 = 17 \\times (20 + 3) = 340 + 51 = 391$$",
+     "reasoning_content": "Here's a thinking process that leads to the answer:\n\n1.  **Analyze the Request:**\n    *   The user is asking for the result of a multiplication operation: $17 \\times 23$.\n    *   The language is Chinese (\"17 乘以 23 等于多少？\").\n\n2.  **Perform the Calculation:**\n    *   Method 1: Standard Multiplication (Vertical)\n        ```\n          17\n        x 23\n        ----\n          51   (17 * 3)\n         34    (17 * 20)\n        ----\n         391\n        ```\n    *   Method 2: Distributive Property (FOIL-like)\n        *   $17 \\times 23 = 17 \\times (20 + 3)$\n        *   $= (17 \\times 20) + (17 \\times 3)$\n        *   $= 340 + 51$\n        *   $= 391$\n    *   Method 3: \"Criss-cross\" or mental math trick\n        *   $(17 \\times 23) = (20 - 3) \\times 23 = 460 - 69 = 391$\n        *   Or $(17 \\times 23) = (15 + 2) \\times 23 = 345 + 46 = 391$\n\n3.  **Verify the Result:**\n    *   $391 / 17 = 23$?\n    *   $17 \\times 20 = 340$\n    *   $391 - 340 = 51$\n    *   $51 / 17 = 3$\n    *   $20 + 3 = 23$. Correct.\n\n4.  **Formulate the Output:**\n    *   Direct answer: 391.\n    *   Language: Chinese (matching the prompt).\n\n5.  **Final Output Construction:**\n    *   \"17 乘以 23 等于 391。\" (17 multiplied by 23 equals 391.)\n\n6.  **Review against constraints:**\n    *   Keep it concise and accurate.\n\n7.  **Final Output Generation:** (Matches the thought process above).\n    *   17 × 23 = 391.\n    *   Chinese: 17 乘以 23 等于 391。\n\n    *(Self-Correction/Refinement)*: Just giving the number is fine, but a complete sentence is more polite.\n\n    *Draft:* 17 乘以 23 等于 391。\n    *Final:* 17 乘以 23 等于 391。\n"
+    },
+    "finish_reason": "stop",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 18,
+   "completion_tokens": 708,
+   "total_tokens": 726,
+   "completion_tokens_details": {
+    "reasoning_tokens": 651
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 18
+  },
+  "system_fingerprint": ""
+ }
+}

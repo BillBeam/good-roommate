@@ -1,0 +1,24 @@
+{
+ "probe": "p03_temp0_nothink_run2_http503",
+ "timestamp_utc": "2026-10-25T09:34:38.483444Z",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "用一句话描述一只猫，然后列出三个形容词。"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 80,
+  "enable_thinking": false
+ },
+ "http_status": 503,
+ "latency_s": 28.89,
+ "response": {
+  "code": 50508,
+  "message": "System is too busy now. Please try again later.",
+  "data": null
+ }
+}

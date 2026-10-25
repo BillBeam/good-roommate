@@ -1,0 +1,26 @@
+{
+ "probe": "p09_logprobs_with_top_logprobs_http400",
+ "timestamp_utc": "2026-10-25T09:38:09.615765+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "法国的首都是哪里？只回答城市名。"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 10,
+  "enable_thinking": false,
+  "logprobs": true,
+  "top_logprobs": 5
+ },
+ "http_status": 400,
+ "latency_s": 1.07,
+ "response": {
+  "code": 20015,
+  "message": "Value error, `top_logprobs` is not allowed.",
+  "data": null
+ }
+}

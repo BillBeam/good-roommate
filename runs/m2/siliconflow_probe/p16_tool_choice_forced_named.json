@@ -1,0 +1,100 @@
+{
+ "probe": "p16_tool_choice_forced_named",
+ "timestamp_utc": "2026-10-25T09:42:25.264035+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "你好，今天心情不错。"
+   }
+  ],
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "get_weather",
+     "description": "Get weather forecast for a city.",
+     "parameters": {
+      "type": "object",
+      "properties": {
+       "city": {
+        "type": "string",
+        "description": "City name"
+       },
+       "days": {
+        "type": "integer",
+        "description": "Number of forecast days"
+       },
+       "unit": {
+        "type": "string",
+        "enum": [
+         "celsius",
+         "fahrenheit"
+        ]
+       }
+      },
+      "required": [
+       "city",
+       "days"
+      ]
+     }
+    }
+   }
+  ],
+  "tool_choice": {
+   "type": "function",
+   "function": {
+    "name": "get_weather"
+   }
+  },
+  "temperature": 0,
+  "max_tokens": 80,
+  "enable_thinking": false
+ },
+ "http_status": 200,
+ "latency_s": 2.25,
+ "response": {
+  "id": "01a17270986dd6dbad1343ae6bc1bf65",
+  "object": "chat.completion",
+  "created": 1792921344,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "01a172709c2381eb7ced27e3c6719e05",
+       "type": "function",
+       "function": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"Beijing\", \"days\": 1, \"unit\": \"celsius\"}"
+       }
+      }
+     ]
+    },
+    "finish_reason": "tool_calls",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 329,
+   "completion_tokens": 55,
+   "total_tokens": 384,
+   "completion_tokens_details": {
+    "reasoning_tokens": 0
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 329
+  },
+  "system_fingerprint": ""
+ }
+}

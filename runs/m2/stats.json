@@ -1,0 +1,677 @@
+{
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "n_bootstrap": 5000,
+ "best_trivial": "remember_no_update",
+ "rows": {
+  "ideal": {
+   "mean_score": 0.9363095238095236,
+   "ci95": [
+    0.9324404761904761,
+    0.9401785714285713
+   ],
+   "success_rate": 1.0,
+   "avg_questions": 0.4246031746031746,
+   "headroom_share": 1.0,
+   "headroom_share_ci95": [
+    1.0,
+    1.0
+   ],
+   "by_seed": {
+    "1": 0.9375000000000002,
+    "2": 0.936607142857143,
+    "3": 0.9348214285714288
+   },
+   "n_sessions": 504,
+   "source": "m1v2",
+   "memory_write_session_rate": 0.48412698412698413,
+   "told_before_questions": 0
+  },
+  "llm_deepseek-flash": {
+   "mean_score": 0.8185515873015871,
+   "ci95": [
+    0.7864087301587299,
+    0.84781746031746
+   ],
+   "success_rate": 0.8908730158730159,
+   "avg_questions": 0.48214285714285715,
+   "headroom_share": 0.765229430379747,
+   "headroom_share_ci95": [
+    0.7018454440599771,
+    0.8239538239538235
+   ],
+   "by_seed": {
+    "1": 0.8232142857142858,
+    "2": 0.8520833333333335,
+    "3": 0.780357142857143
+   },
+   "n_sessions": 504,
+   "source": "m1v2",
+   "memory_write_session_rate": 0.5555555555555556,
+   "told_before_questions": 5
+  },
+  "llm_deepseek-v4-pro": {
+   "mean_score": 0.8329365079365081,
+   "ci95": [
+    0.8038690476190475,
+    0.8587301587301589
+   ],
+   "success_rate": 0.9067460317460317,
+   "avg_questions": 0.49206349206349204,
+   "headroom_share": 0.7939082278481022,
+   "headroom_share_ci95": [
+    0.7358338374672324,
+    0.8462140481314807
+   ],
+   "by_seed": {
+    "1": 0.8288690476190478,
+    "2": 0.8657738095238097,
+    "3": 0.8041666666666668
+   },
+   "n_sessions": 504,
+   "source": "m1v2",
+   "memory_write_session_rate": 0.43452380952380953,
+   "told_before_questions": 24
+  },
+  "remember_no_update": {
+   "mean_score": 0.43472222222222173,
+   "ci95": [
+    0.40486111111111067,
+    0.4638888888888884
+   ],
+   "success_rate": 0.5674603174603174,
+   "avg_questions": 0.8849206349206349,
+   "headroom_share": 0.0,
+   "headroom_share_ci95": [
+    0.0,
+    0.0
+   ],
+   "by_seed": {
+    "1": 0.4309523809523809,
+    "2": 0.4366071428571428,
+    "3": 0.4366071428571428
+   },
+   "n_sessions": 504,
+   "source": "m1v2",
+   "memory_write_session_rate": 0.2757936507936508,
+   "told_before_questions": 26
+  }
+ },
+ "incomplete": [],
+ "partial_rows": {},
+ "control": {
+  "llm_deepseek-v4-pro": {
+   "n_sessions": 168,
+   "total_loss": 0.17113095238095238,
+   "question_loss": 0.07589285714285715,
+   "fail_rate": 0.09523809523809523,
+   "memory_or_change_loss": 0.08333333333333333,
+   "alignment_loss": 0.011904761904761904,
+   "n_fail": 16,
+   "n_fail_memory_or_change": 14,
+   "n_fail_alignment": 2,
+   "seeds": [
+    1
+   ],
+   "control_success_rate": 0.9880952380952381,
+   "control_avg_questions": 0.0,
+   "control_n_sessions": 168
+  },
+  "llm_deepseek-flash": {
+   "n_sessions": 504,
+   "total_loss": 0.18144841269841272,
+   "question_loss": 0.07232142857142858,
+   "fail_rate": 0.10912698412698413,
+   "memory_or_change_loss": 0.10515873015873016,
+   "alignment_loss": 0.003968253968253968,
+   "n_fail": 55,
+   "n_fail_memory_or_change": 53,
+   "n_fail_alignment": 2,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "control_success_rate": 0.9900793650793651,
+   "control_avg_questions": 0.001984126984126984,
+   "control_n_sessions": 504
+  }
+ },
+ "variance": {
+  "nothink": null
+ },
+ "spend": {
+  "total_usd": 0.0,
+  "deepseek_cny_total": 0.0,
+  "by_model_role": {
+   "Qwen/Qwen3.5-4B|agent": {
+    "api_calls": 6009,
+    "cache_hits": 0,
+    "prompt_tokens": 12862576,
+    "cached_prompt_tokens": 19200,
+    "completion_tokens": 1133802,
+    "reasoning_tokens": 402331,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|control": {
+    "api_calls": 596,
+    "cache_hits": 0,
+    "prompt_tokens": 1168514,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 160708,
+    "reasoning_tokens": 90672,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep3": {
+    "api_calls": 104,
+    "cache_hits": 0,
+    "prompt_tokens": 155306,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 11186,
+    "reasoning_tokens": 963,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep4": {
+    "api_calls": 99,
+    "cache_hits": 0,
+    "prompt_tokens": 151021,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 13468,
+    "reasoning_tokens": 770,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep1": {
+    "api_calls": 167,
+    "cache_hits": 0,
+    "prompt_tokens": 299421,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 25160,
+    "reasoning_tokens": 2085,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep8": {
+    "api_calls": 13,
+    "cache_hits": 0,
+    "prompt_tokens": 17225,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 3077,
+    "reasoning_tokens": 573,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep6": {
+    "api_calls": 18,
+    "cache_hits": 0,
+    "prompt_tokens": 24143,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 882,
+    "reasoning_tokens": 213,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep2": {
+    "api_calls": 123,
+    "cache_hits": 0,
+    "prompt_tokens": 189231,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 16921,
+    "reasoning_tokens": 2613,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep7": {
+    "api_calls": 11,
+    "cache_hits": 0,
+    "prompt_tokens": 15169,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 1138,
+    "reasoning_tokens": 778,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   },
+   "Qwen/Qwen3.5-4B|agent_rep5": {
+    "api_calls": 18,
+    "cache_hits": 0,
+    "prompt_tokens": 23801,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 4473,
+    "reasoning_tokens": 1673,
+    "cost_usd": 0.0,
+    "cost_cny": 0.0
+   }
+  },
+  "siliconflow_cny_limit": 50.0,
+  "siliconflow_cny_total": 0.0
+ },
+ "api_calls": {
+  "n": 7158,
+  "prompt_tokens": 14906407,
+  "completion_tokens": 1370815,
+  "latency_median_s": 53.84,
+  "latency_p90_s": 222.97,
+  "first_call": "2026-10-25T09:36:38+00:00",
+  "last_call": "2026-10-25T14:01:19+00:00",
+  "tokens_per_minute": {
+   "n_minutes": 257,
+   "median": 56751,
+   "p90": 113935,
+   "max": 604452
+  }
+ },
+ "estimate_by_mode": {
+  "nothink": {
+   "assumptions": {
+    "teacher_worlds_pilot": 4,
+    "teacher_worlds_full": 20,
+    "sessions_per_world": 192,
+    "sft_epochs": 2,
+    "sft_tokens_per_session": 3000,
+    "grpo_steps_pilot": 30,
+    "grpo_steps_full": 300,
+    "grpo_users_per_step_pilot": 4,
+    "grpo_users_per_step_full": 8,
+    "grpo_group": 8,
+    "gpu": {
+     "rtx4090_24g": {
+      "train_tps": [
+       1500,
+       3000
+      ],
+      "decode_tps": [
+       1500,
+       3000
+      ],
+      "prefill_tps": [
+       10000,
+       20000
+      ]
+     },
+     "a800_80g": {
+      "train_tps": [
+       3000,
+       6000
+      ],
+      "decode_tps": [
+       3000,
+       6000
+      ],
+      "prefill_tps": [
+       25000,
+       50000
+      ]
+     }
+    },
+    "uncached_prefill_share": 0.35,
+    "first_prompt_tokens": 1300,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "price_cny_per_hour": {
+     "rtx4090_24g": {
+      "on_demand": 1.92,
+      "spot": 1.31
+     },
+     "a800_80g": {
+      "on_demand": 7.36,
+      "spot": 3.02
+     }
+    }
+   },
+   "measured": {
+    "qwen_calls_per_session": 10.270742358078603,
+    "qwen_prompt_tokens_per_session": 21719.379912663757,
+    "qwen_completion_tokens_per_session": 1414.2117903930132,
+    "teacher_cny_per_session": 0.0259380875,
+    "grpo_train_tokens_per_session_est": 3067.0622874149662
+   },
+   "pilot_2x4090": {
+    "gpu": "2 × RTX 4090 24G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.4266666666666667,
+     0.8533333333333334
+    ],
+    "grpo_hours": [
+     4.724547995753113,
+     9.449095991506226
+    ],
+    "gpu_hours": [
+     8.151214662419779,
+     16.302429324839558
+    ],
+    "gpu_cny_on_demand": [
+     31.30066430369195,
+     62.6013286073839
+    ],
+    "gpu_cny_spot": [
+     21.356182415539823,
+     42.71236483107965
+    ],
+    "total_cny_on_demand": [
+     51.22111550369195,
+     82.5217798073839
+    ]
+   },
+   "pilot": {
+    "gpu": "1 × RTX 4090 24G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.4266666666666667,
+     0.8533333333333334
+    ],
+    "grpo_hours": [
+     4.724547995753113,
+     9.449095991506226
+    ],
+    "gpu_hours": [
+     8.151214662419779,
+     16.302429324839558
+    ],
+    "gpu_cny_on_demand": [
+     15.650332151845975,
+     31.30066430369195
+    ],
+    "gpu_cny_spot": [
+     10.678091207769912,
+     21.356182415539823
+    ],
+    "total_cny_on_demand": [
+     35.570783351845975,
+     51.22111550369195
+    ]
+   },
+   "pilot_a800": {
+    "gpu": "1 × A800 80G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.21333333333333335,
+     0.4266666666666667
+    ],
+    "grpo_hours": [
+     2.2811883128692787,
+     4.562376625738557
+    ],
+    "gpu_hours": [
+     5.494521646202612,
+     10.989043292405224
+    ],
+    "gpu_cny_on_demand": [
+     40.439679316051226,
+     80.87935863210245
+    ],
+    "gpu_cny_spot": [
+     16.59345537153189,
+     33.18691074306378
+    ],
+    "total_cny_on_demand": [
+     60.36013051605123,
+     100.79980983210245
+    ]
+   },
+   "full": {
+    "gpu": "1 × A800 80G",
+    "teacher_sessions": 3840,
+    "teacher_cny": 99.602256,
+    "setup_hours": [
+     0,
+     0
+    ],
+    "sft_hours": [
+     1.0666666666666667,
+     2.1333333333333333
+    ],
+    "grpo_hours": [
+     45.62376625738557,
+     91.24753251477114
+    ],
+    "gpu_hours": [
+     46.69043292405224,
+     93.38086584810448
+    ],
+    "gpu_cny_on_demand": [
+     343.6415863210245,
+     687.283172642049
+    ],
+    "gpu_cny_spot": [
+     141.00510743063776,
+     282.01021486127553
+    ],
+    "total_cny_on_demand": [
+     443.2438423210245,
+     786.885428642049
+    ]
+   },
+   "usage_source": "中期子集、温度 0（每个用户的前几次会话）"
+  },
+  "think": {
+   "assumptions": {
+    "teacher_worlds_pilot": 4,
+    "teacher_worlds_full": 20,
+    "sessions_per_world": 192,
+    "sft_epochs": 2,
+    "sft_tokens_per_session": 3000,
+    "grpo_steps_pilot": 30,
+    "grpo_steps_full": 300,
+    "grpo_users_per_step_pilot": 4,
+    "grpo_users_per_step_full": 8,
+    "grpo_group": 8,
+    "gpu": {
+     "rtx4090_24g": {
+      "train_tps": [
+       1500,
+       3000
+      ],
+      "decode_tps": [
+       1500,
+       3000
+      ],
+      "prefill_tps": [
+       10000,
+       20000
+      ]
+     },
+     "a800_80g": {
+      "train_tps": [
+       3000,
+       6000
+      ],
+      "decode_tps": [
+       3000,
+       6000
+      ],
+      "prefill_tps": [
+       25000,
+       50000
+      ]
+     }
+    },
+    "uncached_prefill_share": 0.35,
+    "first_prompt_tokens": 1300,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "price_cny_per_hour": {
+     "rtx4090_24g": {
+      "on_demand": 1.92,
+      "spot": 1.31
+     },
+     "a800_80g": {
+      "on_demand": 7.36,
+      "spot": 3.02
+     }
+    }
+   },
+   "measured": {
+    "qwen_calls_per_session": 3.4693877551020407,
+    "qwen_prompt_tokens_per_session": 6671.459183673469,
+    "qwen_completion_tokens_per_session": 1479.4489795918366,
+    "teacher_cny_per_session": 0.0259380875,
+    "grpo_train_tokens_per_session_est": 2972.329411764706
+   },
+   "pilot_2x4090": {
+    "gpu": "2 × RTX 4090 24G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.4266666666666667,
+     0.8533333333333334
+    ],
+    "grpo_hours": [
+     4.119329044684541,
+     8.238658089369082
+    ],
+    "gpu_hours": [
+     7.545995711351208,
+     15.091991422702415
+    ],
+    "gpu_cny_on_demand": [
+     28.976623531588636,
+     57.95324706317727
+    ],
+    "gpu_cny_spot": [
+     19.770508763740164,
+     39.54101752748033
+    ],
+    "total_cny_on_demand": [
+     48.89707473158863,
+     77.87369826317727
+    ]
+   },
+   "pilot": {
+    "gpu": "1 × RTX 4090 24G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.4266666666666667,
+     0.8533333333333334
+    ],
+    "grpo_hours": [
+     4.119329044684541,
+     8.238658089369082
+    ],
+    "gpu_hours": [
+     7.545995711351208,
+     15.091991422702415
+    ],
+    "gpu_cny_on_demand": [
+     14.488311765794318,
+     28.976623531588636
+    ],
+    "gpu_cny_spot": [
+     9.885254381870082,
+     19.770508763740164
+    ],
+    "total_cny_on_demand": [
+     34.40876296579432,
+     48.89707473158863
+    ]
+   },
+   "pilot_a800": {
+    "gpu": "1 × A800 80G",
+    "teacher_sessions": 768,
+    "teacher_cny": 19.9204512,
+    "setup_hours": [
+     3,
+     6
+    ],
+    "sft_hours": [
+     0.21333333333333335,
+     0.4266666666666667
+    ],
+    "grpo_hours": [
+     2.0347577413898894,
+     4.069515482779779
+    ],
+    "gpu_hours": [
+     5.248091074723223,
+     10.496182149446446
+    ],
+    "gpu_cny_on_demand": [
+     38.625950309962924,
+     77.25190061992585
+    ],
+    "gpu_cny_spot": [
+     15.849235045664132,
+     31.698470091328264
+    ],
+    "total_cny_on_demand": [
+     58.54640150996292,
+     97.17235181992585
+    ]
+   },
+   "full": {
+    "gpu": "1 × A800 80G",
+    "teacher_sessions": 3840,
+    "teacher_cny": 99.602256,
+    "setup_hours": [
+     0,
+     0
+    ],
+    "sft_hours": [
+     1.0666666666666667,
+     2.1333333333333333
+    ],
+    "grpo_hours": [
+     40.69515482779779,
+     81.39030965559559
+    ],
+    "gpu_hours": [
+     41.76182149446446,
+     83.52364298892893
+    ],
+    "gpu_cny_on_demand": [
+     307.36700619925847,
+     614.7340123985169
+    ],
+    "gpu_cny_spot": [
+     126.12070091328268,
+     252.24140182656535
+    ],
+    "total_cny_on_demand": [
+     406.9692621992585,
+     714.336268398517
+    ]
+   },
+   "usage_source": "中期子集、温度 0（每个用户的前几次会话）"
+  }
+ },
+ "teacher_cost": {
+  "cny": 14.9403384,
+  "sessions": 576,
+  "cny_per_session": 0.0259380875,
+  "source": "runs/m1v2/spend_ledger.json"
+ }
+}
