@@ -1,0 +1,73 @@
+[
+ {
+  "probe": "p02_temp0_nothink_run1",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p04_temp0_nothink_run2_retry",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p05_temp0_nothink_run3",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p06_sampling_params_seed12345_run1",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p08_sampling_params_seed12345_run2",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p10_logprobs_only",
+  "api_prompt_tokens": 23,
+  "official_template": 23
+ },
+ {
+  "probe": "p11_toolcall_simple",
+  "api_prompt_tokens": 341,
+  "official_template": 336,
+  "official_template_tools_plus_strict_field": 341
+ },
+ {
+  "probe": "p12_toolcall_odd_args",
+  "api_prompt_tokens": 406,
+  "official_template": 401,
+  "official_template_tools_plus_strict_field": 406
+ },
+ {
+  "probe": "p13_thinking_default_unset",
+  "api_prompt_tokens": 18,
+  "official_template": 18
+ },
+ {
+  "probe": "p14_thinking_true_budget128",
+  "api_prompt_tokens": 18,
+  "official_template": 18
+ },
+ {
+  "probe": "p15_multiturn_reasoning_in_history",
+  "api_prompt_tokens": 473,
+  "official_template": 468,
+  "official_template_tools_plus_strict_field": 473,
+  "official_template_plus_strict_reasoning_dropped": 433
+ },
+ {
+  "probe": "p16_tool_choice_forced_named",
+  "api_prompt_tokens": 329,
+  "official_template": 324,
+  "official_template_tools_plus_strict_field": 329
+ },
+ {
+  "probe": "p17_toolcall_thinking_default",
+  "api_prompt_tokens": 339,
+  "official_template": 334,
+  "official_template_tools_plus_strict_field": 339
+ }
+]

@@ -1,15 +1,17 @@
-"""大模型接口（xAI 与 DeepSeek，都是 OpenAI 兼容的 chat/completions）：带磁盘缓存（保证复现）与计费账本（控制总花费）。
+"""大模型接口（xAI、DeepSeek 与硅基流动，都是 OpenAI 兼容的 chat/completions）：带磁盘缓存（保证复现）与计费账本（控制总花费）。
 
-- API 密钥只从环境变量读取（XAI_API_KEY、DEEPSEEK_API_KEY），不写入任何文件或日志。
+- API 密钥只从环境变量读取（XAI_API_KEY、DEEPSEEK_API_KEY、SILICONFLOW_API_KEY），不写入任何文件或日志。
 - 每个请求按（模型、消息、工具、参数）的哈希缓存响应；同一种子重跑时全部命中缓存，结果逐字一致。
 - 账本记真实花费：xAI 用响应里的 usage.cost_in_usd_ticks（1 tick = 1e-10 美元）；
   DeepSeek 的响应不带金额，按官方价目表（runs/m1v2/pricing/ 下的快照）、调用时刻（高峰 / 空闲时段）
   和 usage 里的 token 数计算，同时记人民币和美元。每次实际调用另记一行到 spend_calls.jsonl，便于和服务商后台对账。
-- 累计花费超过上限就停止；DeepSeek 另有人民币上限（账本里的 deepseek_cny_limit）。
+- 硅基流动（模型名以 "Qwen/" 开头）同样按价目快照（runs/m2/pricing/）和 token 数记人民币，美元按快照里的汇率折算。
+- 累计花费超过上限就停止；按人民币计价的服务商另有人民币上限（账本里的 deepseek_cny_limit、siliconflow_cny_limit）。
 - blocked_providers 里的服务商只能读缓存，不会发出任何请求。
 """
 
 import fcntl
+import gzip
 import hashlib
 import json
 import os
@@ -22,10 +24,14 @@ TICKS_PER_USD = 1e10
 PROVIDERS = {
     "xai": {"url": "https://api.x.ai/v1/chat/completions", "key": "XAI_API_KEY"},
     "deepseek": {"url": "https://api.deepseek.com/chat/completions", "key": "DEEPSEEK_API_KEY"},
+    "siliconflow": {"url": "https://api.siliconflow.cn/v1/chat/completions", "key": "SILICONFLOW_API_KEY"},
 }
 # DeepSeek 单价（每百万 tokens）：{模型: {"usd"|"cny": {"peak"|"off_peak": {input_cache_hit, input_cache_miss, output}}}}。
 # 由 run.py 从官方价目快照读入；没有快照时拒绝调用。
 DEEPSEEK_PRICES = {}
+# 硅基流动单价（每百万 tokens，人民币）：{模型: {"input", "output"}}，另有折美元的汇率。由 m2.py 从价目快照读入。
+SILICONFLOW_PRICES = {}
+SILICONFLOW_FX = {"cny_per_usd": None}
 
 
 def is_peak(t=None):
@@ -37,6 +43,8 @@ def is_peak(t=None):
 
 
 def provider_of(model):
+    if model.startswith("Qwen/"):
+        return "siliconflow"
     return "deepseek" if model.startswith("deepseek") else "xai"
 
 
@@ -56,6 +64,12 @@ def usage_cost(model, usage, peak=None):
     """返回 (美元, 人民币)。xAI 只有美元。"""
     if provider_of(model) == "xai":
         return usage.get("cost_in_usd_ticks", 0) / TICKS_PER_USD, None
+    if provider_of(model) == "siliconflow":
+        p = SILICONFLOW_PRICES.get(model)
+        if p is None or not SILICONFLOW_FX["cny_per_usd"]:
+            raise RuntimeError(f"没有 {model} 的官方单价快照，不能计费")
+        cny = (usage.get("prompt_tokens", 0) * p["input"] + usage.get("completion_tokens", 0) * p["output"]) / 1e6
+        return cny / SILICONFLOW_FX["cny_per_usd"], cny
     p = DEEPSEEK_PRICES.get(model)
     if p is None:
         raise RuntimeError(f"没有 {model} 的官方单价快照，不能计费")
@@ -89,10 +103,11 @@ class Ledger:
                 self.data = self._load()
             if self.data["total_usd"] >= self.limit:
                 raise BudgetExceeded(f"累计花费 {self.data['total_usd']:.2f} 美元已达上限 {self.limit} 美元")
-            lim = self.data.get("deepseek_cny_limit")
-            if model and provider_of(model) == "deepseek" and lim is not None and \
-                    self.data.get("deepseek_cny_total", 0.0) >= lim:
-                raise BudgetExceeded(f"DeepSeek 累计 {self.data['deepseek_cny_total']:.2f} 元已达上限 {lim:.2f} 元")
+            prov = provider_of(model) if model else None
+            lim = self.data.get(f"{prov}_cny_limit")
+            if prov in ("deepseek", "siliconflow") and lim is not None and \
+                    self.data.get(f"{prov}_cny_total", 0.0) >= lim:
+                raise BudgetExceeded(f"{prov} 累计 {self.data[f'{prov}_cny_total']:.2f} 元已达上限 {lim:.2f} 元")
 
     @staticmethod
     def _bump(table, k, model, usage, cached):
@@ -114,7 +129,7 @@ class Ledger:
             e["cost_cny"] = e.get("cost_cny", 0.0) + cny
         return cost, cny
 
-    def add(self, model, role, usage, cached):
+    def add(self, model, role, usage, cached, latency=None):
         import datetime as dt
         k = f"{model}|{role}"
         with self.lock:
@@ -127,7 +142,8 @@ class Ledger:
                 usd, cny = self._bump(self.data["by_model_role"], k, model, usage, cached)
                 self.data["total_usd"] += usd
                 if cny is not None:
-                    self.data["deepseek_cny_total"] = self.data.get("deepseek_cny_total", 0.0) + cny
+                    ck = f"{provider_of(model)}_cny_total"
+                    self.data[ck] = self.data.get(ck, 0.0) + cny
                 tmp = self.path + ".tmp"
                 with open(tmp, "w", encoding="utf-8") as f:
                     json.dump(self.data, f, ensure_ascii=False, indent=1)
@@ -135,15 +151,18 @@ class Ledger:
                 calls = os.path.join(os.path.dirname(self.path), "spend_calls.jsonl")
                 with open(calls, "a", encoding="utf-8") as f:
                     f.write(json.dumps({"t": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-                                        "model": model, "role": role, "peak": is_peak() if cny is not None else None,
+                                        "model": model, "role": role,
+                                    "peak": is_peak() if provider_of(model) == "deepseek" else None,
                                         "usage": {x: usage.get(x) for x in ("prompt_tokens", "completion_tokens",
                                                                             "prompt_cache_hit_tokens", "prompt_cache_miss_tokens",
                                                                             "cost_in_usd_ticks") if x in usage},
-                                        "cost_usd": usd, "cost_cny": cny}, ensure_ascii=False) + "\n")
+                                        "cost_usd": usd, "cost_cny": cny,
+                                    **({"latency_s": round(latency, 2)} if latency is not None else {})},
+                                   ensure_ascii=False) + "\n")
 
 
 class LLMClient:
-    def __init__(self, cache_dir, ledger, offline=False, role_prefix="", blocked_providers=()):
+    def __init__(self, cache_dir, ledger, offline=False, role_prefix="", blocked_providers=(), max_inflight=None):
         self.role_prefix = role_prefix
         self.blocked = set(blocked_providers)
         self.cache_dir = cache_dir
@@ -155,10 +174,14 @@ class LLMClient:
         self._tl = threading.local()
         self.chosen = {}
         self.default_choice = {}
+        # 同时发出的请求数上限：超过服务商能并发处理的数量时，请求只会在对方排队、超时（硅基流动的免费模型）
+        self.inflight = threading.BoundedSemaphore(max_inflight) if max_inflight else None
+        self.retries = {}  # 重试原因 -> 次数（如 HTTP 429），只用于观察限流
         os.makedirs(cache_dir, exist_ok=True)
         for fn in sorted(os.listdir(cache_dir)):
-            if fn.endswith(".jsonl"):
-                with open(os.path.join(cache_dir, fn), encoding="utf-8") as f:
+            if fn.endswith(".jsonl") or fn.endswith(".jsonl.gz"):
+                opener = gzip.open if fn.endswith(".gz") else open
+                with opener(os.path.join(cache_dir, fn), "rt", encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             d = json.loads(line)
@@ -205,16 +228,24 @@ class LLMClient:
         if self.offline or provider_of(model) in self.blocked:
             raise CacheMiss(k)
         self.ledger.check(model)
-        resp = self._post(body)
+        if self.inflight:
+            self.inflight.acquire()
+        try:
+            t0 = time.time()
+            resp = self._post(body)
+            latency = time.time() - t0
+        finally:
+            if self.inflight:
+                self.inflight.release()
         resp.pop("id", None)
         resp.pop("created", None)
         resp.pop("system_fingerprint", None)
         with self.lock:
             self.cache[k] = resp
             self.alts[k] = [resp]
-            with open(os.path.join(self.cache_dir, f"{model}.jsonl"), "a", encoding="utf-8") as f:
+            with open(os.path.join(self.cache_dir, f"{model.replace('/', '_')}.jsonl"), "a", encoding="utf-8") as f:
                 f.write(json.dumps({"key": k, "response": resp}, ensure_ascii=False) + "\n")
-        self.ledger.add(model, role, resp.get("usage", {}), cached=False)
+        self.ledger.add(model, role, resp.get("usage", {}), cached=False, latency=latency)
         return resp
 
     def _post(self, body):
@@ -224,7 +255,7 @@ class LLMClient:
             raise RuntimeError(f"环境变量 {prov['key']} 未设置")
         data = json.dumps(body, ensure_ascii=False).encode()
         last = None
-        for attempt in range(6):
+        for attempt in range(20):
             req = urllib.request.Request(prov["url"], data=data, headers={
                 "Authorization": f"Bearer {key}", "Content-Type": "application/json"})
             try:
@@ -233,11 +264,15 @@ class LLMClient:
             except urllib.error.HTTPError as e:
                 msg = e.read()[:500].decode(errors="replace")
                 last = f"HTTP {e.code}: {msg}"
+                with self.lock:
+                    self.retries[f"HTTP {e.code}"] = self.retries.get(f"HTTP {e.code}", 0) + 1
                 if e.code not in (408, 409, 429, 500, 502, 503, 504):
                     raise ApiError(last) from None
             except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
                 last = repr(e)
-            time.sleep(2 ** attempt)
+                with self.lock:
+                    self.retries[type(e).__name__] = self.retries.get(type(e).__name__, 0) + 1
+            time.sleep(min(60, 2 ** attempt))
         raise ApiError(f"请求失败：{last}")
 
 

@@ -2,7 +2,14 @@
 
 每次会话从零开始（不带以前的对话），跨会话信息只有记忆工具里的内容。
 提问时必须声明问哪几项属性（一次最多两项），用户只回答声明的这几项。
+
+M2 起点测量另加两样（默认关闭，M1 的记录因此逐字不变）：
+- rep：同一用户重复跑第几遍。rep 不为 0 时，它进入请求的 seed 和缓存键，使每一遍是独立的一次采样。
+- track_format：逐轮记下工具调用格式的问题，写进记录的 format_issues（种类见 FORMAT_KINDS），
+  另记这次会话的 token 用量（usage）和是否用满了轮数（hit_max_turns）。
 """
+
+import re
 
 import hashlib
 import json
@@ -63,12 +70,20 @@ def tools(question_cost):
 
 
 MAX_TURNS = 14
+TOOL_NAMES = {"memory_read", "memory_write", "memory_delete", "ask_user", "choose_option"}
+# 工具调用格式问题的种类：
+# bad_json 参数不是合法 JSON；unknown_tool 调了不存在的工具；truncated 输出被 max_tokens 截断；
+# tool_text 没有结构化的工具调用，但正文里像是写了工具调用（接口没解析出来，或模型写错了格式）；
+# no_tool_call 这一轮只输出文字、没调工具（会收到提醒，继续下一轮）。
+FORMAT_KINDS = ["bad_json", "unknown_tool", "truncated", "tool_text", "no_tool_call"]
+_TOOL_TEXT = re.compile(r"<tool_call>|<function[=>]|</?tool_call|\"name\"\s*:\s*\"(%s)\"|\b(%s)\s*\(" %
+                        ("|".join(TOOL_NAMES), "|".join(TOOL_NAMES)))
 NUDGE = "（系统提示：用户看不到你直接输出的文字。要提问请调用 ask_user；完成任务请调用 choose_option。）"
 
 
 class LLMAgent:
     def __init__(self, client, model, extra=None, seed=0, inject_true_memory=False, echo_reasoning=False,
-                 truncate_on_cache_miss=False):
+                 truncate_on_cache_miss=False, rep=0, track_format=False):
         self.client = client
         self.truncate_on_cache_miss = truncate_on_cache_miss  # 只用缓存重建已有结果：缺缓存时截断这个用户
         self.echo_reasoning = echo_reasoning   # 有的接口要求工具调用循环里把思考内容原样带回
@@ -77,21 +92,36 @@ class LLMAgent:
         self.name = f"llm:{model}" + (":true_memory" if inject_true_memory else "")
         self.extra = extra or {}
         self.seed = seed
+        self.rep = rep
+        self.track_format = track_format
 
     def run_session(self, ctx):
         cfg = ctx.ep.config
         messages = [{"role": "system", "content": system_prompt(cfg["question_cost"], cfg["repeat_mode"])},
                     {"role": "user", "content": ctx.prompt}]
-        sid = 1 + int(hashlib.sha256(f"{self.seed}|{ctx.ep.plan['uid']}|{ctx.sess['idx']}".encode()).hexdigest()[:7], 16)
+        tag = f"{self.seed}|{ctx.ep.plan['uid']}|{ctx.sess['idx']}" + (f"|rep{self.rep}" if self.rep else "")
+        sid = 1 + int(hashlib.sha256(tag.encode()).hexdigest()[:7], 16)
+        role = "control" if self.inject_true_memory else "agent"
+        if self.rep:
+            role += f"_rep{self.rep}"
+        issues = []
+        usage = {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0}
         turns = 0
         for turns in range(1, MAX_TURNS + 1):
             body = {"model": self.model, "messages": messages, "tools": tools(cfg["question_cost"]),
                     "tool_choice": "auto", "temperature": 0, "seed": sid, **self.extra}
             if self.model.startswith("deepseek"):
                 body.pop("seed")  # DeepSeek 接口没有 seed 参数；复现靠缓存
-            resp = self.client.chat(body, role="control" if self.inject_true_memory else "agent")
+            resp = self.client.chat(body, role=role)
             msg = resp["choices"][0]["message"]
             calls = msg.get("tool_calls") or []
+            if self.track_format:
+                issues += self._format_issues(turns, resp["choices"][0], calls)
+                u = resp.get("usage") or {}
+                usage["calls"] += 1
+                usage["prompt_tokens"] += u.get("prompt_tokens", 0)
+                usage["completion_tokens"] += u.get("completion_tokens", 0)
+                usage["reasoning_tokens"] += (u.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
             out = {"role": "assistant", "content": msg.get("content") or ""}
             if msg.get("reasoning_content") and self.echo_reasoning:
                 out["reasoning_content"] = msg["reasoning_content"]
@@ -109,7 +139,31 @@ class LLMAgent:
             if ctx.done:
                 break
         ctx.notes["turns"] = turns
+        if self.track_format:
+            ctx.notes["format_issues"] = issues
+            ctx.notes["usage"] = usage
+            ctx.notes["hit_max_turns"] = turns == MAX_TURNS and not ctx.done
         ctx.notes["transcript"] = messages[1:]
+
+    @staticmethod
+    def _format_issues(turn, choice, calls):
+        msg = choice["message"]
+        out = []
+        if choice.get("finish_reason") == "length":
+            out.append({"turn": turn, "kind": "truncated"})
+        for c in calls:
+            name, raw = c["function"]["name"], c["function"]["arguments"]
+            if name not in TOOL_NAMES:
+                out.append({"turn": turn, "kind": "unknown_tool", "name": name[:80]})
+            try:
+                json.loads(raw) if raw else {}
+            except ValueError:
+                out.append({"turn": turn, "kind": "bad_json", "name": name[:80], "raw": raw[:300]})
+        if not calls:
+            text = msg.get("content") or ""
+            kind = "tool_text" if _TOOL_TEXT.search(text) else "no_tool_call"
+            out.append({"turn": turn, "kind": kind, "text": text[:300]})
+        return out
 
     @staticmethod
     def _exec(ctx, name, raw):
