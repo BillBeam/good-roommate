@@ -1,0 +1,37 @@
+{
+ "written_at": "2026-10-25T10:13:15+00:00",
+ "model": "Qwen/Qwen3.5-4B",
+ "provider": "siliconflow",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "worlds_from": "runs/m1v2",
+ "modes": {
+  "nothink": {
+   "enable_thinking": false,
+   "max_tokens": 2048
+  },
+  "think": {
+   "enable_thinking": true,
+   "max_tokens": 8192
+  }
+ },
+ "eval_temperature": 0,
+ "train_sampling": {
+  "temperature": 1.0,
+  "top_p": 1.0
+ },
+ "var_seed": 1,
+ "var_reps": 8,
+ "var_modes": [
+  "nothink",
+  "think"
+ ],
+ "cny_budget": 50.0,
+ "workers": 24,
+ "stages": "runs",
+ "offline": false,
+ "only": null
+}

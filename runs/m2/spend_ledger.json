@@ -1,0 +1,108 @@
+{
+ "total_usd": 0.0,
+ "deepseek_cny_total": 0.0,
+ "by_model_role": {
+  "Qwen/Qwen3.5-4B|agent": {
+   "api_calls": 1046,
+   "cache_hits": 0,
+   "prompt_tokens": 1881870,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 200132,
+   "reasoning_tokens": 99532,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|control": {
+   "api_calls": 326,
+   "cache_hits": 0,
+   "prompt_tokens": 508394,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 94115,
+   "reasoning_tokens": 60626,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep3": {
+   "api_calls": 29,
+   "cache_hits": 0,
+   "prompt_tokens": 39310,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 2092,
+   "reasoning_tokens": 963,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep4": {
+   "api_calls": 24,
+   "cache_hits": 0,
+   "prompt_tokens": 32855,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 2162,
+   "reasoning_tokens": 770,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep1": {
+   "api_calls": 29,
+   "cache_hits": 0,
+   "prompt_tokens": 39158,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 3350,
+   "reasoning_tokens": 2085,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep8": {
+   "api_calls": 13,
+   "cache_hits": 0,
+   "prompt_tokens": 17225,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 3077,
+   "reasoning_tokens": 573,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep6": {
+   "api_calls": 18,
+   "cache_hits": 0,
+   "prompt_tokens": 24143,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 882,
+   "reasoning_tokens": 213,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep2": {
+   "api_calls": 28,
+   "cache_hits": 0,
+   "prompt_tokens": 38061,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 6190,
+   "reasoning_tokens": 2613,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep7": {
+   "api_calls": 11,
+   "cache_hits": 0,
+   "prompt_tokens": 15169,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 1138,
+   "reasoning_tokens": 778,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  },
+  "Qwen/Qwen3.5-4B|agent_rep5": {
+   "api_calls": 18,
+   "cache_hits": 0,
+   "prompt_tokens": 23801,
+   "cached_prompt_tokens": 0,
+   "completion_tokens": 4473,
+   "reasoning_tokens": 1673,
+   "cost_usd": 0.0,
+   "cost_cny": 0.0
+  }
+ },
+ "siliconflow_cny_limit": 50.0,
+ "siliconflow_cny_total": 0.0
+}
