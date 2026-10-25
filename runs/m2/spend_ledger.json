@@ -3,12 +3,12 @@
  "deepseek_cny_total": 0.0,
  "by_model_role": {
   "Qwen/Qwen3.5-4B|agent": {
-   "api_calls": 1046,
+   "api_calls": 3302,
    "cache_hits": 0,
-   "prompt_tokens": 1881870,
-   "cached_prompt_tokens": 0,
-   "completion_tokens": 200132,
-   "reasoning_tokens": 99532,
+   "prompt_tokens": 6919704,
+   "cached_prompt_tokens": 10752,
+   "completion_tokens": 638446,
+   "reasoning_tokens": 241910,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },

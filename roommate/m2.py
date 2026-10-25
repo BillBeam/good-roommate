@@ -41,8 +41,11 @@ MODES = {
 # 将来训练（GRPO 采样）用的采样参数：温度 1、不截断分布，使采样分布就是策略本身的分布。
 TRAIN_SAMPLING = {"temperature": 1.0, "top_p": 1.0}
 VAR_SEED = 1
-VAR_REPS = 8
-VAR_MODES = ["nothink", "think"]
+# 限速下按优先级缩减（第二张卡）：组内差异只跑将来打算训练用的思考关模式，每个用户 4 遍；思考开不跑。
+# "知道真实状态"对照组只跑种子 1。选择理由见报告第 4 节。
+VAR_REPS = 4
+VAR_MODES = ["nothink"]
+CTRL_SEEDS = [1]
 CNY_BUDGET = 50.0
 WORKERS = 24          # 每个世界里同时跑的用户数
 PARALLEL_JOBS = int(os.environ.get("ROOMMATE_M2_JOBS", "4"))
@@ -91,7 +94,7 @@ def job_name(job):
 def plan():
     """(种类, 模式, 种子, 第几遍)；种类：base 评测、ctrl 知道真实状态、var 训练温度下重复。"""
     jobs = [("base", m, s, 0) for m in MODES for s in SEEDS]
-    jobs += [("ctrl", m, s, 0) for m in MODES for s in SEEDS]
+    jobs += [("ctrl", m, s, 0) for m in MODES for s in CTRL_SEEDS]
     jobs += [("var", m, VAR_SEED, r) for m in VAR_MODES for r in range(1, VAR_REPS + 1)]
     return jobs
 
@@ -209,8 +212,8 @@ def write_config(args):
         "written_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "model": MODEL, "provider": "siliconflow", "seeds": SEEDS, "worlds_from": M1,
         "modes": MODES, "eval_temperature": 0, "train_sampling": TRAIN_SAMPLING,
-        "var_seed": VAR_SEED, "var_reps": VAR_REPS, "var_modes": VAR_MODES,
-        "cny_budget": CNY_BUDGET, "workers": WORKERS, "stages": args.stages, "offline": args.offline,
+        "var_seed": VAR_SEED, "var_reps": VAR_REPS, "var_modes": VAR_MODES, "ctrl_seeds": CTRL_SEEDS,
+        "cny_budget": CNY_BUDGET, "workers": WORKERS, "max_inflight": MAX_INFLIGHT, "parallel_jobs": PARALLEL_JOBS, "stages": args.stages, "offline": args.offline,
         "only": os.environ.get("ROOMMATE_M2_ONLY")})
 
 
