@@ -1,0 +1,64 @@
+{
+ "assistant_turns": 6,
+ "per_turn": [
+  {
+   "turn": 1,
+   "msg_index": 2,
+   "next_prompt_extends": true
+  },
+  {
+   "turn": 2,
+   "msg_index": 4,
+   "next_prompt_extends": true
+  },
+  {
+   "turn": 3,
+   "msg_index": 6,
+   "next_prompt_extends": true
+  },
+  {
+   "turn": 4,
+   "msg_index": 8,
+   "next_prompt_extends": false,
+   "diverge_at_char": 1675,
+   "accumulated_context": "饭的餐厅。<|im_end|>\n<|im_start|>assistant\n<think>\n记忆里没有饮食信息，请客要避开忌口，先问一下。\n</think>\n\n<tool_call>\n<functio",
+   "rerendered_context": "饭的餐厅。<|im_end|>\n<|im_start|>assistant\n<tool_call>\n<function=ask_user>\n<parameter=attributes>\n[\"饮食限制\""
+  },
+  {
+   "turn": 5,
+   "msg_index": 10,
+   "next_prompt_extends": true
+  },
+  {
+   "turn": 6,
+   "msg_index": 12
+  }
+ ],
+ "text_equal": false,
+ "text_len": {
+  "incremental": 2861,
+  "full_template": 2719
+ },
+ "text_first_diff_char": 1675,
+ "text_diff_context": {
+  "incremental": "tart|>user\n帮我订周五请同事吃饭的餐厅。<|im_end|>\n<|im_start|>assistant\n<think>\n记忆里没有饮食信息，请客要避开忌口，先问一下。\n</think>\n\n<tool_call>\n<function=ask_user>\n<paramet",
+  "full_template": "tart|>user\n帮我订周五请同事吃饭的餐厅。<|im_end|>\n<|im_start|>assistant\n<tool_call>\n<function=ask_user>\n<parameter=attributes>\n[\"饮食限制\"]\n</parameter>\n<para"
+ },
+ "reasoning_kept_in_full_template": {
+  "turn1": false,
+  "turn2": false,
+  "turn3": false,
+  "turn4": false,
+  "turn5": true,
+  "turn6": true
+ },
+ "tokens": {
+  "incremental_chunks": 763,
+  "incremental_rejoined": 763,
+  "full_template": 699,
+  "chunked_equals_reencoded": true,
+  "incremental_equals_full": false,
+  "first_diff_token": 423,
+  "rerender_at_last_query_equals_full": true
+ }
+}
