@@ -3,22 +3,22 @@
  "deepseek_cny_total": 0.0,
  "by_model_role": {
   "Qwen/Qwen3.5-4B|agent": {
-   "api_calls": 3958,
+   "api_calls": 5920,
    "cache_hits": 0,
-   "prompt_tokens": 8429483,
-   "cached_prompt_tokens": 10752,
-   "completion_tokens": 719061,
-   "reasoning_tokens": 244964,
+   "prompt_tokens": 12651468,
+   "cached_prompt_tokens": 19200,
+   "completion_tokens": 1089786,
+   "reasoning_tokens": 374784,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|control": {
-   "api_calls": 326,
+   "api_calls": 577,
    "cache_hits": 0,
-   "prompt_tokens": 508394,
+   "prompt_tokens": 1115677,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 94115,
-   "reasoning_tokens": 60626,
+   "completion_tokens": 157056,
+   "reasoning_tokens": 88142,
    "cost_usd": 0.0,
    "cost_cny": 0.0
   },
@@ -43,11 +43,11 @@
    "cost_cny": 0.0
   },
   "Qwen/Qwen3.5-4B|agent_rep1": {
-   "api_calls": 29,
+   "api_calls": 142,
    "cache_hits": 0,
-   "prompt_tokens": 39158,
+   "prompt_tokens": 242121,
    "cached_prompt_tokens": 0,
-   "completion_tokens": 3350,
+   "completion_tokens": 22000,
    "reasoning_tokens": 2085,
    "cost_usd": 0.0,
    "cost_cny": 0.0

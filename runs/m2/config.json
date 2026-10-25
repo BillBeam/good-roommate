@@ -1,5 +1,5 @@
 {
- "written_at": "2026-10-25T11:47:11+00:00",
+ "written_at": "2026-10-25T13:43:02+00:00",
  "model": "Qwen/Qwen3.5-4B",
  "provider": "siliconflow",
  "seeds": [
@@ -15,7 +15,8 @@
   },
   "think": {
    "enable_thinking": true,
-   "max_tokens": 8192
+   "max_tokens": 8192,
+   "thinking_budget": 4096
   }
  },
  "eval_temperature": 0,
@@ -33,9 +34,9 @@
  ],
  "cny_budget": 50.0,
  "workers": 24,
- "max_inflight": 64,
- "parallel_jobs": 6,
+ "max_inflight": 24,
+ "parallel_jobs": 2,
  "stages": "runs",
  "offline": false,
- "only": null
+ "only": "nothink@2,nothink@3"
 }

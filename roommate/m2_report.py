@@ -193,7 +193,7 @@ def variance_stats(out, mode, seed):
 
 
 def write_stats(out, m1, seeds):
-    from .m2 import MODES, SHORT, VAR_MODES, VAR_SEED
+    from .m2 import MODES, SHORT, VAR_MODES, VAR_SEED  # noqa: F401
     pols = {}
     for s in seeds:
         p1 = stats.load_policies(m1, s)
@@ -294,18 +294,17 @@ def write_stats(out, m1, seeds):
     # 估算：老师（V4 Pro）每次会话的花费 = M1 第二版账本里 V4 Pro 普通运行的人民币 / 它跑过的会话数
     led1 = _load(os.path.join(m1, "spend_ledger.json"))["by_model_role"].get("deepseek-v4-pro|agent")
     n_v4 = sum(len(pols[s]["llm_deepseek-v4-pro"]) for s in seeds if "llm_deepseek-v4-pro" in pols[s])
-    nk, tk = f"llm_{SHORT}_nothink", f"llm_{SHORT}_think"
-    vn = (res["variance"].get("nothink") or {}).get("usage_all_reps")
-    use_n = vn or (res["rows"].get(nk) or {}).get("usage")
-    if led1 and n_v4 and use_n:
+    # 训练用哪种思考模式待定：两种模式各估一遍，都用种子 1–3、温度 0 的实测量（口径相同，不把任何一种当默认）
+    res.pop("estimate", None)
+    res["estimate_by_mode"] = {}
+    if led1 and n_v4:
         tc = led1["cost_cny"] / n_v4
         res["teacher_cost"] = {"cny": led1["cost_cny"], "sessions": n_v4, "cny_per_session": tc,
                                "source": os.path.join(m1, "spend_ledger.json")}
-        res["estimate"] = estimate(use_n, tc)
-        res["estimate"]["usage_source"] = "思考关、温度 1（组内差异的 K 遍）" if vn else "思考关、温度 0（种子 1–3）"
-        if (res["rows"].get(tk) or {}).get("usage"):
-            res["estimate_think"] = estimate(res["rows"][tk]["usage"], tc)
-            res["estimate_think"]["usage_source"] = "思考开、温度 0（种子 1–3）"
+        for mode in MODES:
+            u = (res["rows"].get(f"llm_{SHORT}_{mode}") or {}).get("usage")
+            if u:
+                res["estimate_by_mode"][mode] = estimate(u, tc)
     with open(os.path.join(out, "stats.json"), "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     return res
@@ -388,7 +387,7 @@ def estimate(usage, teacher_cny_per_session, a=ASSUME):
 # ---------- 报告 ----------
 
 KIND_CN = {"bad_json": "参数不是合法 JSON", "unknown_tool": "调了不存在的工具", "truncated": "输出被长度上限截断",
-           "tool_text": "工具调用写在正文里、没被解析", "no_tool_call": "只说话、没调工具（会被提醒）"}
+           "think_runaway": "思考用满预算被截断（思考停不下来）", "tool_text": "工具调用写在正文里、没被解析", "no_tool_call": "只说话、没调工具（会被提醒）"}
 MODE_CN = {"nothink": "思考关", "think": "思考开"}
 THRESHOLD = 0.75     # 卡片约定：起点得分 ≥ 0.75 时不进入训练花费，等决定
 
@@ -431,6 +430,7 @@ def write_report(out, path):
             gap = rows["ideal"]["mean_score"] - b["mean_score"]
             w(f"- 起点得分低于 {THRESHOLD}，小模型还有东西可学：离理想记忆策略差 {L.n(gap, sp)} 分，"
               f"离 V4 Pro 差 {L.n(rows['llm_deepseek-v4-pro']['mean_score'] - b['mean_score'], sp)} 分。")
+    w("- 训练用哪种思考模式待定，这一步不下结论：两种模式的实测对照见第 4 节，第二步在自部署的 BF16 服务上确认模板如何处理思考、两种模式各测一遍后再定；费用估算两种模式各占一行（第 7 节）。")
     w("")
 
     # ---------- 1. 得分表 ----------
@@ -523,19 +523,33 @@ def write_report(out, path):
     w("")
 
     # ---------- 4. 组内差异 ----------
-    w("## 4. 训练温度下，同一个用户重复跑的分数差异")
+    w("## 4. 两种思考模式的对照，以及训练温度下的组内差异")
+    w("")
+    w("**训练用哪种思考模式：待定，这一步不下结论。** 下表是两种模式在种子 1–3、温度 0 上的实测对照。"
+      "训练用哪种模式，第二步在自部署的 BF16 服务上确认模板如何处理思考（官方模板会去掉早于最后一条用户消息的思考内容，"
+      "影响多轮前缀是否一致）、两种模式各测一遍后再定。")
+    w("")
+    PRr = st.get("partial_rows", {})
+    MM = [m for m in MODES if rows.get(q(m))]
+    if MM:
+        w("| 温度 0，种子 1–3 | " + " | ".join(MODE_CN[m] for m in MM) + " |")
+        w("|---|" + "---|" * len(MM))
+        cmp_ = lambda label, f: w(f"| {label} | " + " | ".join(f(rows[q(m)]) for m in MM) + " |")
+        cmp_("偏好会话得分（95% 区间）", lambda r: f"{L.n(r['mean_score'], sp)}（{L.ci(r['ci95'], sp)}）")
+        cmp_("选对率", lambda r: L.n(r["success_rate"], sp, "pct"))
+        cmp_("每次会话调用次数", lambda r: L.n(r["usage"]["calls_per_session"], sp, "f2"))
+        cmp_("每次会话输入 tokens", lambda r: L.n(r["usage"]["prompt_tokens_per_session"], sp, "int"))
+        cmp_("每次会话输出 tokens（其中思考）", lambda r: f"{L.n(r['usage']['completion_tokens_per_session'], sp, 'int')}（{L.n(r['usage']['reasoning_tokens_per_session'], sp, 'int')}）")
+        cmp_("空白填充的会话占比", lambda r: L.n(r["loops"]["whitespace_padding"] / r["loops"]["n_sessions"], sp, "pct"))
+        cmp_("思考失控（用满思考预算）的会话占比", lambda r: L.n(r["failures"]["sessions_by_format_kind"]["think_runaway"] / r["failures"]["n_sessions"], sp, "pct"))
+        cmp_("兜圈子的会话占比（合计）", lambda r: L.n(r["loops"]["any_loop_share"], sp, "pct"))
+        cmp_("用满 14 轮还没选的会话", lambda r: L.n(r["failures"]["hit_max_turns"], sp, "int"))
+        w("")
+    w("组内差异只跑了思考关：这是上一张卡按\"将来训练用的模式\"做的取舍（当时按思考关），在限速下排在基线和对照组之后。"
+      "现在训练模式改为待定，思考开在训练温度下的组内差异还没有测，留到第二步和 BF16 重测一起做。")
     w("")
     w(f"采样参数 {json.dumps(TRAIN_SAMPLING)}（GRPO 采样不截断分布）。种子 {VAR_SEED} 的 24 个用户，每人 8 次会话整段重复跑 K 遍；"
       "每一遍的请求 seed 不同（硅基流动的 seed 本来也不保证复现）。一个用户的 K 遍就是 GRPO 的一组。")
-    w("")
-    w("**只跑思考关，理由**（限速下按优先级缩减，思考开的组内差异没有跑）：")
-    w("")
-    w("- 将来训练打算用思考关。官方模板会去掉早于最后一条用户消息的思考内容，思考开时多轮对话前后的 token 前缀对不上，"
-      "rollout 和训练的序列不一致（TRL、verl 的文档都提到这个问题，见 [选型报告](m2-platform-survey.md) 风险 3）；"
-      "ms-swift 的 Qwen3.5 最佳实践在强化学习里统一关思考。")
-    w("- 思考关每次调用输出短，14 轮的上下文不会被思考撑长，rollout 和训练都便宜；老师轨迹也只需要最终的工具调用，不需要思考文本。")
-    w("- 思考关在温度 0 时兜圈子最多（第 2 节），这正是 SFT 和 RL 要先解决的问题；训练温度下它还剩多少可学的差异，是这一节要回答的。")
-    w("- 代价：思考开在温度 0 时得分更高（第 1 节）。如果思考关训不上去，再回头测思考开的组内差异。")
     w("")
     V = {m: v for m, v in st.get("variance", {}).items() if v}
     if V:
@@ -647,41 +661,41 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
       "SDK 版本锁定落后于最新 cookbook；老师轨迹、SFT、rollout、评测四处的模板和工具解析器必须一致；"
       "线性注意力层在训练端和 vLLM 端的 logprob 偏差；环境版本要求新。")
     w("")
-    e = st.get("estimate")
-    if e:
-        a = e["assumptions"]
-        m = e["measured"]
+    EM = st.get("estimate_by_mode") or {}
+    if EM:
         tc = st["teacher_cost"]
-        w(f"**估算**。训练打算用思考关（理由见第 4 节），实测量取{e['usage_source']}：每次会话 {L.n(m['qwen_calls_per_session'], sp, 'f2')} 次调用、"
-          f"{L.n(m['qwen_prompt_tokens_per_session'], sp, 'int')} prompt tokens、{L.n(m['qwen_completion_tokens_per_session'], sp, 'int')} 输出 tokens，"
-          f"折合每次会话一条约 {L.n(m['grpo_train_tokens_per_session_est'], sp, 'int')} tokens 的训练序列。这些数已经包含兜圈子的开销（第 2 节），"
-          "SFT 之后兜圈子变少，rollout 会更便宜，所以 GRPO 一栏偏保守。"
+        a = next(iter(EM.values()))["assumptions"]
+        w("**估算**。训练用哪种思考模式待定（第 4 节），两种模式各占一行，实测量都取种子 1–3、温度 0 的结果，已经包含兜圈子的开销（第 2 节）。"
+          "SFT 之后兜圈子会变少，rollout 会更便宜，所以 GRPO 一栏偏保守。"
           f"老师 DeepSeek V4 Pro 每次会话 {L.n(tc['cny_per_session'], tc['source'], 'f3')} 元，来自 M1 第二版账本。"
-          "吞吐、步数、组大小是假设，写在 stats.json 的 `estimate.assumptions` 里：")
+          "吞吐、步数、组大小是假设，写在 stats.json 的 `estimate_by_mode.<模式>.assumptions` 里。")
         w("")
-        w("| 方案 | 卡 | 老师轨迹 | 装环境 | SFT | GRPO | 上机合计 | 显卡费（按量） | 显卡费（抢占） | 合计（老师 + 按量显卡） |")
-        w("|---|---|---|---|---|---|---|---|---|---|")
+        w("| 模式 | 每次会话调用 / 输入 / 输出 tokens（实测） | 训练序列（估） |")
+        w("|---|---|---|")
+        for mode, e in EM.items():
+            m = e["measured"]
+            w(f"| {MODE_CN[mode]} | {L.n(m['qwen_calls_per_session'], sp, 'f2')} / {L.n(m['qwen_prompt_tokens_per_session'], sp, 'int')} / "
+              f"{L.n(m['qwen_completion_tokens_per_session'], sp, 'int')} | {L.n(m['grpo_train_tokens_per_session_est'], sp, 'int')} |")
+        w("")
+        w("| 方案 | 模式 | 卡 | 老师轨迹 | 装环境 | SFT | GRPO | 上机合计 | 显卡费（按量） | 显卡费（抢占） | 合计（老师 + 按量显卡） |")
+        w("|---|---|---|---|---|---|---|---|---|---|---|")
         hr = lambda x: f"{x[0]:.1f}–{x[1]:.1f} 小时"
         cy = lambda x: f"{x[0]:.0f}–{x[1]:.0f} 元"
-        for key, name in (("pilot", f"试跑：{a['teacher_worlds_pilot']} 个新世界的老师轨迹 + SFT + {a['grpo_steps_pilot']} 步 GRPO，单卡"),
-                          ("pilot_2x4090", "同上，2 卡 4090（Twinkle 官方示例的配置，时长按单卡保守估）"),
-                          ("pilot_a800", "同上，换 A800"),
-                          ("full", f"正式：{a['teacher_worlds_full']} 个新世界 + SFT + {a['grpo_steps_full']} 步 GRPO")):
-            x = e[key]
-            w(f"| {name} | {x['gpu']} | {x['teacher_sessions']} 次会话，{L.n(x['teacher_cny'], sp, 'f2')} 元 | {hr(x['setup_hours'])} | "
-              f"{hr(x['sft_hours'])} | {hr(x['grpo_hours'])} | {hr(x['gpu_hours'])} | {cy(x['gpu_cny_on_demand'])} | "
-              f"{cy(x['gpu_cny_spot'])} | {cy(x['total_cny_on_demand'])} |")
-        et = st.get("estimate_think")
-        if et:
-            x = et["pilot"]
-            w(f"| 对照：试跑改用思考开（实测量取{et['usage_source']}：每次会话 {L.n(et['measured']['qwen_calls_per_session'], sp, 'f2')} 次调用、"
-              f"{L.n(et['measured']['qwen_prompt_tokens_per_session'], sp, 'int')} / {L.n(et['measured']['qwen_completion_tokens_per_session'], sp, 'int')} tokens） | {x['gpu']} | 同上 | {hr(x['setup_hours'])} | "
-              f"{hr(x['sft_hours'])} | {hr(x['grpo_hours'])} | {hr(x['gpu_hours'])} | {cy(x['gpu_cny_on_demand'])} | "
-              f"{cy(x['gpu_cny_spot'])} | {cy(x['total_cny_on_demand'])} |")
+        plans = (("pilot", f"试跑：{a['teacher_worlds_pilot']} 个新世界的老师轨迹 + SFT + {a['grpo_steps_pilot']} 步 GRPO，单卡"),
+                 ("pilot_2x4090", "试跑，2 卡 4090（Twinkle 官方示例的配置，时长按单卡保守估）"),
+                 ("pilot_a800", "试跑，换 A800"),
+                 ("full", f"正式：{a['teacher_worlds_full']} 个新世界 + SFT + {a['grpo_steps_full']} 步 GRPO"))
+        for key, name in plans:
+            for mode, e in EM.items():
+                x = e[key]
+                w(f"| {name} | {MODE_CN[mode]} | {x['gpu']} | {x['teacher_sessions']} 次会话，{L.n(x['teacher_cny'], sp, 'f2')} 元 | "
+                  f"{hr(x['setup_hours'])} | {hr(x['sft_hours'])} | {hr(x['grpo_hours'])} | {hr(x['gpu_hours'])} | "
+                  f"{cy(x['gpu_cny_on_demand'])} | {cy(x['gpu_cny_spot'])} | {cy(x['total_cny_on_demand'])} |")
         w("")
         w(f"GRPO 每步 = {a['grpo_users_per_step_pilot']}（试跑）或 {a['grpo_users_per_step_full']}（正式）个用户 × 每组 {a['grpo_group']} 遍 × 8 次会话；"
-          "每次会话的 rollout 时长按实测的输出 tokens 和未命中前缀缓存的 prompt tokens 除以假设吞吐计算，训练按上面那条序列长度、"
-          "前向加反向、另加一次前向算旧策略 logprob 计算；SFT 按每次会话 3000 tokens、2 遍。这些吞吐没有实测，误差可能到 2 倍；试跑的头 10 步就是用来把它们换成实测值的。")
+          "rollout 时长按实测的输出 tokens 和未命中前缀缓存的输入 tokens 除以假设吞吐计算，训练按估计的序列长度、"
+          "前向加反向、另加一次前向算旧策略 logprob 计算；SFT 按每次会话 3000 tokens、2 遍。这些吞吐没有实测，误差可能到 2 倍；"
+          "试跑的头 10 步就是用来把它们换成实测值的。思考开的输出里思考 tokens 占大头，解码吞吐的假设对它影响更大。")
     w("")
 
     # ---------- 8. 花费 ----------

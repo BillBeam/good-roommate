@@ -312,7 +312,7 @@
    - Qwen3.5-4B 默认开启思考（模型卡；TRL 模板说明"think … used by Qwen3.5-4B and larger"）。
    - Qwen3 系列模板会剥离历史 `<think>`，破坏前缀一致性（TRL 和 verl 文档都提到）。
    - 14 轮 × 思考长度会迅速撑长上下文。ms-swift 的 RL 实验统一关闭思考。
-   - 建议 teacher 数据、SFT、rollout、评测四处统一设置 `enable_thinking=False`，或者四处统一保留思考。
+   - 老师数据、SFT、rollout、评测四处必须用同一种模式（都关或都开）。用哪一种待定，见本文"推荐"一节。
 5. **rollout 引擎与训练引擎的 per-token logprob 不一致。**
    - TRL 文档：vLLM 与训练引擎"can produce different outputs due to precision effects"，提供 TIS/MIS 校正。
    - verl 和 OpenRLHF 强调用 token-in-token-out 避免重新 tokenize 带来的偏差。
@@ -459,7 +459,7 @@
 
 **(b) 谁驱动多轮循环：我们的代码。**
 
-- **模板和 token 由客户端控制。** 渲染用 cookbook 的 `qwen3_5_disable_thinking` 渲染器，或我们自己用 HF 模板加 `enable_thinking=False`。`sample()` 收到的是我们给的 token，返回采样 token 和 logprob。训练时用的正是采样时用的 token，不需要重新 tokenize。Qwen3.5 模板会剥离历史思考内容（B.3 风险 3、4），即使前缀不连续，cookbook 的切分逻辑也只是多出几条 Datum，不会训练到模型没见过的上下文（**推断**）。
+- **模板和 token 由客户端控制。** 渲染用 cookbook 的 Qwen3.5 渲染器（`qwen3_5_disable_thinking` 或 `qwen3_5_preserve_thinking`，取决于训练用哪种思考模式，待定），或我们自己用 HF 模板设置 `enable_thinking`。`sample()` 收到的是我们给的 token，返回采样 token 和 logprob。训练时用的正是采样时用的 token，不需要重新 tokenize。Qwen3.5 模板会剥离历史思考内容（B.3 风险 3、4），即使前缀不连续，cookbook 的切分逻辑也只是多出几条 Datum，不会训练到模型没见过的上下文（**推断**）。
 - **logprob 一致性。** `sample()` 返回的是 vLLM 的 logprob（Twinkle 设为 `processed_logprobs`），训练端重算后用 `importance_sampling` 损失校正。Twinkle 实际用的是 PPO-clip 版本（1.2）。Gated DeltaNet 在训练端和推理端走不同 kernel 带来的偏差仍然存在（B.3 风险 5），要监控。
 - **复用现有代码。** `env.py` 和 `agent_llm.py` 不用改，只需新增一个实现 `chat(body)` 的 client，约 150–300 行（**推断**）。工具调用的解析可以用 cookbook 的 Qwen3.5 渲染器，或 Twinkle 的 `hermes_qwen` 解析器。另外两点要注意：
   - `LLMAgent` 请求里的 `temperature: 0` 和 `seed` 要由 client 改成 RL 采样参数。
@@ -706,7 +706,9 @@
 3. **思考模式**：
    - Qwen3.5-4B 默认开思考。官方模板会去掉早于最后一条用户消息的思考内容，破坏前缀一致。
    - 14 轮加上思考，会迅速撑长上下文。
-   - 建议四处统一关思考（ms-swift 的强化学习实验就是这样）。本轮思考开、关两组的对比见起点报告第 2 节。
+   - **训练用哪种模式待定，这一步不下结论。** 两种模式的实测对照（调用次数、token、空白填充、思考失控、得分）见 [起点报告](m2-start.md) 第 4 节。
+   - 第二步在自部署的 BF16 服务上，先确认模板怎么处理思考：哪些历史思考会被去掉，多轮前缀是否一致；再把两种模式各测一遍，然后定。
+   - 两种模式的考虑各有一边：ms-swift 的强化学习实验统一关思考，前缀问题和长上下文都更省事；但本轮思考开在温度 0 时得分更高、兜圈子更少（见起点报告）。
 4. **rollout 引擎与训练引擎的 logprob 不一致**：Gated DeltaNet 层在训练端用 FLA kernel，在 vLLM 端用另一套 kernel，偏差可能比纯注意力模型大（推断）。要盯住重要性采样比，TRL 有 TIS/MIS 校正。
 5. **LoRA 目标模块**：
    - 冻结视觉塔。
@@ -720,7 +722,7 @@
 1. 下单前问清：宿主机驱动版本（SkyRL 要 ≥ r580），以及有没有 2 卡 4090 机型（Twinkle）。
 2. 在 Compshare 无卡模式下装好环境、拉好 Twinkle 镜像，存成镜像。
 3. 开 2 卡机，用官方 `server_config.yaml`（Qwen3.5-4B）起 Twinkle，跑几步 `short_math_grpo.py`。确认三件事：`sample()` 带 logprob；LoRA 能同步到 vLLM；动态加载适配器后输出不异常（B.3 风险 6）。
-4. 写记录型 client，用思考关的 Qwen3.5 渲染器跑 1 个用户的 8 次会话，和硅基流动的结果对比格式错误率、兜圈子比例（起点报告第 2 节）。
-5. **在训练平台上用 BF16 权重重测起点**：本考场种子 1–3、思考关、温度 0 全跑一遍，作为训练的起点和对照（硅基流动的部署精度未知，见 [对照报告](m2-siliconflow-vs-hf.md)）。
+4. 写记录型 client，确认 Qwen3.5 模板在两种思考模式下怎么处理历史思考、多轮前缀是否一致；各跑 1 个用户的 8 次会话，和硅基流动的结果对比格式错误率、兜圈子比例（起点报告第 2 节）。
+5. **在训练平台上用 BF16 权重重测起点**：本考场种子 1–3、温度 0，思考开、关各全跑一遍，再在训练温度下各测组内差异，据此定训练用哪种模式，并作为训练的起点和对照（硅基流动的部署精度未知，见 [对照报告](m2-siliconflow-vs-hf.md)）。
 6. 跑 10 步 RL：记录每次会话切出的样本数、采样端和训练端的 logprob 差、显存峰值、每步耗时，用它们替换起点报告第 7 节估算里的吞吐假设。
 7. Twinkle 不通就换 SkyRL（单卡 A800，`--backend fsdp`），重复第 3–6 步；都不通就退到 TRL。

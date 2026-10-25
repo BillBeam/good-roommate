@@ -266,7 +266,8 @@ class LLMClient:
                 last = f"HTTP {e.code}: {msg}"
                 with self.lock:
                     self.retries[f"HTTP {e.code}"] = self.retries.get(f"HTTP {e.code}", 0) + 1
-                if e.code not in (408, 409, 429, 500, 502, 503, 504):
+                # 400 一般是请求本身有错，直接停；但硅基流动偶尔对同一个合法请求返回 400（重发即成功），所以先重试两次
+                if e.code not in (408, 409, 429, 500, 502, 503, 504) and not (e.code == 400 and attempt < 2):
                     raise ApiError(last) from None
             except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
                 last = repr(e)

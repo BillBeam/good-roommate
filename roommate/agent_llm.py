@@ -74,8 +74,9 @@ TOOL_NAMES = {"memory_read", "memory_write", "memory_delete", "ask_user", "choos
 # 工具调用格式问题的种类：
 # bad_json 参数不是合法 JSON；unknown_tool 调了不存在的工具；truncated 输出被 max_tokens 截断；
 # tool_text 没有结构化的工具调用，但正文里像是写了工具调用（接口没解析出来，或模型写错了格式）；
+# think_runaway 思考用满了 thinking_budget 被截断（思考停不下来）；
 # no_tool_call 这一轮只输出文字、没调工具（会收到提醒，继续下一轮）。
-FORMAT_KINDS = ["bad_json", "unknown_tool", "truncated", "tool_text", "no_tool_call"]
+FORMAT_KINDS = ["bad_json", "unknown_tool", "truncated", "think_runaway", "tool_text", "no_tool_call"]
 _TOOL_TEXT = re.compile(r"<tool_call>|<function[=>]|</?tool_call|\"name\"\s*:\s*\"(%s)\"|\b(%s)\s*\(" %
                         ("|".join(TOOL_NAMES), "|".join(TOOL_NAMES)))
 NUDGE = "（系统提示：用户看不到你直接输出的文字。要提问请调用 ask_user；完成任务请调用 choose_option。）"
@@ -116,7 +117,8 @@ class LLMAgent:
             msg = resp["choices"][0]["message"]
             calls = msg.get("tool_calls") or []
             if self.track_format:
-                issues += self._format_issues(turns, resp["choices"][0], calls)
+                issues += self._format_issues(turns, resp["choices"][0], calls, resp.get("usage"),
+                                              self.extra.get("thinking_budget"))
                 u = resp.get("usage") or {}
                 usage["calls"] += 1
                 usage["prompt_tokens"] += u.get("prompt_tokens", 0)
@@ -146,11 +148,14 @@ class LLMAgent:
         ctx.notes["transcript"] = messages[1:]
 
     @staticmethod
-    def _format_issues(turn, choice, calls):
+    def _format_issues(turn, choice, calls, usage=None, thinking_budget=None):
         msg = choice["message"]
         out = []
         if choice.get("finish_reason") == "length":
             out.append({"turn": turn, "kind": "truncated"})
+        rt = ((usage or {}).get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
+        if thinking_budget and rt >= thinking_budget:
+            out.append({"turn": turn, "kind": "think_runaway", "reasoning_tokens": rt})
         for c in calls:
             name, raw = c["function"]["name"], c["function"]["arguments"]
             if name not in TOOL_NAMES:

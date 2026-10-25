@@ -36,12 +36,16 @@ SHORT = "qwen3.5-4b"
 # 思考模式开、关。max_tokens 只防止失控的长输出；被截断的轮次记为格式问题 truncated。
 MODES = {
     "nothink": {"enable_thinking": False, "max_tokens": 2048},
-    "think": {"enable_thinking": True, "max_tokens": 8192},
+    "think": {"enable_thinking": True, "max_tokens": 8192, "thinking_budget": 4096},
 }
+# 硅基流动的 max_tokens 不限制思考。温度 0 时有的请求思考停不下来，600 秒超时、重试也一样，整轮会话卡死
+# （第一次运行里思考开三组卡了约 1.5 小时）。所以思考开加 thinking_budget 4096：已完成的思考最长 1999 tokens，
+# 预算只截断失控的那些；被截断的轮次记为格式问题 think_runaway（agent_llm.FORMAT_KINDS）。
 # 将来训练（GRPO 采样）用的采样参数：温度 1、不截断分布，使采样分布就是策略本身的分布。
 TRAIN_SAMPLING = {"temperature": 1.0, "top_p": 1.0}
 VAR_SEED = 1
-# 限速下按优先级缩减（第二张卡）：组内差异只跑将来打算训练用的思考关模式，每个用户 4 遍；思考开不跑。
+# 限速下按优先级缩减（第二张卡）：组内差异只跑思考关，每个用户 4 遍；思考开不跑。
+# 训练用哪种思考模式后来改为待定（第三张卡），思考开的组内差异留到第二步在 BF16 服务上测。
 # "知道真实状态"对照组只跑种子 1。选择理由见报告第 4 节。
 VAR_REPS = 4
 VAR_MODES = ["nothink"]
