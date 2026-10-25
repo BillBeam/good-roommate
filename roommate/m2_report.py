@@ -365,6 +365,7 @@ def estimate(usage, teacher_cny_per_session, a=ASSUME):
                                            "teacher_cny_per_session": teacher_cny_per_session,
                                            "grpo_train_tokens_per_session_est": train_seq}}
     for name, gpu, worlds, steps, users, setup in (
+            ("pilot_2x4090", "rtx4090_24g", a["teacher_worlds_pilot"], a["grpo_steps_pilot"], a["grpo_users_per_step_pilot"], a["setup_hours"]),
             ("pilot", "rtx4090_24g", a["teacher_worlds_pilot"], a["grpo_steps_pilot"], a["grpo_users_per_step_pilot"], a["setup_hours"]),
             ("pilot_a800", "a800_80g", a["teacher_worlds_pilot"], a["grpo_steps_pilot"], a["grpo_users_per_step_pilot"], a["setup_hours"]),
             ("full", "a800_80g", a["teacher_worlds_full"], a["grpo_steps_full"], a["grpo_users_per_step_full"], [0, 0])):
@@ -372,8 +373,11 @@ def estimate(usage, teacher_cny_per_session, a=ASSUME):
         grpo = grpo_hours(gpu, steps, users)
         hours = [setup[i] + sft[i] + grpo[i] for i in (0, 1)]
         p = a["price_cny_per_hour"][gpu]
+        if name == "pilot_2x4090":   # Twinkle 官方示例训练、采样各一张卡；时长按单卡保守估，费用翻倍
+            p = {kk: 2 * v for kk, v in p.items()}
         teacher = worlds * a["sessions_per_world"] * teacher_cny_per_session
-        res[name] = {"gpu": gpu, "teacher_sessions": worlds * a["sessions_per_world"], "teacher_cny": teacher,
+        label = {"rtx4090_24g": "1 × RTX 4090 24G", "a800_80g": "1 × A800 80G"}[gpu]
+        res[name] = {"gpu": "2 × RTX 4090 24G" if name == "pilot_2x4090" else label, "teacher_sessions": worlds * a["sessions_per_world"], "teacher_cny": teacher,
                      "setup_hours": setup, "sft_hours": sft, "grpo_hours": grpo, "gpu_hours": hours,
                      "gpu_cny_on_demand": [h * p["on_demand"] for h in hours],
                      "gpu_cny_spot": [h * p["spot"] for h in hours],
@@ -630,11 +634,18 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
     w("- **平台**：优云智算 Compshare。支付宝、微信支付在官方充值文档里写明；定价页当天看到的价格是 4090 24G 按量 1.92 元/时（抢占 1.31），"
       "A800 80G 按量 7.36（抢占 3.02）；有 OpenAPI 和命令行工具能开机、关机。备选 AutoDL（支付宝、微信已确认；"
       "搜索摘录的单价更低，但普通实例没有开关机接口）。")
-    w("- **框架**：TRL GRPOTrainer 跑试跑。它的工具/agent 训练文档把 Qwen3.5 列为测过的模型，`environment_factory` 的形态和本考场"
-      "一一对应，LoRA 先合并再同步到 vLLM，单卡能跑。verl 作为放量备选，ms-swift 作为国内文档最全的替补。")
-    w("- **把本考场接进去的主要风险**：跨会话的回报（第 k 次写的记忆在后面才见效，框架都是一条 prompt 一条轨迹）；"
-      "老师轨迹、SFT、rollout、评测四处的模板和工具解析器必须一致；思考内容破坏前缀一致；"
-      "线性注意力层在训练端和 vLLM 端的 logprob 偏差；LoRA 挂在线性注意力层上时 vLLM 动态加载可能出错；环境版本要求新。")
+    w("- **三条路线**：比较了三条路线，见选型报告 Part C。")
+    w("  - **租卡 + 自部署兼容 Tinker 接口的服务**（魔搭 Twinkle、SkyRL 的 Tinker 后端）：训练循环由我们的代码驱动。"
+      "8 次会话由我们照常按顺序跑完，记忆由考场自己保存，每次会话切成一条训练样本，优势按会话写 return-to-go。")
+    w("  - **租卡 + 开源训练框架**（TRL、verl）：循环由框架驱动，\"一条 prompt 对应一条序列\"。"
+      "只能按会话做样本、数据里放旧策略的记忆快照，跨会话回报要近似或靠实验性 API。")
+    w("  - **阿里云 PAI**：Model Gallery 的 GRPO 只写了 Qwen3；百炼托管 RL 最小 9B、要商务开通；自建的单价是租卡平台的 2–5 倍。")
+    w("- **推荐**：走路线一。服务端先试 Twinkle（官方示例默认就是 Qwen3.5-4B，需 2 卡），备选 SkyRL（单卡 A800，要求驱动 ≥ r580）；"
+      "路线二的 TRL 作保底，不用 PAI。理由是这个结构在路线一里是普通的 Python，现有考场代码只需换一个记录 token 的 client。")
+    w("- **把本考场接进去的主要风险**："
+      "两家 Tinker 服务端都没有\"Qwen3.5-4B + 多轮工具\"的公开验证；它们把 LoRA 动态加载进 vLLM，线性注意力层上可能出错；"
+      "SDK 版本锁定落后于最新 cookbook；老师轨迹、SFT、rollout、评测四处的模板和工具解析器必须一致；"
+      "线性注意力层在训练端和 vLLM 端的 logprob 偏差；环境版本要求新。")
     w("")
     e = st.get("estimate")
     if e:
@@ -652,7 +663,8 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
         w("|---|---|---|---|---|---|---|---|---|---|")
         hr = lambda x: f"{x[0]:.1f}–{x[1]:.1f} 小时"
         cy = lambda x: f"{x[0]:.0f}–{x[1]:.0f} 元"
-        for key, name in (("pilot", f"试跑：{a['teacher_worlds_pilot']} 个新世界的老师轨迹 + SFT + {a['grpo_steps_pilot']} 步 GRPO"),
+        for key, name in (("pilot", f"试跑：{a['teacher_worlds_pilot']} 个新世界的老师轨迹 + SFT + {a['grpo_steps_pilot']} 步 GRPO，单卡"),
+                          ("pilot_2x4090", "同上，2 卡 4090（Twinkle 官方示例的配置，时长按单卡保守估）"),
                           ("pilot_a800", "同上，换 A800"),
                           ("full", f"正式：{a['teacher_worlds_full']} 个新世界 + SFT + {a['grpo_steps_full']} 步 GRPO")):
             x = e[key]
