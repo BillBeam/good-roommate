@@ -1,0 +1,7 @@
+--- restart Sun Oct 25 11:47:11 UTC 2026 scope: base 6 + ctrl seed1 x2 + var nothink x4
+--- restart Sun Oct 25 13:03:19 UTC 2026: think mode adds thinking_budget=4096 (runaway thinking stalled think jobs); think cache keys change
+--- Sun Oct 25 13:30:26 UTC 2026: think@3 stopped on a transient HTTP 400 (the 24 pending requests all succeed when resent); 400 now retried twice; think@3 rerun in a second process
+--- Sun Oct 25 13:43:02 UTC 2026: nothink@2, nothink@3 stopped on transient HTTP 400 'JSON decode error' (pending requests succeed or get 503 when resent); rerun in another process with 400 retry
+--- Sun Oct 25 13:52:47 UTC 2026: interim — other processes paused (SIGSTOP); variance subset: seed 1, 24 users, first 3 sessions, nothink, T=1, 4 reps
+--- Sun Oct 25 14:11:52 UTC 2026: egress proxy began refusing api.siliconflow.cn (403 on CONNECT, policy denial) around 14:01; variance-subset process stopped; other processes remain paused
+--- Sun Oct 25 14:13:31 UTC 2026: all run processes stopped (SiliconFlow blocked by egress policy). Resume later with: ROOMMATE_M2_JOBS=6 python -m roommate.m2 --stages runs  (finished calls replay from cache)

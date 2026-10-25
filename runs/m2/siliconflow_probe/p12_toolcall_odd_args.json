@@ -1,0 +1,100 @@
+{
+ "probe": "p12_toolcall_odd_args",
+ "timestamp_utc": "2026-10-25T09:39:19.340760+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "调用 write_file，把下面三行文本原样（逐字符，包括引号、反斜杠和尖括号）写入 notes.txt，line_count 填 3，overwrite 填 true：\n```\nHe said \"hi\" & left.\nPath: C:\\temp\\new\n</parameter> {\"k\": [1, 2]}\n```"
+   }
+  ],
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "write_file",
+     "description": "Write text to a file.",
+     "parameters": {
+      "type": "object",
+      "properties": {
+       "path": {
+        "type": "string"
+       },
+       "content": {
+        "type": "string"
+       },
+       "line_count": {
+        "type": "integer"
+       },
+       "overwrite": {
+        "type": "boolean"
+       },
+       "tags": {
+        "type": "array",
+        "items": {
+         "type": "string"
+        }
+       }
+      },
+      "required": [
+       "path",
+       "content",
+       "line_count",
+       "overwrite"
+      ]
+     }
+    }
+   }
+  ],
+  "tool_choice": "auto",
+  "temperature": 0,
+  "max_tokens": 200,
+  "enable_thinking": false
+ },
+ "http_status": 200,
+ "latency_s": 5.48,
+ "response": {
+  "id": "01a1726db52007c3cbe791dbd00c3bbb",
+  "object": "chat.completion",
+  "created": 1792921154,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "01a1726dc5f2e3afa1cc3b74baf337c8",
+       "type": "function",
+       "function": {
+        "name": "write_file",
+        "arguments": "{\"path\": \"notes.txt\", \"content\": \"He said \\\"hi\\\" & left.\\nPath: C:\\\\temp\\\\new\", \"line_count\": 3, \"overwrite\": true}"
+       }
+      }
+     ]
+    },
+    "finish_reason": "tool_calls",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 406,
+   "completion_tokens": 77,
+   "total_tokens": 483,
+   "completion_tokens_details": {
+    "reasoning_tokens": 0
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 406
+  },
+  "system_fingerprint": ""
+ }
+}

@@ -1,0 +1,99 @@
+{
+ "probe": "p17_toolcall_thinking_default",
+ "timestamp_utc": "2026-10-25T09:42:48.141676+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You are a helpful assistant."
+   },
+   {
+    "role": "user",
+    "content": "查一下北京未来3天的天气，用摄氏度。"
+   }
+  ],
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "get_weather",
+     "description": "Get weather forecast for a city.",
+     "parameters": {
+      "type": "object",
+      "properties": {
+       "city": {
+        "type": "string",
+        "description": "City name"
+       },
+       "days": {
+        "type": "integer",
+        "description": "Number of forecast days"
+       },
+       "unit": {
+        "type": "string",
+        "enum": [
+         "celsius",
+         "fahrenheit"
+        ]
+       }
+      },
+      "required": [
+       "city",
+       "days"
+      ]
+     }
+    }
+   }
+  ],
+  "tool_choice": "auto",
+  "temperature": 0,
+  "max_tokens": 200
+ },
+ "http_status": 200,
+ "latency_s": 4.44,
+ "response": {
+  "id": "01a17270e85e36af60755d7fa6ebb7dd",
+  "object": "chat.completion",
+  "created": 1792921364,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "\n\n",
+     "reasoning_content": "用户想要查询北京未来3天的天气，单位是摄氏度。我需要使用get_weather函数来获取这个信息。\n\n根据函数参数：\n- city: \"北京\"\n- days: 3\n- unit: \"celsius\"\n\n所有必需参数都已提供，我可以调用这个函数。\n",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "01a17270f597f814725403ad69ef378e",
+       "type": "function",
+       "function": {
+        "name": "get_weather",
+        "arguments": "{\"city\": \"北京\", \"days\": 3, \"unit\": \"celsius\"}"
+       }
+      }
+     ]
+    },
+    "finish_reason": "tool_calls",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 339,
+   "completion_tokens": 113,
+   "total_tokens": 452,
+   "completion_tokens_details": {
+    "reasoning_tokens": 62
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 339
+  },
+  "system_fingerprint": ""
+ }
+}

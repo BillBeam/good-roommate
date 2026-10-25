@@ -1,0 +1,50 @@
+{
+ "probe": "p05_temp0_nothink_run3",
+ "timestamp_utc": "2026-10-25T09:34:41.944810Z",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "user",
+    "content": "用一句话描述一只猫，然后列出三个形容词。"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 80,
+  "enable_thinking": false
+ },
+ "http_status": 200,
+ "latency_s": 3.36,
+ "response": {
+  "id": "01a1726982283115ab091e09b2d987fc",
+  "object": "chat.completion",
+  "created": 1792920879,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "这只猫慵懒地蜷缩在窗台上，沐浴着午后的阳光。\n形容词：慵懒、温暖、宁静。"
+    },
+    "finish_reason": "stop",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 23,
+   "completion_tokens": 26,
+   "total_tokens": 49,
+   "completion_tokens_details": {
+    "reasoning_tokens": 0
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 23
+  },
+  "system_fingerprint": ""
+ }
+}

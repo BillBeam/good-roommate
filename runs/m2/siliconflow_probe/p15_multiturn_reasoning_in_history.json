@@ -1,0 +1,108 @@
+{
+ "probe": "p15_multiturn_reasoning_in_history",
+ "timestamp_utc": "2026-10-25T09:41:52.641044+00:00",
+ "url": "https://api.siliconflow.cn/v1/chat/completions",
+ "request_body": {
+  "model": "Qwen/Qwen3.5-4B",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You are a helpful assistant."
+   },
+   {
+    "role": "user",
+    "content": "查一下北京未来3天的天气，用摄氏度。"
+   },
+   {
+    "role": "assistant",
+    "content": "",
+    "reasoning_content": "The user wants Beijing weather for three days in celsius. I should call get_weather with city Beijing, days 3, unit celsius. This reasoning sentence is a marker for token counting.",
+    "tool_calls": [
+     {
+      "id": "call_1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": "{\"city\": \"北京\", \"days\": 3, \"unit\": \"celsius\"}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_1",
+    "content": "{\"forecast\": [\"晴 25°C\", \"多云 22°C\", \"小雨 18°C\"]}"
+   }
+  ],
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "get_weather",
+     "description": "Get weather forecast for a city.",
+     "parameters": {
+      "type": "object",
+      "properties": {
+       "city": {
+        "type": "string",
+        "description": "City name"
+       },
+       "days": {
+        "type": "integer",
+        "description": "Number of forecast days"
+       },
+       "unit": {
+        "type": "string",
+        "enum": [
+         "celsius",
+         "fahrenheit"
+        ]
+       }
+      },
+      "required": [
+       "city",
+       "days"
+      ]
+     }
+    }
+   }
+  ],
+  "tool_choice": "auto",
+  "temperature": 0,
+  "max_tokens": 60,
+  "enable_thinking": false
+ },
+ "http_status": 200,
+ "latency_s": 2.13,
+ "response": {
+  "id": "01a172701972f6271240a9fd441d713a",
+  "object": "chat.completion",
+  "created": 1792921311,
+  "model": "Qwen/Qwen3.5-4B",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "北京未来3天的天气如下：\n\n- 第1天：晴，25°C\n- 第2天：多云，22°C\n- 第3天：小雨，18°C\n\n天气逐渐转凉，第3天有小雨，记得带伞哦！"
+    },
+    "finish_reason": "length",
+    "logprobs": null
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 473,
+   "completion_tokens": 60,
+   "total_tokens": 533,
+   "completion_tokens_details": {
+    "reasoning_tokens": 0
+   },
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 473
+  },
+  "system_fingerprint": ""
+ }
+}
