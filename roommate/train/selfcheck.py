@@ -83,236 +83,282 @@ def main():
         segs = [s for recs in trajs for r in recs for s in r.get("segments", []) if sum(s["mask"])]
         MATERIAL["rollout"] = {"trajectories": len(trajs), "segments": len(segs), "seconds": time.time() - t0}
 
-        # ---------- 10 BF16 ----------
-        a = torch.randn(1024, 1024, device="cuda")
-        b = torch.randn(1024, 1024, device="cuda")
-        ref = a @ b
-        got = (a.bfloat16() @ b.bfloat16()).float()
-        rel = float((got - ref).norm() / ref.norm())
-        record(10, "显卡上的 BF16 计算正常", torch.cuda.is_bf16_supported() and rel < 2e-2 and math.isfinite(rel),
-               gpu=torch.cuda.get_device_name(0), capability=list(torch.cuda.get_device_capability(0)),
-               bf16_supported=torch.cuda.is_bf16_supported(), matmul_rel_err=rel)
-
         tr = Trainer(MODEL, lr=1e-4, seed=0)
+        # ---------- 10 BF16 ----------
+        try:
+            a = torch.randn(1024, 1024, device="cuda")
+            b = torch.randn(1024, 1024, device="cuda")
+            ref = a @ b
+            got = (a.bfloat16() @ b.bfloat16()).float()
+            rel = float((got - ref).norm() / ref.norm())
+            record(10, "显卡上的 BF16 计算正常", torch.cuda.is_bf16_supported() and rel < 2e-2 and math.isfinite(rel),
+                   gpu=torch.cuda.get_device_name(0), capability=list(torch.cuda.get_device_capability(0)),
+                   bf16_supported=torch.cuda.is_bf16_supported(), matmul_rel_err=rel)
+
+        except Exception as e:  # 一项出错不影响其余各项
+            record(10, "显卡上的 BF16 计算正常", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 3 第 0 步的差（基础模型，LoRA 为 0） ----------
-        diffs, lens = [], []
-        for s in segs[:24]:
-            lp = tr.logprobs(s["ids"], s["mask"]).tolist()
-            sv = [v for v, m in zip(s["lp"], s["mask"]) if m][-len(lp):]
-            diffs += [a_ - b_ for a_, b_ in zip(lp, sv) if b_ is not None]
-            lens.append(len(s["ids"]))
-        st = stats(diffs)
-        record(3, "第 0 步采样端与训练端 logprob 之差", st["n"] > 0 and st["mean"] < 0.05, **st,
-               segments=min(24, len(segs)), mean_len=sum(lens) / max(1, len(lens)))
-        MATERIAL["step0_diff_hist"] = sorted(abs(x) for x in diffs)[::max(1, len(diffs) // 400)]
+        try:
+            diffs, lens = [], []
+            for s in segs[:24]:
+                lp = tr.logprobs(s["ids"], s["mask"]).tolist()
+                sv = [v for v, m in zip(s["lp"], s["mask"]) if m][-len(lp):]
+                diffs += [a_ - b_ for a_, b_ in zip(lp, sv) if b_ is not None]
+                lens.append(len(s["ids"]))
+            st = stats(diffs)
+            record(3, "第 0 步采样端与训练端 logprob 之差", st["n"] > 0 and st["mean"] < 0.05, **st,
+                   segments=min(24, len(segs)), mean_len=sum(lens) / max(1, len(lens)))
+            MATERIAL["step0_diff_hist"] = sorted(abs(x) for x in diffs)[::max(1, len(diffs) // 400)]
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(3, "第 0 步采样端与训练端 logprob 之差", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 4 微批大小 ----------
-        four = sorted(segs, key=lambda s: len(s["ids"]))[:4]
-        single = [tr.logprobs(s["ids"], s["mask"]) for s in four]
-        res4 = {}
-        for bs in (2, 4):
-            mx = 0.0
-            for i in range(0, 4, bs):
-                outs = tr.logprobs_padded(four[i:i + bs])
-                for j, o in enumerate(outs):
-                    mx = max(mx, float((o - single[i + j]).abs().max()))
-            res4[f"max_abs_diff_bs{bs}_vs_bs1"] = mx
-        # 梯度：同一组样本，两种累加分组（逐条 vs 打乱顺序）得到的梯度
-        items = [{"ids": s["ids"], "mask": s["mask"], "lp": s["lp"], "adv": 1.0} for s in four]
-        g = []
-        for order in ([0, 1, 2, 3], [3, 1, 0, 2]):
+        try:
+            four = sorted(segs, key=lambda s: len(s["ids"]))[:4]
+            single = [tr.logprobs(s["ids"], s["mask"]) for s in four]
+            res4 = {}
+            again = [tr.logprobs(s["ids"], s["mask"]) for s in four]
+            res4["bs1_repeat_max_abs_diff"] = max(float((a - b).abs().max()) for a, b in zip(single, again))
+            for bs in (2, 4):
+                diffs4 = []
+                for i in range(0, 4, bs):
+                    outs = tr.logprobs_padded(four[i:i + bs])
+                    for j, o in enumerate(outs):
+                        diffs4 += (o - single[i + j]).abs().tolist()
+                res4[f"bs{bs}_vs_bs1_mean_abs_diff"] = sum(diffs4) / len(diffs4)
+                res4[f"bs{bs}_vs_bs1_max_abs_diff"] = max(diffs4)
+                res4[f"bs{bs}_vs_bs1_p99_abs_diff"] = sorted(diffs4)[int(0.99 * len(diffs4))]
+            # 梯度：同一组样本，两种累加分组（逐条 vs 打乱顺序）得到的梯度
+            items = [{"ids": s["ids"], "mask": s["mask"], "lp": s["lp"], "adv": 1.0} for s in four]
+            g = []
+            for order in ([0, 1, 2, 3], [3, 1, 0, 2]):
+                tr.opt.zero_grad(set_to_none=True)
+                ntok = sum(sum(it["mask"]) for it in items)
+                for k in order:
+                    lp = tr.logprobs(items[k]["ids"], items[k]["mask"], grad=True)
+                    (-lp.sum() / ntok).backward()
+                g.append(torch.cat([p.grad.flatten().float() for p in tr.params if p.grad is not None]).clone())
+            cos = float(torch.nn.functional.cosine_similarity(g[0], g[1], dim=0))
+            relg = float((g[0] - g[1]).norm() / g[0].norm())
             tr.opt.zero_grad(set_to_none=True)
-            ntok = sum(sum(it["mask"]) for it in items)
-            for k in order:
-                lp = tr.logprobs(items[k]["ids"], items[k]["mask"], grad=True)
-                (-lp.sum() / ntok).backward()
-            g.append(torch.cat([p.grad.flatten().float() for p in tr.params if p.grad is not None]).clone())
-        cos = float(torch.nn.functional.cosine_similarity(g[0], g[1], dim=0))
-        relg = float((g[0] - g[1]).norm() / g[0].norm())
-        tr.opt.zero_grad(set_to_none=True)
-        record(4, "不同微批大小下训练端 logprob 一致", max(res4.values()) < 0.05 and cos > 0.999,
-               **res4, grad_cosine_two_orders=cos, grad_rel_diff=relg)
+            torch.cuda.empty_cache()
+            record(4, "不同微批大小下训练端 logprob 一致",
+                   res4["bs2_vs_bs1_mean_abs_diff"] < 0.02 and res4["bs4_vs_bs1_mean_abs_diff"] < 0.02 and cos > 0.999,
+                   **res4, grad_cosine_two_orders=cos, grad_rel_diff=relg)
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(4, "不同微批大小下训练端 logprob 一致", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 1 LoRA 生效 ----------
-        probe = max(segs, key=lambda s: len(s["ids"]) if len(s["ids"]) < 4000 else 0)
-        pmask = [1 if (t > 0) else 0 for t in range(len(probe["ids"]))]
-        gen_pos = [t for t, m in enumerate(probe["mask"]) if m]
-        v_base = sampler.prompt_logprobs(probe["ids"])
-        with tr.model.disable_adapter():
-            t_base = tr.logprobs(probe["ids"], pmask).tolist()
-        torch.manual_seed(1)
-        for _, mod in tr.lora_modules():                 # 给 LoRA 一个确定的非零初值（B 原本是 0）
-            torch.nn.init.normal_(mod.lora_B["default"].weight, std=float(os.environ.get("M2P_LORA_STD", "0.002")))
-        t_lora = tr.logprobs(probe["ids"], pmask).tolist()
-        tr.export(SHM)
-        sampler.update_weights(SHM)
-        v_lora = sampler.prompt_logprobs(probe["ids"])
-        pos = [t for t in range(1, len(probe["ids"])) if v_base[t] is not None and v_lora[t] is not None]
-        eff_v = statistics.mean(abs(v_lora[t] - v_base[t]) for t in pos)
-        eff_t = statistics.mean(abs(t_lora[t - 1] - t_base[t - 1]) for t in pos)
-        agree = stats([t_lora[t - 1] - v_lora[t] for t in pos])
-        agree_base = stats([t_base[t - 1] - v_base[t] for t in pos])
-        record(1, "LoRA 真的生效", eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05,
-               lora_effect_sampler=eff_v, lora_effect_trainer=eff_t, trainer_vs_sampler_with_lora=agree,
-               trainer_vs_sampler_without_lora=agree_base, tokens=len(pos),
-               lora_b_std=float(os.environ.get("M2P_LORA_STD", "0.002")))
-        show = gen_pos[:40]
-        MATERIAL["lora_compare"] = [{"token": chat.decode([probe["ids"][t]]), "sampler_without_lora": v_base[t],
-                                     "sampler_with_lora": v_lora[t], "trainer_with_lora": t_lora[t - 1],
-                                     "trainer_without_lora": t_base[t - 1]} for t in show]
+        try:
+            probe = max(segs, key=lambda s: len(s["ids"]) if len(s["ids"]) < 4000 else 0)
+            pmask = [1 if (t > 0) else 0 for t in range(len(probe["ids"]))]
+            gen_pos = [t for t, m in enumerate(probe["mask"]) if m]
+            v_base = sampler.prompt_logprobs(probe["ids"])
+            with tr.model.disable_adapter():
+                t_base = tr.logprobs(probe["ids"], pmask).tolist()
+            torch.manual_seed(1)
+            for _, mod in tr.lora_modules():                 # 给 LoRA 一个确定的非零初值（B 原本是 0）
+                torch.nn.init.normal_(mod.lora_B["default"].weight, std=float(os.environ.get("M2P_LORA_STD", "0.002")))
+            t_lora = tr.logprobs(probe["ids"], pmask).tolist()
+            tr.export(SHM)
+            sampler.update_weights(SHM)
+            v_lora = sampler.prompt_logprobs(probe["ids"])
+            pos = [t for t in range(1, len(probe["ids"])) if v_base[t] is not None and v_lora[t] is not None]
+            eff_v = statistics.mean(abs(v_lora[t] - v_base[t]) for t in pos)
+            eff_t = statistics.mean(abs(t_lora[t - 1] - t_base[t - 1]) for t in pos)
+            agree = stats([t_lora[t - 1] - v_lora[t] for t in pos])
+            agree_base = stats([t_base[t - 1] - v_base[t] for t in pos])
+            record(1, "LoRA 真的生效", eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05,
+                   lora_effect_sampler=eff_v, lora_effect_trainer=eff_t, trainer_vs_sampler_with_lora=agree,
+                   trainer_vs_sampler_without_lora=agree_base, tokens=len(pos),
+                   lora_b_std=float(os.environ.get("M2P_LORA_STD", "0.002")))
+            show = gen_pos[:40]
+            MATERIAL["lora_compare"] = [{"token": chat.decode([probe["ids"][t]]), "sampler_without_lora": v_base[t],
+                                         "sampler_with_lora": v_lora[t], "trainer_with_lora": t_lora[t - 1],
+                                         "trainer_without_lora": t_base[t - 1]} for t in show]
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(1, "LoRA 真的生效", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 2 长 prompt 带 LoRA 生成 ----------
-        longs = [s for s in segs if 2000 <= s["prompts"][-1] <= 3500] or sorted(segs, key=lambda s: -s["prompts"][-1])
-        lp_ = longs[0]
-        prompt = lp_["ids"][:lp_["prompts"][-1]]
-        outs = {}
-        for T in (1.0, 0.0):
-            r = sampler.complete(prompt, 1024, T, seed=5, stop_ids=chat.stop_ids)
-            text = chat.decode(r["ids"])
-            vals = [v for v in r["lp"] if v is not None]
-            printable = sum(ch.isprintable() or ch in "\n\t" for ch in text) / max(1, len(text))
-            grams = [text[i:i + 8] for i in range(0, max(0, len(text) - 8))]
-            outs[str(T)] = {"tokens": len(r["ids"]), "nan": sum(1 for v in vals if not math.isfinite(v)),
-                            "replacement_chars": text.count("�"), "printable_frac": printable,
-                            "distinct_8gram_frac": len(set(grams)) / max(1, len(grams)),
-                            "has_think_end": "</think>" in text, "excerpt": text[:600]}
-        ok2 = all(o["nan"] == 0 and o["replacement_chars"] == 0 and o["printable_frac"] > 0.98 and
-                  o["distinct_8gram_frac"] > 0.3 for o in outs.values())
-        record(2, "2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码", ok2, prompt_tokens=len(prompt),
-               **{f"T{k}": {kk: vv for kk, vv in v.items() if kk != "excerpt"} for k, v in outs.items()})
-        MATERIAL["long_prompt_generation"] = {"prompt_tokens": len(prompt), "outputs": outs}
+        try:
+            longs = [s for s in segs if 2000 <= s["prompts"][-1] <= 3500] or sorted(segs, key=lambda s: -s["prompts"][-1])
+            lp_ = longs[0]
+            prompt = lp_["ids"][:lp_["prompts"][-1]]
+            outs = {}
+            for T in (1.0, 0.0):
+                r = sampler.complete(prompt, 1024, T, seed=5, stop_ids=chat.stop_ids)
+                text = chat.decode(r["ids"])
+                vals = [v for v in r["lp"] if v is not None]
+                printable = sum(ch.isprintable() or ch in "\n\t" for ch in text) / max(1, len(text))
+                grams = [text[i:i + 8] for i in range(0, max(0, len(text) - 8))]
+                outs[str(T)] = {"tokens": len(r["ids"]), "nan": sum(1 for v in vals if not math.isfinite(v)),
+                                "replacement_chars": text.count("�"), "printable_frac": printable,
+                                "distinct_8gram_frac": len(set(grams)) / max(1, len(grams)),
+                                "has_think_end": "</think>" in text, "excerpt": text[:600]}
+            ok2 = all(o["nan"] == 0 and o["replacement_chars"] == 0 and o["printable_frac"] > 0.98 and
+                      o["distinct_8gram_frac"] > 0.3 for o in outs.values())
+            record(2, "2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码", ok2, prompt_tokens=len(prompt),
+                   **{f"T{k}": {kk: vv for kk, vv in v.items() if kk != "excerpt"} for k, v in outs.items()})
+            MATERIAL["long_prompt_generation"] = {"prompt_tokens": len(prompt), "outputs": outs}
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(2, "2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 5 优势符号、逐 token logprob、温度 ----------
-        seg = sorted(segs, key=lambda s: sum(s["mask"]))[len(segs) // 2]
-        saved = {n: p.detach().clone() for n, p in tr.model.named_parameters() if p.requires_grad}
-        res5 = {}
-        for adv in (1.0, -1.0):
+        try:
+            seg = sorted(segs, key=lambda s: sum(s["mask"]))[len(segs) // 2]
+            saved = {n: p.detach().clone() for n, p in tr.model.named_parameters() if p.requires_grad}
+            res5 = {}
+            for adv in (1.0, -1.0):
+                for n, p in tr.model.named_parameters():
+                    if n in saved:
+                        p.data.copy_(saved[n])
+                opt = torch.optim.SGD(tr.params, lr=1e-3)
+                before = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
+                tr.opt, keep = opt, tr.opt
+                tr.train_step([{"ids": seg["ids"], "mask": seg["mask"], "lp": seg["lp"], "adv": adv}], "grpo",
+                              max_grad_norm=1e9)
+                tr.opt = keep
+                after = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
+                res5[f"adv{adv:+.0f}"] = {"before": before, "after": after, "delta": after - before}
             for n, p in tr.model.named_parameters():
                 if n in saved:
                     p.data.copy_(saved[n])
-            opt = torch.optim.SGD(tr.params, lr=1e-3)
-            before = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
-            tr.opt, keep = opt, tr.opt
-            tr.train_step([{"ids": seg["ids"], "mask": seg["mask"], "lp": seg["lp"], "adv": adv}], "grpo",
-                          max_grad_norm=1e9)
-            tr.opt = keep
-            after = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
-            res5[f"adv{adv:+.0f}"] = {"before": before, "after": after, "delta": after - before}
-        for n, p in tr.model.named_parameters():
-            if n in saved:
-                p.data.copy_(saved[n])
-        gen_tokens = sum(sum(s["mask"]) for s in segs)
-        have_lp = sum(1 for s in segs for v, m in zip(s["lp"], s["mask"]) if m and v is not None)
-        appended = sum(t["appended_stop"] for recs in trajs for r in recs for t in r.get("turn_stats", []))
-        # 温度：温度 1 时"采样到概率最高的 token"的频率应当等于最高概率的平均值；温度被改低时频率会偏高
-        temp = {}
-        for T in (1.0, 0.6):
-            hits, ptop = [], []
-            for s in segs[:6]:
-                pr = s["ids"][:s["prompts"][0]]
-                r = sampler.complete(pr, 256, T, seed=11, stop_ids=[], top_logprobs=1)
-                for tok, lpv, top in zip(r["ids"], r["lp"], r["top"]):
-                    if not top:
-                        continue
-                    best = max(top.items(), key=lambda kv: kv[1])
-                    hits.append(int(str(best[0]).split(":")[-1]) == tok)
-                    ptop.append(math.exp(best[1]))
-            n = len(hits)
-            var = sum(p * (1 - p) for p in ptop)
-            temp[f"T{T}"] = {"n": n, "top1_freq": sum(hits) / n, "mean_p_top1": sum(ptop) / n,
-                             "z": (sum(hits) - sum(ptop)) / math.sqrt(max(var, 1e-9))}
-        ok5 = (res5["adv+1"]["delta"] > 0 and res5["adv-1"]["delta"] < 0 and have_lp + appended >= gen_tokens and
-               abs(temp["T1.0"]["z"]) < 4)
-        record(5, "优势符号单步测试；逐 token logprob；温度没被改写", ok5, **res5, generated_tokens=gen_tokens,
-               with_sampler_logprob=have_lp, stop_token_appended=appended, temperature_test=temp)
+            gen_tokens = sum(sum(s["mask"]) for s in segs)
+            have_lp = sum(1 for s in segs for v, m in zip(s["lp"], s["mask"]) if m and v is not None)
+            appended = sum(t["appended_stop"] for recs in trajs for r in recs for t in r.get("turn_stats", []))
+            # 温度：温度 1 时"采样到概率最高的 token"的频率应当等于最高概率的平均值；温度被改低时频率会偏高
+            temp = {}
+            for T in (1.0, 0.6):
+                hits, ptop = [], []
+                for s in segs[:6]:
+                    pr = s["ids"][:s["prompts"][0]]
+                    r = sampler.complete(pr, 256, T, seed=11, stop_ids=[], top_logprobs=1)
+                    for tok, lpv, top in zip(r["ids"], r["lp"], r["top"]):
+                        if not top:
+                            continue
+                        best = max(top.items(), key=lambda kv: kv[1])
+                        hits.append(int(str(best[0]).split(":")[-1]) == tok)
+                        ptop.append(math.exp(best[1]))
+                n = len(hits)
+                var = sum(p * (1 - p) for p in ptop)
+                temp[f"T{T}"] = {"n": n, "top1_freq": sum(hits) / n, "mean_p_top1": sum(ptop) / n,
+                                 "z": (sum(hits) - sum(ptop)) / math.sqrt(max(var, 1e-9))}
+            ok5 = (res5["adv+1"]["delta"] > 0 and res5["adv-1"]["delta"] < 0 and have_lp + appended >= gen_tokens and
+                   abs(temp["T1.0"]["z"]) < 4)
+            record(5, "优势符号单步测试；逐 token logprob；温度没被改写", ok5, **res5, generated_tokens=gen_tokens,
+                   with_sampler_logprob=have_lp, stop_token_appended=appended, temperature_test=temp)
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(5, "优势符号单步测试；逐 token logprob；温度没被改写", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 6 训练样本与采样时看到的逐 token 一致 ----------
-        # 把 LoRA 清零，使采样端回到基础模型，再在整段序列上取采样端的 logprob，
-        # 和当初逐轮生成时返回的 logprob 比：前文若有任何不同，差会很大。
-        for _, mod in tr.lora_modules():
-            torch.nn.init.zeros_(mod.lora_B["default"].weight)
-        tr.export(SHM)
-        sampler.update_weights(SHM)
-        d6, same_tpl, n_tpl = [], 0, 0
-        for s in segs[:12]:
-            again = sampler.prompt_logprobs(s["ids"])
-            d6 += [again[t] - s["lp"][t] for t, m in enumerate(s["mask"]) if m and s["lp"][t] is not None
-                   and again[t] is not None]
-        for recs in trajs:
-            for r in recs:
-                for s in r.get("segments", [])[:1]:
-                    msgs = [{"role": "system", "content": __import__("roommate.agent_llm", fromlist=["x"]).system_prompt(
-                        0.15, "refuse_told")}] + r["transcript"]
-                    nud = [i for i, m in enumerate(msgs) if m["role"] == "user" and m["content"] == NUDGE]
-                    upto = msgs[:nud[0]] if nud else msgs
-                    tpl = chat.encode(chat.render(upto, add_generation_prompt=False))
-                    n_tpl += 1
-                    same_tpl += int(tpl[:len(s["ids"])] == s["ids"][:len(tpl)])
-        st6 = stats(d6)
-        record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
-               rescore_vs_rollout=st6, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl)
-        MATERIAL["template_drop_example"] = template_example(chat, trajs)
+        try:
+            # 把 LoRA 清零，使采样端回到基础模型，再在整段序列上取采样端的 logprob，
+            # 和当初逐轮生成时返回的 logprob 比：前文若有任何不同，差会很大。
+            for _, mod in tr.lora_modules():
+                torch.nn.init.zeros_(mod.lora_B["default"].weight)
+            tr.export(SHM)
+            sampler.update_weights(SHM)
+            d6, same_tpl, n_tpl = [], 0, 0
+            for s in segs[:12]:
+                again = sampler.prompt_logprobs(s["ids"])
+                d6 += [again[t] - s["lp"][t] for t, m in enumerate(s["mask"]) if m and s["lp"][t] is not None
+                       and again[t] is not None]
+            for recs in trajs:
+                for r in recs:
+                    for s in r.get("segments", [])[:1]:
+                        msgs = [{"role": "system", "content": __import__("roommate.agent_llm", fromlist=["x"]).system_prompt(
+                            0.15, "refuse_told")}] + r["transcript"]
+                        nud = [i for i, m in enumerate(msgs) if m["role"] == "user" and m["content"] == NUDGE]
+                        upto = msgs[:nud[0]] if nud else msgs
+                        tpl = chat.encode(chat.render(upto, add_generation_prompt=False))
+                        n_tpl += 1
+                        same_tpl += int(tpl[:len(s["ids"])] == s["ids"][:len(tpl)])
+            st6 = stats(d6)
+            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
+                   rescore_vs_rollout=st6, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl)
+            MATERIAL["template_drop_example"] = template_example(chat, trajs)
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 7 loss 掩码 ----------
-        bad = 0
-        checked = 0
-        for recs in trajs:
-            for r in recs:
-                tool_texts = [m["content"] for m in r["transcript"] if m["role"] == "tool"]
-                for s in r.get("segments", []):
-                    spans, cur = [], []
-                    for t, m in enumerate(s["mask"]):
-                        if m:
-                            cur.append(s["ids"][t])
-                        elif cur:
+        try:
+            bad = 0
+            checked = 0
+            for recs in trajs:
+                for r in recs:
+                    tool_texts = [m["content"] for m in r["transcript"] if m["role"] == "tool"]
+                    for s in r.get("segments", []):
+                        spans, cur = [], []
+                        for t, m in enumerate(s["mask"]):
+                            if m:
+                                cur.append(s["ids"][t])
+                            elif cur:
+                                spans.append(cur)
+                                cur = []
+                        if cur:
                             spans.append(cur)
-                            cur = []
-                    if cur:
-                        spans.append(cur)
-                    for sp in spans:
-                        txt = chat.decode(sp)
-                        checked += 1
-                        if "<tool_response>" in txt or "<|im_start|>" in txt or any(
-                                len(x) > 8 and x in txt for x in tool_texts) or r["transcript"][0]["content"][:30] in txt:
-                            bad += 1
-        record(7, "只有模型生成的 token 计入 loss", bad == 0, spans_checked=checked, spans_with_non_generated_text=bad)
-        MATERIAL["mask_example"] = mask_example(chat, trajs)
+                        for sp in spans:
+                            txt = chat.decode(sp)
+                            checked += 1
+                            if "<tool_response>" in txt or "<|im_start|>" in txt or any(
+                                    len(x) > 8 and x in txt for x in tool_texts) or r["transcript"][0]["content"][:30] in txt:
+                                bad += 1
+            record(7, "只有模型生成的 token 计入 loss", bad == 0, spans_checked=checked, spans_with_non_generated_text=bad)
+            MATERIAL["mask_example"] = mask_example(chat, trajs)
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(7, "只有模型生成的 token 计入 loss", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 8 吞吐 ----------
-        pr = segs[0]["ids"][:segs[0]["prompts"][0]]
-        thr = {}
-        for c in (1, 8, 32):
-            t0 = time.time()
-            with ThreadPoolExecutor(max_workers=c) as pool:
-                rs = list(pool.map(lambda i: sampler.complete(pr, 256, 1.0, seed=100 + i, stop_ids=[], ignore_eos=True),
-                                   range(c)))
-            sec = time.time() - t0
-            thr[str(c)] = {"seconds": sec, "gen_tokens": sum(len(r["ids"]) for r in rs),
-                           "tokens_per_s": sum(len(r["ids"]) for r in rs) / sec}
-        tp = [thr[k]["tokens_per_s"] for k in ("1", "8", "32")]
-        record(8, "1、8、32 路并发采样时吞吐随并发数上升", tp[0] < tp[1] < tp[2], **{f"c{k}": v for k, v in thr.items()})
+        try:
+            pr = segs[0]["ids"][:segs[0]["prompts"][0]]
+            thr = {}
+            for c in (1, 8, 32):
+                t0 = time.time()
+                with ThreadPoolExecutor(max_workers=c) as pool:
+                    rs = list(pool.map(lambda i: sampler.complete(pr, 256, 1.0, seed=100 + i, stop_ids=[], ignore_eos=True),
+                                       range(c)))
+                sec = time.time() - t0
+                thr[str(c)] = {"seconds": sec, "gen_tokens": sum(len(r["ids"]) for r in rs),
+                               "tokens_per_s": sum(len(r["ids"]) for r in rs) / sec}
+            tp = [thr[k]["tokens_per_s"] for k in ("1", "8", "32")]
+            record(8, "1、8、32 路并发采样时吞吐随并发数上升", tp[0] < tp[1] < tp[2], **{f"c{k}": v for k, v in thr.items()})
 
+        except Exception as e:  # 一项出错不影响其余各项
+            record(8, "1、8、32 路并发采样时吞吐随并发数上升", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         # ---------- 9 奖励、优势、记忆存取 ----------
-        grp = rollouts(sampler, chat, users[:1], sw, n_rep=8, seed=9)
-        R = [[r["grade"]["score"] for r in recs] for recs in grp]
-        G = [returns(x) for x in R]
-        A = advantages(G)
-        ref = []
-        for k in range(2):
-            col = [sum(R[i][k:]) for i in range(8)]
-            mu = sum(col) / 8
-            sd = math.sqrt(sum((x - mu) ** 2 for x in col) / 8)
-            ref.append([0.0 if sd < 1e-9 else (x - mu) / (sd + 1e-6) for x in col])
-        adv_ok = all(abs(A[i][k] - ref[k][i]) < 1e-9 for i in range(8) for k in range(2))
-        its, _ = build_items(grp, A, max_len=10 ** 9)
-        seg_ok = bool(its) and all(it["adv"] == A[it["i"]][it["k"]] for it in its) and \
-            len(its) == sum(1 for recs in grp for r in recs for sg in r["segments"] if sum(sg["mask"]))
-        mem_ok, mem_detail = memory_roundtrip(sw, users[1])
-        record(9, "奖励和优势与设计公式一致；记忆保存后再恢复内容不变", adv_ok and seg_ok and mem_ok,
-               rewards=R, returns=G, advantages=A, items=len(its), memory=mem_detail)
-        MATERIAL["group_example"] = {"uid": users[0]["uid"], "rewards": R, "returns": G, "advantages": A,
-                                     "chosen": [[r["chosen"] for r in recs] for recs in grp],
-                                     "questions": [[len(r["questions"]) for r in recs] for recs in grp]}
+        try:
+            grp = rollouts(sampler, chat, users[:1], sw, n_rep=8, seed=9)
+            R = [[r["grade"]["score"] for r in recs] for recs in grp]
+            G = [returns(x) for x in R]
+            A = advantages(G)
+            ref = []
+            for k in range(2):
+                col = [sum(R[i][k:]) for i in range(8)]
+                mu = sum(col) / 8
+                sd = math.sqrt(sum((x - mu) ** 2 for x in col) / 8)
+                ref.append([0.0 if sd < 1e-9 else (x - mu) / (sd + 1e-6) for x in col])
+            adv_ok = all(abs(A[i][k] - ref[k][i]) < 1e-9 for i in range(8) for k in range(2))
+            its, _ = build_items(grp, A, max_len=10 ** 9)
+            seg_ok = bool(its) and all(it["adv"] == A[it["i"]][it["k"]] for it in its) and \
+                len(its) == sum(1 for recs in grp for r in recs for sg in r["segments"] if sum(sg["mask"]))
+            mem_ok, mem_detail = memory_roundtrip(sw, users[1])
+            record(9, "奖励和优势与设计公式一致；记忆保存后再恢复内容不变", adv_ok and seg_ok and mem_ok,
+                   rewards=R, returns=G, advantages=A, items=len(its), memory=mem_detail)
+            MATERIAL["group_example"] = {"uid": users[0]["uid"], "rewards": R, "returns": G, "advantages": A,
+                                         "chosen": [[r["chosen"] for r in recs] for recs in grp],
+                                         "questions": [[len(r["questions"]) for r in recs] for recs in grp]}
+        except Exception as e:  # 一项出错不影响其余各项
+            record(9, "奖励和优势与设计公式一致；记忆保存后再恢复内容不变", False, error=f"{type(e).__name__}: {e}"[:500])
+            torch.cuda.empty_cache()
         MATERIAL["seconds"] = time.time() - t_all
         MATERIAL["vllm_boot_seconds"] = boot
         dump(os.path.join(D, "material.json"), MATERIAL)

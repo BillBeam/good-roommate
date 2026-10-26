@@ -67,6 +67,9 @@ class Trainer:
         from peft import LoraConfig, PeftModel, get_peft_model
         torch.manual_seed(seed)
         self.device = device
+        if str(device).startswith("cuda") and os.environ.get("M2P_TRAIN_MEM_FRAC", "0.5") != "1":
+            # 和采样端（vLLM）共用一张卡：训练端最多用这么多显存，给 vLLM 的临时内存（如整段 logprob）留出余地
+            torch.cuda.set_per_process_memory_fraction(float(os.environ.get("M2P_TRAIN_MEM_FRAC", "0.5")))
         self.model_path = model_path
         base, self.cfg = load_base(model_path, device=device)
         if grad_ckpt:
@@ -162,6 +165,9 @@ class Trainer:
             st["lp_mean"] += float(lp.detach().sum()) / ntok
         gn = torch.nn.utils.clip_grad_norm_(self.params, max_grad_norm)
         self.opt.step()
+        self.opt.zero_grad(set_to_none=True)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         self.step_no += 1
         st["grad_norm"] = float(gn)
         st["seconds"] = time.time() - t0
