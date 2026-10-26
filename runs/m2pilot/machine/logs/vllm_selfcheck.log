@@ -825,3 +825,27 @@ W1026 18:52:51.989000 5931 torch/utils/cpp_extension.py:178] No CUDA runtime is 
   warnings.warn(
 /root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py:51: DeprecationWarning: The `python -m vllm.entrypoints.openai.api_server` command is deprecated and may be removed in a future release. Please use `vllm server` instead.
   warnings.warn(
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py", line 59, in <module>
+    main()
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/launchers/api_server/entry.py", line 217, in main
+    parser = make_arg_parser(parser)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/launchers/cli_args.py", line 452, in make_arg_parser
+    parser = AsyncEngineArgs.add_cli_args(parser)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 3139, in add_cli_args
+    parser = EngineArgs.add_cli_args(parser)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 1585, in add_cli_args
+    logging_config_kwargs = get_kwargs(VllmConfig)["logging_config"]
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 446, in get_kwargs
+    return copy.deepcopy(_compute_kwargs(cls))
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 343, in _compute_kwargs
+    default = default.default_factory()  # type: ignore[call-arg]
+  File "/root/work/venv/lib/python3.10/site-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+    s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/config/device.py", line 55, in __post_init__
+    raise RuntimeError(
+RuntimeError: Failed to infer device type, please set the environment variable `VLLM_LOGGING_LEVEL=DEBUG` to turn on verbose logging to help debug the issue.

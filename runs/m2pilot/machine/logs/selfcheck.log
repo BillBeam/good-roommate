@@ -34,3 +34,15 @@ Current Python version 3.10 is below the recommended 3.11 version. It is recomme
 [PASS] 9 奖励和优势与设计公式一致；记忆保存后再恢复内容不变 {"rewards": [[0.85, -0.44999999999999996], [-0.15, 0.85], [0.85, 0.55], [0.7, 0.85], [0.85, -0.15], [0.85, -0.15], [0.85, -0.75], [0.85, 0.55]], "returns": [[0.4, -0.44999999999999996], [0.7, 0.85], [1.4, 0.55], [1.5499999999999998, 0.85], [0.7, -0.15], [0.7, -0.15], [0.09999999999999998, -0.75], [1.4, 0.55]], "advantages": [[-0.9556641090265453, -1.0644612270682672], [-0.3440390792495563, 1.19480
 
 === 2026-10-26T18:52:43Z /root/work/venv/bin/python -m roommate.train.selfcheck
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/root/work/repo/roommate/train/selfcheck.py", line 471, in <module>
+    main()
+  File "/root/work/repo/roommate/train/selfcheck.py", line 75, in main
+    proc, boot = serve.start(MODEL, os.path.join(OUT, "logs", "vllm_selfcheck.log"), gpu_util=0.40)
+  File "/root/work/repo/roommate/train/serve.py", line 42, in start
+    raise RuntimeError(f"vLLM exited with {proc.returncode}; see {log_path}")
+RuntimeError: vLLM exited with 1; see /root/work/out/logs/vllm_selfcheck.log
