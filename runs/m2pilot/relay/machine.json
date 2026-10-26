@@ -1,13 +1,14 @@
 {
- "name": "gr-train-10261325",
- "created": "2026-10-26T13:25:54+00:00",
- "zone": "cn-sh2-03",
- "zone_name": "上海二C",
- "gpu": "4090_48G",
+ "name": "gr-train-10261645",
+ "created": "2026-10-26T16:45:38+00:00",
+ "zone": "cn-wlcb-01",
+ "zone_name": "华北二A",
+ "gpu": "A800",
  "count": 1,
- "cpu": 20,
- "mem": 64,
- "vram": 48,
- "hourly": 3.78,
- "image": "cuda132_torch2130_py312"
+ "cpu": 16,
+ "mem": 240,
+ "vram": 80,
+ "hourly": 6.99,
+ "image": "cuda132_torch2130_py312",
+ "custom_image": false
 }

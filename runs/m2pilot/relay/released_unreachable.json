@@ -1,0 +1,20 @@
+{
+ "at": "2026-10-26T16:44:37+00:00",
+ "machine": "cpod-1wy5u6w8gmjw",
+ "health": {
+  "reboots": [],
+  "unreachable": [
+   {
+    "at": "2026-10-26T16:41:44+00:00",
+    "run_id": "40361315805",
+    "action": "preflight"
+   },
+   {
+    "at": "2026-10-26T16:44:36+00:00",
+    "run_id": "40361767453",
+    "action": "run"
+   }
+  ]
+ },
+ "confirm": "最后一次成功同步 2026-10-26T14:28:13Z（中转 40338685695，数据分支 a2ea06d），晚于流水线结束（status.json：selfcheck_failed @14:25:01Z，pids/pipeline.rc 已在）；之后没有起过任何任务（中转 40340393080 的 upload、run 都是 rc=255，40356687969 的 diag 无输出，40359231420 重启后 upload rc=255、run 未执行）；从未有检查点（数据分支没有 ckpt_manifest，各次同步 ckpt_bytes=0）；同步时排除的只有自检临时合并的 LoRA 权重（*.safetensors，重跑自检即重新生成），环境与模型由 ops/remote/setup.sh 重建（版本见 runs/m2pilot/machine/setup/env.json）。"
+}
