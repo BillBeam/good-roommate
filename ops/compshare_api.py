@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -70,13 +71,16 @@ def call(action, params=None, timeout=30):
     return _send(action, params, timeout)
 
 
+NO_RETRY = {"CreateCompShareInstance", "CreateCompShareCustomImage"}   # 重发可能多建一台/一个镜像
+
+
 def call_write(action, params=None, timeout=60):
     if action not in WRITE:
         raise ValueError(f"{action} is not in the write allowlist")
-    return _send(action, params, timeout)
+    return _send(action, params, timeout, tries=1 if action in NO_RETRY else 6)
 
 
-def _send(action, params, timeout):
+def _send(action, params, timeout, tries=6):
     payload = _flatten({**(params or {}), "Action": action})
     payload["PublicKey"] = os.environ["COMPSHARE_PUBLIC_KEY"]
     raw = "".join(k + payload[k] for k in sorted(payload)) + os.environ["COMPSHARE_PRIVATE_KEY"]
@@ -89,6 +93,14 @@ def _send(action, params, timeout):
         method="POST",
     )
     t0 = time.monotonic()
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        body = json.loads(resp.read().decode("utf-8"))
-    return body, round(time.monotonic() - t0, 3)
+    last = None
+    for attempt in range(tries):   # 运行器在美国，跨境偶尔握手超时：退避重试（读写都是幂等或带名字可查）
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                body = json.loads(resp.read().decode("utf-8"))
+            return body, round(time.monotonic() - t0, 3)
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+            last = e
+            if attempt + 1 < tries:
+                time.sleep(min(60, 5 * 2 ** attempt))
+    raise last

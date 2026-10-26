@@ -346,11 +346,14 @@ def do_grab(a):
             if cands:
                 c = cands[0]
                 name = NAME_PREFIX + datetime.now(timezone.utc).strftime("%m%d%H%M")
-                r, _ = api.call_write("CreateCompShareInstance", {
-                    "Region": c["region"], "Zone": c["zone"], "GpuType": c["gpu"], "GPU": c["count"],
-                    "CPU": c["cpu"], "Memory": c["mem"] * 1024, "MachineType": "G", "MinimalCpuPlatform": "Auto",
-                    "CompShareImageId": c["image_id"], "Disks": [{"IsBoot": True, "Type": "CLOUD_SSD", "Size": 100}],
-                    "ChargeType": "Postpay", "Name": name, "MaxCount": 1})
+                try:
+                    r, _ = api.call_write("CreateCompShareInstance", {
+                        "Region": c["region"], "Zone": c["zone"], "GpuType": c["gpu"], "GPU": c["count"],
+                        "CPU": c["cpu"], "Memory": c["mem"] * 1024, "MachineType": "G", "MinimalCpuPlatform": "Auto",
+                        "CompShareImageId": c["image_id"], "Disks": [{"IsBoot": True, "Type": "CLOUD_SSD", "Size": 100}],
+                        "ChargeType": "Postpay", "Name": name, "MaxCount": 1})
+                except Exception as e:      # 网络错误：不重发，下面查一下实例是否已经建了
+                    r = {"RetCode": -1, "Message": f"{type(e).__name__}"}
                 if r.get("RetCode") == 0 or our_machine():
                     made = dict(c, name=name, created=now_iso())
                     log("created", **{k: made[k] for k in ("zone", "zone_name", "gpu", "count", "cpu", "mem", "hourly", "image")})
@@ -507,13 +510,20 @@ def do_wait(a):
     last = 0
     st = {}
     while time.time() - t0 < float(a.get("minutes", 60)) * 60:
-        st = job_status(c, names) if names else {}
-        done = bool(names) and len(st) == len(names) and all(not v.startswith("running") for v in st.values())
-        if done or time.time() - last >= SYNC_EVERY:
-            do_sync({"ckpt": bool(done)})
-            last = time.time()
-        if done:
-            break
+        try:
+            st = job_status(c, names) if names else {}
+            done = bool(names) and len(st) == len(names) and all(not v.startswith("running") for v in st.values())
+            if done or time.time() - last >= SYNC_EVERY:
+                do_sync({"ckpt": bool(done)})
+                last = time.time()
+            if done:
+                break
+        except Exception as e:      # 跨境网络偶尔出错：记下，下一分钟再试
+            log("wait_error", error=redact(e)[:200])
+            try:
+                c = conn()
+            except Exception:
+                pass
         time.sleep(60)
     if not (names and len(st) == len(names) and all(not v.startswith("running") for v in st.values())):
         do_sync({"ckpt": True})    # 等待结束时任务还在跑：取回最新的检查点
