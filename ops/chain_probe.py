@@ -159,8 +159,11 @@ def docs(out, out_dir):
     d = out["docs"] = {"pages": {}}
     try:
         sm = _get("https://www.compshare.cn/sitemap.xml")
-        urls = re.findall(r"<loc>([^<]+)</loc>", sm)
+        urls = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", sm)
+        for sub in [u for u in urls if u.endswith(".xml")][:10]:  # sitemap index
+            urls += re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", _get(sub))
         d["sitemap_url_count"] = len(urls)
+        d["sitemap_sample"] = urls[:20]
     except Exception as e:
         d["sitemap_error"] = str(e)
         urls = []
