@@ -183,9 +183,13 @@ def ssh(out):
 class _Text(html.parser.HTMLParser):
     def __init__(self):
         super().__init__()
-        self.parts, self.skip = [], 0
+        self.parts, self.links, self.skip = [], [], 0
 
     def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            href = dict(attrs).get("href") or ""
+            if href.startswith("/docs/"):
+                self.links.append("https://www.compshare.cn" + href.split("#")[0])
         if tag in ("script", "style", "nav", "header", "footer"):
             self.skip += 1
 
@@ -222,6 +226,14 @@ def docs(out, out_dir):
             "https://www.compshare.cn/docs/uaccount/bill/charge",
             "https://www.compshare.cn/docs/gpus/instance/createcompshareinstance",
             "https://www.compshare.cn/docs/gpus/instance/startcompshareinstance"]
+    try:  # the sitemap has no docs pages; follow the docs navigation instead
+        nav = _Text()
+        nav.feed(_get(must[0]))
+        d["nav_docs_urls"] = sorted(set(nav.links))
+        picked += [u for u in d["nav_docs_urls"] if any(k in u.lower() for k in DOC_KEYWORDS)
+                   and "/gpus/" not in u]
+    except Exception as e:
+        d["nav_error"] = str(e)
     picked = list(dict.fromkeys(must + picked))[:60]
     d["picked"] = picked
     os.makedirs(os.path.join(out_dir, "docs"), exist_ok=True)
