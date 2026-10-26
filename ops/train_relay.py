@@ -712,7 +712,7 @@ def _http(url, timeout=8):
     op = urllib.request.build_opener(_NoRedirect)
     try:
         r = op.open(urllib.request.Request(url, headers={"User-Agent": "exposure-check"}), timeout=timeout)
-        return r.status, None, r.read(400).decode("utf-8", "replace")
+        return r.status, None, r.read(6000).decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
         loc = e.headers.get("Location") or ""
         kind = None
@@ -737,6 +737,24 @@ def _jupyter_open(base):
     return res
 
 
+APPS = [("jupyterlab", "jupyter"), ("filebrowser", "file browser"), ("filebrowser", "filebrowser"),
+        ("tensorboard", "tensorboard"), ("code-server", "code-server"), ("grafana", "grafana"), ("comfyui", "comfyui"),
+        ("gradio", "gradio")]
+
+
+def _app(base):
+    """端口上是什么程序、要不要登录：首页标题和特征词，有没有密码框；文件浏览器的接口不带登录信息是否被拒（401/403）。"""
+    code, redir, body = _http(base + "/")
+    low = body.lower()
+    title = (re.search(r"<title>(.*?)</title>", body, re.S | re.I) or [None, ""])[1].strip()[:60]
+    app = next((name for name, key in APPS if key in low or key in title.lower()), None)
+    out = {"status": code, "redirect": redir, "title": re.sub(r"\d", "#", title), "app": app,
+           "login_form": "password" in low or "login" in low}
+    rc, _, rb = _http(base + "/api/resources/")
+    out["filebrowser_api_unauth"] = rc
+    return out
+
+
 def do_exposure(a):
     """从外网（GitHub 运行器，不经平台登录）看这台机器的 JupyterLab 能不能直接打开。
     试三类地址：平台接口给的软件地址（GetSoftwareURL / DescribeCompShareSoftwarePort）、实例信息里出现的 IP、SSH 登录地址；
@@ -752,6 +770,12 @@ def do_exposure(a):
             out["api"][action + (":" + ",".join(extra) if extra else "")] = {
                 "RetCode": r.get("RetCode"), "Message": redact(r.get("Message"))[:120], "fields": sorted(r.keys())}
             text = json.dumps(r, ensure_ascii=False)
+            for e in (r.get("SoftwarePort") or []) if isinstance(r.get("SoftwarePort"), list) else []:
+                names = [str(v) for k, v in e.items() if isinstance(v, str) and not re.search(r"\d", v)]
+                nums = [int(v) for k, v in e.items() if isinstance(v, (int, str)) and str(v).isdigit()]
+                out.setdefault("software_ports", []).append({"keys": sorted(e.keys()), "names": names})
+                for n in nums:
+                    out.setdefault("_portname", {})[n] = "/".join(names) or "?"
             urls += re.findall(r"https?://[^\s\"'\\]+", text)
             ports = [int(x) for x in re.findall(r'"(?:Port|ExternalPort|PublicPort|HostPort)"\s*:\s*"?(\d+)', text)]
             out["api"][action + (":" + ",".join(extra) if extra else "")]["ports_found"] = len(ports)
@@ -775,14 +799,17 @@ def do_exposure(a):
         out["targets"].append(t)
     for kind, hst in hosts:
         for port in ports:
-            t = {"target": f"{kind}:{'8888' if port == 8888 else 'platform_port'}", "tcp_open": False}
+            label = "8888" if port == 8888 else "platform_port:" + (out.get("_portname") or {}).get(port, "?")
+            t = {"target": f"{kind}:{label}", "tcp_open": False}
             try:
                 socket.create_connection((hst, port), timeout=5).close()
                 t["tcp_open"] = True
                 t["jupyter"] = _jupyter_open(f"http://{hst}:{port}")
+                t["app"] = _app(f"http://{hst}:{port}")
             except Exception as e:
                 t["error"] = type(e).__name__
             out["targets"].append(t)
+    out.pop("_portname", None)
     out["open_without_auth_anywhere"] = any((t.get("jupyter") or {}).get("open_without_auth") for t in out["targets"])
     summary["exposure"] = out
     data_write("relay/exposure.json", {"at": now_iso(), **out})
@@ -930,7 +957,7 @@ def main():
             heartbeat(h)
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
-            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait") or
+            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure") or
                                                          (a["do"] == "run" and a.get("background") is False)):
                 log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
                 continue
