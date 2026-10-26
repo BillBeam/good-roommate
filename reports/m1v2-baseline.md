@@ -9,7 +9,8 @@
 闸门① 过；② 过；③ 过；④ 被做穿了（只报告）。
 
 理想记忆策略在 3 个闸门世界上平均每次会话得 [0.936](../runs/m1v2/gates.json) 分，每次都问、不写记忆的策略得 [-0.230](../runs/m1v2/gates.json) 分（是理想记忆策略的 [-24.6%](../runs/m1v2/gates.json)）；不看用户的规则里最好的选对率是 [19.2%](../runs/m1v2/leak_probes.json)（随机 16.7%，上限 21.7%）。
-最强的现成模型 DeepSeek V4 Pro 得 [0.833](../runs/m1v2/gates.json) 分，在"最简单策略之上、理想记忆策略之下"的空间里拿到 [79.4%](../runs/m1v2/gates.json)（区间 [73.6%–84.6%](../runs/m1v2/gates.json)）。
+闸门④按约定看的 DeepSeek V4 Pro 得 [0.833](../runs/m1v2/gates.json) 分，在"最简单策略之上、理想记忆策略之下"的空间里拿到 [79.4%](../runs/m1v2/gates.json)（区间 [73.6%–84.6%](../runs/m1v2/gates.json)）。
+后来补跑的 Claude 系列里分最高的 Claude Opus 5.5 得 [0.911](../runs/m1v2/gates.json) 分，剩余空间比例 [94.9%](../runs/m1v2/gates.json)（区间 [92.4%–97.1%](../runs/m1v2/gates.json)），同样被做穿；闸门④的定义没有改，详见 [Claude 基线报告](m1v2-claude-baseline.md)。
 
 ## 1. 第一版的七处问题与第二版的改法
 
@@ -136,13 +137,18 @@
 |---|---|---|---|---|---|---|---|---|---|---|
 | DeepSeek Flash（V4.1） | 思考开（effort 默认 high）；默认采样（温度不生效）；top_p 1.0（没传，取默认值） | [0.819](../runs/m1v2/gates.json) | [0.786–0.848](../runs/m1v2/gates.json) | [89.1%](../runs/m1v2/gates.json) | [0.48](../runs/m1v2/gates.json) | [2.1%](../runs/m1v2/gates.json) | [55.6%](../runs/m1v2/gates.json) | [6.5%](../runs/m1v2/gates.json) | [76.5%](../runs/m1v2/gates.json) | [70.2%–82.4%](../runs/m1v2/gates.json) |
 | DeepSeek V4 Pro | 思考开（effort 默认 high）；默认采样（温度不生效）；top_p 0.95（带工具时固定） | [0.833](../runs/m1v2/gates.json) | [0.804–0.859](../runs/m1v2/gates.json) | [90.7%](../runs/m1v2/gates.json) | [0.49](../runs/m1v2/gates.json) | [9.7%](../runs/m1v2/gates.json) | [43.5%](../runs/m1v2/gates.json) | [5.6%](../runs/m1v2/gates.json) | [79.4%](../runs/m1v2/gates.json) | [73.6%–84.6%](../runs/m1v2/gates.json) |
+| Claude Haiku 5.5 | 自适应思考（effort high）；默认采样（不收 temperature / top_p） | [0.684](../runs/m1v2/gates.json) | [0.641–0.725](../runs/m1v2/gates.json) | [73.0%](../runs/m1v2/gates.json) | [0.31](../runs/m1v2/gates.json) | [5.8%](../runs/m1v2/gates.json) | [49.6%](../runs/m1v2/gates.json) | [13.9%](../runs/m1v2/gates.json) | [49.7%](../runs/m1v2/gates.json) | [40.7%–58.3%](../runs/m1v2/gates.json) |
+| Claude Sonnet 5.5 | 自适应思考（effort high）；默认采样（不收 temperature / top_p） | [0.867](../runs/m1v2/gates.json) | [0.849–0.885](../runs/m1v2/gates.json) | [94.4%](../runs/m1v2/gates.json) | [0.52](../runs/m1v2/gates.json) | [3.1%](../runs/m1v2/gates.json) | [52.6%](../runs/m1v2/gates.json) | [3.2%](../runs/m1v2/gates.json) | [86.2%](../runs/m1v2/gates.json) | [82.5%–89.6%](../runs/m1v2/gates.json) |
+| Claude Opus 5.5 | 自适应思考（effort high）；默认采样（不收 temperature / top_p） | [0.911](../runs/m1v2/gates.json) | [0.900–0.921](../runs/m1v2/gates.json) | [98.6%](../runs/m1v2/gates.json) | [0.50](../runs/m1v2/gates.json) | [3.6%](../runs/m1v2/gates.json) | [73.0%](../runs/m1v2/gates.json) | [0.8%](../runs/m1v2/gates.json) | [94.9%](../runs/m1v2/gates.json) | [92.4%–97.1%](../runs/m1v2/gates.json) |
+| Claude Fable 5.1 | 自适应思考（effort high）；默认采样（不收 temperature / top_p） | [0.898](../runs/m1v2/gates.json) | [0.882–0.912](../runs/m1v2/gates.json) | [96.6%](../runs/m1v2/gates.json) | [0.46](../runs/m1v2/gates.json) | [2.2%](../runs/m1v2/gates.json) | [95.4%](../runs/m1v2/gates.json) | [2.4%](../runs/m1v2/gates.json) | [92.3%](../runs/m1v2/gates.json) | [89.3%–95.1%](../runs/m1v2/gates.json) |
 
-剩余空间比例 = (模型分 − 最简单策略里的最高分 [0.435](../runs/m1v2/gates.json)) / (理想记忆策略 [0.936](../runs/m1v2/gates.json) − 最简单策略里的最高分)。闸门④按要求只看 DeepSeek V4 Pro。DeepSeek 两行的请求里带了 temperature 0，但 DeepSeek 官方文档写明思考模式不支持 temperature，设了不报错、也不生效；V4 Pro 的每个请求都带工具，top_p 固定 0.95；Flash 没传 top_p，取默认值 1（[文档原文与核对](../runs/m1v2/docs/deepseek_sampling_2026-10-26.json)）。所以这两行实际是默认采样，不是温度 0；数据没有重跑，只改了口径说明。
+剩余空间比例 = (模型分 − 最简单策略里的最高分 [0.435](../runs/m1v2/gates.json)) / (理想记忆策略 [0.936](../runs/m1v2/gates.json) − 最简单策略里的最高分)。闸门④按要求只看 DeepSeek V4 Pro。DeepSeek 两行的请求里带了 temperature 0，但 DeepSeek 官方文档写明思考模式不支持 temperature，设了不报错、也不生效；V4 Pro 的每个请求都带工具，top_p 固定 0.95；Flash 没传 top_p，取默认值 1（[文档原文与核对](../runs/m1v2/docs/deepseek_sampling_2026-10-26.json)）。所以这两行实际是默认采样，不是温度 0；数据没有重跑，只改了口径说明。Claude 系列（Haiku 5.5、Sonnet 5.5、Opus 5.5、Fable 5.1）的设置、和 DeepSeek 对不齐的地方、花费与失分分析见 [Claude 基线报告](m1v2-claude-baseline.md)。
 
-**没有跑全的结果**（照实列出，不补跑；不进闸门，也不算置信区间）：grok-4.7 的 xAI 余额在种子 3 中途耗尽，之后第二版不再向 xAI 发任何请求，这里的 grok-4.7 记录全部从缓存重建（缺缓存的用户从第一次缺的会话起截断）；对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。
+**没有跑全的结果**（照实列出，不补跑；不进闸门，也不算置信区间）：grok-4.7 的 xAI 余额在种子 3 中途耗尽，之后第二版不再向 xAI 发任何请求，这里的 grok-4.7 记录全部从缓存重建（缺缓存的用户从第一次缺的会话起截断）；对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。Claude 的对照组只给 Opus 5.5 跑种子 1。
 
 | 记录 | 平均每次会话得分 | 偏好会话数 | 各世界（会话数 / 应有数：得分） | 成功率 | 平均每次提问 |
 |---|---|---|---|---|---|
+| Claude Opus 5.5（知道真实状态） | [1.000](../runs/m1v2/gates.json) | [168](../runs/m1v2/gates.json) | 种子 1：168 / 168：1.000 | [100.0%](../runs/m1v2/gates.json) | [0.00](../runs/m1v2/gates.json) |
 | DeepSeek V4 Pro（知道真实状态） | [0.988](../runs/m1v2/gates.json) | [168](../runs/m1v2/gates.json) | 种子 1：168 / 168：0.988 | [98.8%](../runs/m1v2/gates.json) | [0.00](../runs/m1v2/gates.json) |
 | grok-4.7 | [0.857](../runs/m1v2/gates.json) | [424](../runs/m1v2/gates.json) | 种子 1：168 / 168：0.855；种子 2：168 / 168：0.878；种子 3：88 / 168：0.822 | [95.0%](../runs/m1v2/gates.json) | [0.62](../runs/m1v2/gates.json) |
 | grok-4.7（知道真实状态） | [0.996](../runs/m1v2/gates.json) | [369](../runs/m1v2/gates.json) | 种子 1：168 / 168：0.993；种子 2：168 / 168：0.999；种子 3：33 / 168：1.000 | [99.7%](../runs/m1v2/gates.json) | [0.01](../runs/m1v2/gates.json) |
@@ -151,6 +157,10 @@
 
 | 策略 | 算了哪些会话 | 总失分 | 提问花掉的分 | 没记住或没察觉变化 | 选项没对齐 | 对照组（知道真实状态）成功率 | 对照组平均提问 |
 |---|---|---|---|---|---|---|---|
+| Claude Fable 5.1 | 种子 1、2、3，504 次 | [0.102](../runs/m1v2/gates.json) | [0.068](../runs/m1v2/gates.json) | — | — | — | — |
+| Claude Haiku 5.5 | 种子 1、2、3，504 次 | [0.316](../runs/m1v2/gates.json) | [0.046](../runs/m1v2/gates.json) | — | — | — | — |
+| Claude Opus 5.5 | 种子 1，168 次 | [0.090](../runs/m1v2/gates.json) | [0.072](../runs/m1v2/gates.json) | [0.018](../runs/m1v2/gates.json) | [0.000](../runs/m1v2/gates.json) | [100.0%](../runs/m1v2/gates.json) | [0.00](../runs/m1v2/gates.json) |
+| Claude Sonnet 5.5 | 种子 1、2、3，504 次 | [0.133](../runs/m1v2/gates.json) | [0.077](../runs/m1v2/gates.json) | — | — | — | — |
 | DeepSeek Flash（V4.1） | 种子 1、2、3，504 次 | [0.181](../runs/m1v2/gates.json) | [0.072](../runs/m1v2/gates.json) | [0.105](../runs/m1v2/gates.json) | [0.004](../runs/m1v2/gates.json) | [99.0%](../runs/m1v2/gates.json) | [0.00](../runs/m1v2/gates.json) |
 | DeepSeek V4 Pro | 种子 1，168 次 | [0.171](../runs/m1v2/gates.json) | [0.076](../runs/m1v2/gates.json) | [0.083](../runs/m1v2/gates.json) | [0.012](../runs/m1v2/gates.json) | [98.8%](../runs/m1v2/gates.json) | [0.00](../runs/m1v2/gates.json) |
 | grok-4.7 | 种子 1、2、3，369 次 | [0.154](../runs/m1v2/gates.json) | [0.102](../runs/m1v2/gates.json) | [0.049](../runs/m1v2/gates.json) | [0.003](../runs/m1v2/gates.json) | [99.7%](../runs/m1v2/gates.json) | [0.01](../runs/m1v2/gates.json) |
@@ -165,6 +175,10 @@
 |---|---|---|---|---|---|---|---|
 | DeepSeek Flash（V4.1） | [89.7%](../runs/m1v2/gates.json)（117） | [91.7%](../runs/m1v2/gates.json)（72） | [89.5%](../runs/m1v2/gates.json)（57） | [86.5%](../runs/m1v2/gates.json)（141） | [89.1%](../runs/m1v2/gates.json)（55） | [90.0%](../runs/m1v2/gates.json)（20） | [90.5%](../runs/m1v2/gates.json)（42） |
 | DeepSeek V4 Pro | [91.5%](../runs/m1v2/gates.json)（117） | [98.6%](../runs/m1v2/gates.json)（72） | [94.7%](../runs/m1v2/gates.json)（57） | [83.7%](../runs/m1v2/gates.json)（141） | [87.3%](../runs/m1v2/gates.json)（55） | [90.0%](../runs/m1v2/gates.json)（20） | [97.6%](../runs/m1v2/gates.json)（42） |
+| Claude Haiku 5.5 | [86.3%](../runs/m1v2/gates.json)（117） | [90.3%](../runs/m1v2/gates.json)（72） | [70.2%](../runs/m1v2/gates.json)（57） | [63.1%](../runs/m1v2/gates.json)（141） | [60.0%](../runs/m1v2/gates.json)（55） | [75.0%](../runs/m1v2/gates.json)（20） | [59.5%](../runs/m1v2/gates.json)（42） |
+| Claude Sonnet 5.5 | [99.1%](../runs/m1v2/gates.json)（117） | [95.8%](../runs/m1v2/gates.json)（72） | [96.5%](../runs/m1v2/gates.json)（57） | [88.7%](../runs/m1v2/gates.json)（141） | [98.2%](../runs/m1v2/gates.json)（55） | [95.0%](../runs/m1v2/gates.json)（20） | [90.5%](../runs/m1v2/gates.json)（42） |
+| Claude Opus 5.5 | [100.0%](../runs/m1v2/gates.json)（117） | [100.0%](../runs/m1v2/gates.json)（72） | [96.5%](../runs/m1v2/gates.json)（57） | [97.2%](../runs/m1v2/gates.json)（141） | [98.2%](../runs/m1v2/gates.json)（55） | [100.0%](../runs/m1v2/gates.json)（20） | [100.0%](../runs/m1v2/gates.json)（42） |
+| Claude Fable 5.1 | [98.3%](../runs/m1v2/gates.json)（117） | [98.6%](../runs/m1v2/gates.json)（72） | [93.0%](../runs/m1v2/gates.json)（57） | [95.0%](../runs/m1v2/gates.json)（141） | [98.2%](../runs/m1v2/gates.json)（55） | [95.0%](../runs/m1v2/gates.json)（20） | [97.6%](../runs/m1v2/gates.json)（42） |
 | 问过就记、不读台词（从不察觉变化） | [6.0%](../runs/m1v2/gates.json)（117） | [9.7%](../runs/m1v2/gates.json)（72） | [84.2%](../runs/m1v2/gates.json)（57） | [90.1%](../runs/m1v2/gates.json)（141） | [87.3%](../runs/m1v2/gates.json)（55） | [90.0%](../runs/m1v2/gates.json)（20） | [73.8%](../runs/m1v2/gates.json)（42） |
 | 理想记忆策略（满分参照） | [100.0%](../runs/m1v2/gates.json)（117） | [100.0%](../runs/m1v2/gates.json)（72） | [100.0%](../runs/m1v2/gates.json)（57） | [100.0%](../runs/m1v2/gates.json)（141） | [100.0%](../runs/m1v2/gates.json)（55） | [100.0%](../runs/m1v2/gates.json)（20） | [100.0%](../runs/m1v2/gates.json)（42） |
 

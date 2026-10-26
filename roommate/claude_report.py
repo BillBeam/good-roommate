@@ -42,8 +42,9 @@ def _ci(xs):
 
 # ---------- 统计 ----------
 
-def _block(pols, keys, seeds, users=None):
-    """keys 在 seeds 上的均分、区间、剩余空间比例。users：{种子: 只算这些用户}（Fable 只跑了部分用户时用）。"""
+def _block(pols, keys, seeds, users=None, pairs=()):
+    """keys 在 seeds 上的均分、区间、剩余空间比例。users：{种子: 只算这些用户}（Fable 只跑了部分用户时用）。
+    pairs：[(a, b), ...]，另给 a − b 的差和它的区间（同一次重抽样里相减，配对）。"""
     per = {}
     for k in keys:
         per[k] = {}
@@ -67,6 +68,8 @@ def _block(pols, keys, seeds, users=None):
                           "headroom_share": share(means, k), "headroom_share_ci95": _ci([share(b, k) for b in boot]),
                           "gap_to_ideal": means["ideal"] - means[k],
                           "gap_to_ideal_ci95": _ci([b["ideal"] - b[k] for b in boot])}
+    out["diffs"] = {f"{a}|{b}": {"diff": means[a] - means[b], "ci95": _ci([x[a] - x[b] for x in boot])}
+                    for a, b in pairs if a in means and b in means}
     return out
 
 
@@ -124,8 +127,13 @@ def write_stats():
     res = {"gate_seeds": SEEDS, "n_bootstrap": stats.N_BOOT}
     # ① 三个世界都完整的模型：和 gates.json 同一套数（同一个重抽样种子，区间逐位相同）
     full3 = [m for m in LLMS if all(_complete(pols, lk[m], s, n_pref) for s in SEEDS)]
-    res["three_seed"] = dict(_block(pols, [lk[m] for m in full3] + REFS + [k for k in TRIVIAL if k not in REFS], SEEDS),
-                             models=full3)
+    # 配对差：最高分的模型对其余每个模型；Claude 相邻两档（小 − 大）
+    means3 = {m: stats.pooled_mean({s: stats.per_user(pols[s][lk[m]]) for s in SEEDS}) for m in full3}
+    top = max(full3, key=lambda m: means3[m]) if full3 else None
+    cl3 = [m for m in CLAUDE if m in full3]
+    pairs = [(lk[top], lk[m]) for m in full3 if m != top] + [(lk[a], lk[b]) for a, b in zip(cl3, cl3[1:])]
+    res["three_seed"] = dict(_block(pols, [lk[m] for m in full3] + REFS + [k for k in TRIVIAL if k not in REFS], SEEDS,
+                                    pairs=pairs), models=full3, top=top)
     # ② 种子 1：所有在种子 1 上完整的模型（Fable 至少跑了种子 1）
     full1 = [m for m in LLMS if _complete(pols, lk[m], 1, n_pref)]
     res["seed1"] = dict(_block(pols, [lk[m] for m in full1] + REFS + [k for k in TRIVIAL if k not in REFS], [1]),
@@ -275,7 +283,7 @@ def write_report(path):
     w(f"**最强的模型离理想记忆策略还差多少。** 三个闸门世界上分最高的是 {_name(best)}：每次会话 {n(b3['mean_score'])} 分"
       f"（区间 {ci(b3['ci95'])}），理想记忆策略 {n(T3['rows']['ideal']['mean_score'])}，差 {n(b3['gap_to_ideal'])}"
       f"（区间 {ci(b3['gap_to_ideal_ci95'])}）；剩余空间比例 {n(b3['headroom_share'], 'pct')}（区间 {ci(b3['headroom_share_ci95'], 'pct')}）。"
-      + _fable_sentence(S, n, ci))
+      + _tie_sentence(S, best, n, ci) + _fable_sentence(S, n, ci))
     w("")
     w("**丢分落在哪几类。** " + _loss_sentence(S, n))
     w("")
@@ -344,7 +352,8 @@ def write_report(path):
         fl = S.get("full_log") or []
         if fl:
             w("")
-            w("全量运行记录（[full_log.json](" + L.rel(os.path.join(CDIR, "full_log.json")) + ")）：")
+            w("全量运行记录（[full_log.json](" + L.rel(os.path.join(CDIR, "full_log.json")) + ")；"
+              "Haiku、Sonnet、Opus 是三个进程同时跑的，\"累计\"是三个进程共用的账本当时的总额，所以三列交错上涨；Fable 在它们跑完之后单独跑）：")
             w("")
             for batch in fl:
                 for r in (batch["runs"] if "runs" in batch else [batch]):
@@ -365,7 +374,7 @@ def write_report(path):
       f"(理想记忆策略 {n(T3['rows']['ideal']['mean_score'])} − 最简单策略里的最高分)。"
       "M1 第二版报告第 7 节的基线表已把 Claude 一并列进去（reports/m1v2-baseline.md）；闸门④的定义没有改，仍按约定只看 DeepSeek V4 Pro。")
     w("")
-    w(f"种子 1（Fable 5.1 至少跑了这个世界；每个模型 {T1['n_sessions']} 次偏好会话，区间只在种子 1 内重抽用户）：")
+    w(f"种子 1 单独看（有对照组的世界；每个模型 {T1['n_sessions']} 次偏好会话，区间只在种子 1 内重抽用户）：")
     w("")
     _main_table(w, S, T1, n, ci, detail=False)
     if S.get("fable_subset"):
@@ -435,8 +444,9 @@ def write_report(path):
     # ---------- 规模 ----------
     w("## 6. 随模型变大")
     w("")
-    w("Claude 四档从小到大（Haiku 5.5 → Sonnet 5.5 → Opus 5.5 → Fable 5.1）。三个世界都跑完的用三个世界的数，"
-      "只跑了种子 1 的用种子 1 的数（标在\"世界\"一列）；不同世界的数不能直接比，同一列里要比就看第 4 节种子 1 的表。")
+    w("Claude 四档从小到大（Haiku 5.5 → Sonnet 5.5 → Opus 5.5 → Fable 5.1）。"
+      + ("四档都在三个闸门世界上跑完，下表都是三个世界的数。" if all(m in T3["models"] for m in CLAUDE) else
+         "三个世界都跑完的用三个世界的数，只跑了种子 1 的用种子 1 的数（标在\"世界\"一列）；不同世界的数不能直接比，同一列里要比就看第 4 节种子 1 的表。"))
     w("")
     w("| 模型 | 世界 | 得分 | 剩余空间比例 | 离理想记忆还差 | 每次提问 | 提问里被答\"说过了\" | 写记忆的会话 | 提问花掉的分 | 选到近似项 | 没作答 |")
     w("|---|---|---|---|---|---|---|---|---|---|---|")
@@ -526,10 +536,14 @@ def write_report(path):
     w("")
     rp_ = os.path.join(CDIR, "full_log.json")
     if S.get("full_log"):
-        pushed = [e for e in S["full_log"] if isinstance(e, dict) and "run" in e]
-        if pushed:
+        per_run = [e for e in S["full_log"] if isinstance(e, dict) and "run" in e]
+        if per_run:
             w(f"这次全量逐组的记录见 [full_log.json]({L.rel(rp_)})（每组一条，带完成时间、进程号和累计花费）。")
-            w("")
+        else:
+            w(f"这次全量开跑时还没有逐组推送：它是运行中途加的，已经在跑的进程用的是旧代码。所以这次的缓存和记录是全部跑完之后"
+              f"（Fable 5.1 最后一组 {S['full_log'][-1]['t']} 跑完）才一次推上去的；在那之前，回复只存在运行容器的本地缓存里。"
+              f"全量记录按进程一批一条（[full_log.json]({L.rel(rp_)})）。以后的全量运行按上面的做法逐组推送。")
+        w("")
 
     # ---------- 复现、局限 ----------
     w("## 10. 复现、数据用途与局限")
@@ -563,22 +577,54 @@ def _main_table(w, S, T, n, ci, detail=True):
     w("")
 
 
+def _ties(T3, best):
+    """和最高分的模型分不出高低（配对差的 95% 区间含 0）的模型，按分数从高到低，含最高分的自己。"""
+    out = [best]
+    for m in T3["models"]:
+        d = T3.get("diffs", {}).get(f"llm_{best}|llm_{m}")
+        if m != best and d and d["ci95"][0] <= 0:
+            out.append(m)
+    return out
+
+
 def _headline(S, best):
     """报告第一句：不超过 20 个字的结论。"""
     T3 = S["three_seed"]
     r = T3["rows"][f"llm_{best}"]
-    nm = SHORT.get(best, best)
+    nm = "、".join(SHORT.get(m, m) for m in _ties(T3, best))
     pct = round(100 * r["headroom_share"])
-    if r["headroom_share_ci95"][1] < 1.0:
-        cands = [f"{nm} 最强，仍未到理想记忆。", f"{nm} 最强，剩余空间 {pct}%。", f"{nm} 最强，仍有差距。"]
+    lo, hi = r["headroom_share_ci95"]
+    vendor = "Claude" if best.startswith("claude-") else "DeepSeek"
+    if hi >= 0.8 and hi < 1.0:   # 闸门④的口径：剩余空间比例的区间上界 ≥ 80% 就算被做穿
+        cands = [f"{vendor} 做穿考场，但未到理想。", f"{vendor} 做穿考场。"]
+    elif hi < 1.0:
+        cands = [f"{nm} 最强，仍未到理想记忆。", f"{nm} 最强，未到理想。", f"{nm} 最强，剩余空间 {pct}%。",
+                 "最强模型仍未到理想记忆。"]
     else:
-        cands = [f"{nm} 最强，已接近理想记忆。", f"{nm} 最强，剩余空间 {pct}%。", f"{nm} 已接近理想。"]
-    return next(c for c in cands if len(c) <= 20)
+        cands = [f"{nm} 最强，已接近理想记忆。", f"{nm} 最强，剩余空间 {pct}%。", "最强模型已接近理想记忆。"]
+    out = next(c for c in cands if len(c) <= 20)
+    assert len(out) <= 20, out
+    return out
+
+
+def _tie_sentence(S, best, n, ci):
+    T3 = S["three_seed"]
+    out = []
+    for m in _ties(T3, best)[1:]:
+        d = T3["diffs"][f"llm_{best}|llm_{m}"]
+        r = T3["rows"][f"llm_{m}"]
+        out.append(f"{_name(m)} 得 {n(r['mean_score'])}（剩余空间比例 {n(r['headroom_share'], 'pct')}），"
+                   f"比它低 {n(d['diff'])}，配对差的区间 {ci(d['ci95'])} 含 0，两者分不出高低。")
+    for m in T3["models"]:
+        d = T3["diffs"].get(f"llm_{best}|llm_{m}")
+        if m.startswith("deepseek-") and d and m == "deepseek-v4-pro":
+            out.append(f"比 DeepSeek V4 Pro 高 {n(d['diff'])}（区间 {ci(d['ci95'])}）。")
+    return "".join(out)
 
 
 def _fable_sentence(S, n, ci):
     T1 = S["seed1"]
-    if "claude-fable-5-1" not in T1["models"]:
+    if "claude-fable-5-1" not in T1["models"] or "claude-fable-5-1" in S["three_seed"]["models"]:
         return ""
     f = T1["rows"]["llm_claude-fable-5-1"]
     others = sorted((m for m in T1["models"] if m != "claude-fable-5-1"),
@@ -598,7 +644,13 @@ def _loss_sentence(S, n):
             parts.append(f"{_name(m)}（种子 1，有对照组）每次会话失分 {n(v['total_loss'])}：提问 {n(v['question_loss'])}、"
                          f"没记住或没察觉变化 {n(v['memory_or_change_loss'])}、挑店或格式问题 {n(v['alignment_loss'])}")
     ref = S["loss_breakdown_refs"]["ideal"]
-    return "；".join(parts) + f"。理想记忆策略只在提问上失 {n(ref['question_loss'])}。其余模型没有对照组，第 5 节给出按选错选项种类的粗分。"
+    out = "；".join(parts) + f"。理想记忆策略只在提问上失 {n(ref['question_loss'])}。"
+    o = lb.get("claude-opus-5-5")
+    if o and o.get("memory_or_change_loss") is not None:
+        out += (f"所以 Opus 5.5 比理想记忆策略多失的 {n(o['total_loss'] - ref['total_loss'])} 里，"
+                f"提问多花 {n(o['question_loss'] - ref['question_loss'])}，没记住或没察觉变化 {n(o['memory_or_change_loss'])}，"
+                f"挑店或格式问题 {n(o['alignment_loss'])}；知道真实状态时它 {n(o['control_success_rate'], 'pct')} 选对，挑店本身不是问题。")
+    return out + "其余模型没有对照组，第 5 节给出按选错选项种类的粗分。"
 
 
 def _scaling_sentence(S, n, ci):
@@ -610,8 +662,14 @@ def _scaling_sentence(S, n, ci):
                       for m in ms)
     q = "，".join(f"{SHORT[m]} {n(S['choice_split'][m]['question_loss'])}" for m in ms)
     nm = "，".join(f"{SHORT[m]} {n(S['choice_split'][m]['share'].get('near_miss', 0), 'pct')}" for m in ms)
-    return (f"三个世界上从小到大：{cells}。提问花掉的分：{q}；选到近似项（多半是没记住或没察觉变化）的比例：{nm}。"
-            "具体看第 6 节。")
+    steps = []
+    for a, b in zip(ms, ms[1:]):
+        d = T3["diffs"].get(f"llm_{a}|llm_{b}")
+        if d:
+            sig = "，区间含 0，分不出高低" if d["ci95"][0] <= 0 <= d["ci95"][1] else ""
+            steps.append(f"{SHORT[a]} → {SHORT[b]} {n(-d['diff'])}（区间 {ci([-d['ci95'][1], -d['ci95'][0]])}{sig}）")
+    return (f"三个世界上从小到大：{cells}。相邻两档的分差（大减小）：" + "；".join(steps) + "。"
+            f"提问花掉的分：{q}；选到近似项（多半是没记住或没察觉变化）的比例：{nm}。具体看第 6 节。")
 
 
 def _mismatch_rows(S):

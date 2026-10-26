@@ -113,9 +113,15 @@ def write(out, report_path):
       f"不看用户的规则里最好的选对率是 {L.n(max(G['3']['modal'], G['3']['conservative'], G['3']['position_best'], G['3']['classifier']), P('leak_probes.json'), 'pct')}"
       f"（随机 16.7%，上限 {100 * G['3']['limit']:.1f}%）。")
     if "model" in g4:
-        w(f"最强的现成模型 {MODEL_CN.get(g4['model'], g4['model'])} 得 {L.n(g4['model_score'], gp)} 分，"
+        cl = {m: v for m, v in g4.get("all_models", {}).items() if m.startswith("claude-")}
+        w(f"{'闸门④按约定看的 ' if cl else '最强的现成模型 '}{MODEL_CN.get(g4['model'], g4['model'])} 得 {L.n(g4['model_score'], gp)} 分，"
           f"在\"最简单策略之上、理想记忆策略之下\"的空间里拿到 {L.n(g4['headroom_share'], gp, 'pct')}"
           f"（区间 {L.ci(g4['headroom_share_ci95'], gp, 'pct')}）。")
+        if cl:
+            bm = max(cl, key=lambda m: cl[m]["score"])
+            w(f"后来补跑的 Claude 系列里分最高的 {MODEL_CN.get(bm, bm)} 得 {L.n(cl[bm]['score'], gp)} 分，剩余空间比例 "
+              f"{L.n(cl[bm]['headroom_share'], gp, 'pct')}（区间 {L.ci(cl[bm]['headroom_share_ci95'], gp, 'pct')}），同样被做穿；"
+              "闸门④的定义没有改，详见 [Claude 基线报告](m1v2-claude-baseline.md)。")
     w("")
 
     # ---------- 1. 改了什么 ----------
