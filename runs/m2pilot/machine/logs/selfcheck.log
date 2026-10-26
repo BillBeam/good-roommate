@@ -1,2 +1,25 @@
 
 === 2026-10-26T14:08:38Z /root/work/venv/bin/python -m roommate.train.selfcheck
+[PASS] 10 显卡上的 BF16 计算正常 {"gpu": "NVIDIA GeForce RTX 4090", "capability": [8, 9], "bf16_supported": true, "matmul_rel_err": 0.0028800060972571373}
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights: 100%|██████████| 426/426 [00:00<00:00, 8416.86it/s]
+/root/work/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py:1090: UserWarning: You have passed exclude_modules=.*visual.* but no modules were excluded. Please check that exclude_modules was set correctly.
+  warnings.warn(
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[PASS] 3 第 0 步采样端与训练端 logprob 之差 {"n": 27456, "mean": 0.014523736897822938, "p99": 0.12578439712524414, "max": 0.63184954226017, "segments": 24, "mean_len": 2492.0833333333335}
+[W1026 14:14:51.539354344 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 343932928 bytes (free: 214302720, total: 50894602240).
+[FAIL] 4 不同微批大小下训练端 logprob 一致 {"max_abs_diff_bs2_vs_bs1": 0.23643851280212402, "max_abs_diff_bs4_vs_bs1": 0.26183319091796875, "grad_cosine_two_orders": 0.9998809099197388, "grad_rel_diff": 0.015437682159245014}
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/root/work/repo/roommate/train/selfcheck.py", line 393, in <module>
+    main()
+  File "/root/work/repo/roommate/train/selfcheck.py", line 140, in main
+    v_base = sampler.prompt_logprobs(probe["ids"])
+  File "/root/work/repo/roommate/train/sampler.py", line 94, in prompt_logprobs
+    resp = self._post("/v1/completions", body)
+  File "/root/work/repo/roommate/train/sampler.py", line 45, in _post
+    raise SamplerError(last)
+roommate.train.sampler.SamplerError: URLError(ConnectionRefusedError(111, 'Connection refused'))

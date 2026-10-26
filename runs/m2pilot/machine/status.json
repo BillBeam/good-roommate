@@ -1,5 +1,7 @@
 {
- "t": "2026-10-26T14:08:38Z",
+ "t": "2026-10-26T14:15:36Z",
  "phase": "pipeline",
- "stage": "selfcheck"
+ "stage": "failed",
+ "failed": "selfcheck",
+ "rc": 1
 }
