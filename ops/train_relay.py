@@ -439,15 +439,25 @@ def do_run(a):
         t0 = time.time()
         p = ssh(c, f"mkdir -p {REMOTE}/out/logs {REMOTE}/out/pids; bash -lc {shlex.quote(inner)} 2>&1 | tail -c 20000 "
                    f"| tee -a {REMOTE}/out/logs/{name}.log", timeout=int(a.get("timeout_min", 30)) * 60)
-        log("run_fg", name=name, seconds=round(time.time() - t0, 1), tail=(p.stdout or "")[-1500:] if p else "timeout")
+        tail = (p.stdout or "")[-3000:] if p else "timeout"
+        log("run_fg", name=name, seconds=round(time.time() - t0, 1), tail=tail)
+        summary.setdefault("fg_output", {})[name] = tail
+
+
+def status_json():
+    p = os.path.join(data_checkout(), DATA_PREFIX, "machine", "status.json")
+    return json.load(open(p)) if os.path.exists(p) else None
 
 
 def job_status(c, names):
     q = " ".join(names)
-    p = ssh(c, f"cd {REMOTE}/out/pids 2>/dev/null; for n in {q}; do "
-               f"if [ -f $n.rc ]; then echo $n done $(cat $n.rc); "
-               f"elif [ -f $n.pid ] && kill -0 $(cat $n.pid) 2>/dev/null; then echo $n running; "
-               f"else echo $n missing; fi; done", timeout=60)
+    script = (f"cd {REMOTE}/out/pids 2>/dev/null; for n in {q}; do "
+              f"if [ -f $n.rc ]; then echo $n done $(cat $n.rc); "
+              f"elif [ -f $n.pid ] && kill -0 $(cat $n.pid) 2>/dev/null; then echo $n running; "
+              f"else echo $n missing; fi; done")
+    p = ssh(c, "bash -c " + shlex.quote(script), timeout=60)
+    if p is None or not (p.stdout or "").strip():
+        log("job_status_empty", rc=p.returncode if p else None, err=(p.stderr or "")[-300:] if p else None)
     st = {}
     for line in (p.stdout if p else "").splitlines():
         parts = line.split()
@@ -498,16 +508,17 @@ def do_wait(a):
     st = {}
     while time.time() - t0 < float(a.get("minutes", 60)) * 60:
         st = job_status(c, names) if names else {}
-        done = names and all(not v.startswith("running") for v in st.values())
+        done = bool(names) and len(st) == len(names) and all(not v.startswith("running") for v in st.values())
         if done or time.time() - last >= SYNC_EVERY:
             do_sync({"ckpt": bool(done)})
             last = time.time()
         if done:
             break
         time.sleep(60)
-    if not (names and all(not v.startswith("running") for v in st.values())):
+    if not (names and len(st) == len(names) and all(not v.startswith("running") for v in st.values())):
         do_sync({"ckpt": True})    # 等待结束时任务还在跑：取回最新的检查点
     summary["jobs"] = st
+    summary["status"] = status_json()
     log("wait_end", jobs=st, minutes=round((time.time() - t0) / 60, 1))
 
 
@@ -606,8 +617,11 @@ def main():
         try:
             h = our_machine()
             summary["machine_state"] = h.get("State") if h else None
-        except Exception:
-            pass
+            if h and h.get("State") == "Running" and REQ.get("actions") and REQ["actions"][-1]["do"] not in ("sync", "wait"):
+                do_sync()
+                summary["status"] = status_json()
+        except Exception as e:
+            summary["sync_error"] = redact(e)[:200]
         summary["minutes"] = round((time.time() - T0) / 60, 1)
         data_append("relay/relay_runs.jsonl", {"run_id": RUN_ID, "requested_at": REQ.get("requested_at"),
                                               "finished": now_iso(), **{k: v for k, v in summary.items()
