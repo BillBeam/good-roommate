@@ -1,0 +1,28 @@
+{"t": "2026-10-26T16:43:15+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:43:14+00:00"}
+{"t": "2026-10-26T16:43:15+00:00", "msg": "action", "do": "run", "name": "diag_old", "background": false, "optional": true, "timeout_min": 3, "cmd": "M(){ sed -E 's/([0-9]{1,3}\\.){3}[0-9]{1,3}/<ip>/g'; }; { echo '== uptime'; uptime; echo '== boots'; journalctl --list-boots --no-pager 2>/dev/null | tail -3; ls -d /var/log/journal 2>&1; echo '== serv"}
+{"t": "2026-10-26T16:44:33+00:00", "msg": "optional_unreachable", "do": "run", "name": "diag_old", "error": "ssh: connect to host *** port #: Connection timed out"}
+{"t": "2026-10-26T16:44:36+00:00", "msg": "action", "do": "destroy", "confirm_nothing_unsynced": "最后一次成功同步 2026-10-26T14:28:13Z（中转 40338685695，数据分支 a2ea06d），晚于流水线结束（status.json：selfcheck_failed @14:25:01Z，pids/pipeline.rc 已在）；之后没有起过任何任务（中转 40340393080 的 upload、run 都是 rc=255，40356687969 的 diag 无输出，40359231420 重启后 upload rc=255、run 未执行）；从未有检查点（数据分支没有 ckpt_manifest，各次同步 ckpt_bytes=0）；同步时排除的只有自检临时合并的 LoRA 权重（*.safetensors，重跑自检即重新生成），环境与模型由 ops/remote/setup.sh 重建（版本见 runs/m2pilot/machine/setup/env.json）。", "cmd": ""}
+{"t": "2026-10-26T16:44:41+00:00", "msg": "terminate", "RetCode": 0, "state": "Running"}
+{"t": "2026-10-26T16:44:57+00:00", "msg": "destroyed", "instances_left": 0}
+{"t": "2026-10-26T16:44:57+00:00", "msg": "action", "do": "grab", "max_minutes": 120, "cmd": ""}
+{"t": "2026-10-26T16:45:38+00:00", "msg": "created", "zone": "cn-wlcb-01", "zone_name": "华北二A", "gpu": "A800", "count": 1, "cpu": 16, "mem": 240, "hourly": 6.99, "image": "cuda132_torch2130_py312"}
+{"t": "2026-10-26T16:45:42+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:45:40+00:00"}
+{"t": "2026-10-26T16:47:35+00:00", "msg": "running", "seconds": 113.3}
+{"t": "2026-10-26T16:47:38+00:00", "msg": "login_ok", "create_to_login_s": 116.6}
+{"t": "2026-10-26T16:47:41+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:47:40+00:00"}
+{"t": "2026-10-26T16:47:41+00:00", "msg": "action", "do": "upload", "cmd": ""}
+{"t": "2026-10-26T16:47:51+00:00", "msg": "upload", "rc": 0, "bytes": 6292679}
+{"t": "2026-10-26T16:47:52+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:47:51+00:00"}
+{"t": "2026-10-26T16:47:52+00:00", "msg": "action", "do": "run", "name": "setup", "cmd": "bash ops/remote/setup.sh"}
+{"t": "2026-10-26T16:47:58+00:00", "msg": "run_bg", "name": "setup", "rc": 0}
+{"t": "2026-10-26T16:48:00+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:47:59+00:00"}
+{"t": "2026-10-26T16:48:00+00:00", "msg": "action", "do": "wait", "jobs": ["setup"], "minutes": 45, "cmd": ""}
+{"t": "2026-10-26T16:48:04+00:00", "msg": "wait_plan", "minutes": 45.0, "requested": 45, "expected_end": "2026-10-26T17:43:04+00:00"}
+{"t": "2026-10-26T16:48:17+00:00", "msg": "sync", "bytes": 1770, "ckpt_bytes": 0}
+{"t": "2026-10-26T16:48:19+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:48:18+00:00"}
+{"t": "2026-10-26T16:58:39+00:00", "msg": "sync", "bytes": 2073, "ckpt_bytes": 0}
+{"t": "2026-10-26T16:58:42+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T18:58:41+00:00"}
+{"t": "2026-10-26T17:09:01+00:00", "msg": "sync", "bytes": 2735, "ckpt_bytes": 0}
+{"t": "2026-10-26T17:09:05+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T19:09:04+00:00"}
+{"t": "2026-10-26T17:09:05+00:00", "msg": "wait_end", "jobs": {"setup": "done rc=0"}, "minutes": 21.0}
+{"t": "2026-10-26T17:09:08+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T19:09:07+00:00"}
