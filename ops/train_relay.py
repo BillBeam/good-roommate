@@ -943,8 +943,16 @@ def health_signals(h, minutes=20):
         if isinstance(mm, list) else mm
     now = int(time.time())
     try:
-        # SDK 里这个接口只有 UHostIds 一个参数（多传时间范围会报 210）；返回的时间序列按 minutes 截取最近一段
-        r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": [h["UHostId"]]})
+        # SDK 里这个接口只有 UHostIds 一个参数（多传时间范围会报 210）。按 DescribeCompShareInstance 的写法（UHostIds.0）
+        # 平台回 "Missing params [UHostIds]"，所以依次试几种写法，记下哪种被接受；返回的时间序列按 minutes 截取最近一段
+        tried = []
+        for form, val in (("string", h["UHostId"]), ("json_array", json.dumps([h["UHostId"]])),
+                          ("indexed", [h["UHostId"]])):
+            r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": val})
+            tried.append({"form": form, "RetCode": r.get("RetCode"), "Message": redact(r.get("Message"))[:80]})
+            if r.get("RetCode") == 0:
+                break
+        sig["monitor_param_forms"] = tried
         sig["monitor_retcode"] = r.get("RetCode")
         sig["monitor_message"] = redact(r.get("Message"))[:120] if r.get("RetCode") else None
         sig["monitor_fields"] = sorted(r.keys())
