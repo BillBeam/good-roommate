@@ -1,0 +1,156 @@
+== netwatch: netwatch running
+== netwatch log (last 400 lines)
+{"t":"2026-10-26T16:47:58Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.32,"mem_avail_mb":237089}
+{"t":"2026-10-26T16:48:58Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.00,"mem_avail_mb":237015}
+{"t":"2026-10-26T16:50:04Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.80,"mem_avail_mb":236907}
+{"t":"2026-10-26T16:51:05Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.52,"mem_avail_mb":236935}
+{"t":"2026-10-26T16:52:05Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"000000","out_github":"200","load1":0.57,"mem_avail_mb":236953}
+{"t":"2026-10-26T16:53:14Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.52,"mem_avail_mb":236860}
+{"t":"2026-10-26T16:54:15Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"000000","out_github":"200","load1":1.52,"mem_avail_mb":236762}
+{"t":"2026-10-26T16:55:23Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.74,"mem_avail_mb":236775}
+{"t":"2026-10-26T16:56:24Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.90,"mem_avail_mb":236843}
+{"t":"2026-10-26T16:57:24Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.45,"mem_avail_mb":236823}
+{"t":"2026-10-26T16:58:25Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.21,"mem_avail_mb":236822}
+{"t":"2026-10-26T16:59:26Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236812}
+{"t":"2026-10-26T17:00:28Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.25,"mem_avail_mb":236814}
+{"t":"2026-10-26T17:01:31Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236837}
+{"t":"2026-10-26T17:02:32Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.11,"mem_avail_mb":236859}
+{"t":"2026-10-26T17:03:33Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.44,"mem_avail_mb":236849}
+{"t":"2026-10-26T17:04:33Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.33,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:05:34Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.24,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:06:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:07:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236828}
+{"t":"2026-10-26T17:08:36Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":236842}
+{"t":"2026-10-26T17:09:37Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236738}
+{"t":"2026-10-26T17:13:35Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.20,"mem_avail_mb":236761}
+{"t":"2026-10-26T17:14:37Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.72,"mem_avail_mb":234045}
+{"t":"2026-10-26T17:15:37Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.37,"mem_avail_mb":236815}
+{"t":"2026-10-26T17:16:17Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.20,"mem_avail_mb":236796}
+{"t":"2026-10-26T17:17:18Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.95,"mem_avail_mb":232715}
+{"t":"2026-10-26T17:18:19Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.04,"mem_avail_mb":231940}
+{"t":"2026-10-26T17:19:19Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.02,"mem_avail_mb":231977}
+{"t":"2026-10-26T17:20:20Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.31,"mem_avail_mb":231521}
+{"t":"2026-10-26T17:21:21Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.87,"mem_avail_mb":236704}
+{"t":"2026-10-26T17:22:22Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.54,"mem_avail_mb":234511}
+{"t":"2026-10-26T17:23:22Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.98,"mem_avail_mb":233325}
+{"t":"2026-10-26T17:24:23Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.00,"mem_avail_mb":232791}
+{"t":"2026-10-26T17:25:23Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.97,"mem_avail_mb":232426}
+{"t":"2026-10-26T17:26:24Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.13,"mem_avail_mb":231491}
+{"t":"2026-10-26T17:27:25Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.08,"mem_avail_mb":231125}
+{"t":"2026-10-26T17:28:26Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.03,"mem_avail_mb":225926}
+{"t":"2026-10-26T17:29:26Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.96,"mem_avail_mb":223967}
+{"t":"2026-10-26T17:30:27Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.40,"mem_avail_mb":229991}
+{"t":"2026-10-26T17:31:27Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.22,"mem_avail_mb":229999}
+{"t":"2026-10-26T17:32:28Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.08,"mem_avail_mb":229993}
+{"t":"2026-10-26T17:33:29Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.12,"mem_avail_mb":229992}
+{"t":"2026-10-26T17:34:29Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.24,"mem_avail_mb":230041}
+{"t":"2026-10-26T17:35:30Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":230014}
+{"t":"2026-10-26T17:36:31Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.13,"mem_avail_mb":230038}
+{"t":"2026-10-26T17:37:31Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.05,"mem_avail_mb":230017}
+{"t":"2026-10-26T17:38:32Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.13,"mem_avail_mb":230023}
+{"t":"2026-10-26T17:39:33Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":230006}
+{"t":"2026-10-26T17:40:33Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.01,"mem_avail_mb":230044}
+{"t":"2026-10-26T17:41:34Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":230025}
+{"t":"2026-10-26T17:42:35Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.09,"mem_avail_mb":230017}
+{"t":"2026-10-26T17:43:35Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.10,"mem_avail_mb":230047}
+{"t":"2026-10-26T17:44:36Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":3,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.26,"mem_avail_mb":229449}
+{"t":"2026-10-26T17:45:37Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.73,"mem_avail_mb":225844}
+{"t":"2026-10-26T17:52:05Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":5,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.27,"mem_avail_mb":225583}
+{"t":"2026-10-26T17:53:06Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.92,"mem_avail_mb":219393}
+{"t":"2026-10-26T17:54:09Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.75,"mem_avail_mb":229918}
+{"t":"2026-10-26T17:55:09Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.33,"mem_avail_mb":229953}
+{"t":"2026-10-26T17:56:10Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.14,"mem_avail_mb":229942}
+{"t":"2026-10-26T17:57:11Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":1.13,"mem_avail_mb":229969}
+{"t":"2026-10-26T17:58:11Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.41,"mem_avail_mb":229964}
+{"t":"2026-10-26T17:59:12Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.27,"mem_avail_mb":229956}
+{"t":"2026-10-26T18:00:13Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"504","load1":0.10,"mem_avail_mb":229941}
+{"t":"2026-10-26T18:01:13Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.03,"mem_avail_mb":229917}
+{"t":"2026-10-26T18:02:14Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.01,"mem_avail_mb":229930}
+{"t":"2026-10-26T18:03:15Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":229930}
+{"t":"2026-10-26T18:04:15Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229919}
+{"t":"2026-10-26T18:05:16Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.10,"mem_avail_mb":229960}
+{"t":"2026-10-26T18:06:17Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229970}
+{"t":"2026-10-26T18:07:22Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.41,"mem_avail_mb":229981}
+{"t":"2026-10-26T18:08:23Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.59,"mem_avail_mb":230007}
+{"t":"2026-10-26T18:09:24Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":2,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.59,"mem_avail_mb":229977}
+{"t":"2026-10-26T18:10:24Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.61,"mem_avail_mb":229986}
+{"t":"2026-10-26T18:11:25Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.56,"mem_avail_mb":229952}
+{"t":"2026-10-26T18:12:26Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.58,"mem_avail_mb":229983}
+{"t":"2026-10-26T18:13:26Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.77,"mem_avail_mb":230015}
+{"t":"2026-10-26T18:14:27Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.74,"mem_avail_mb":229972}
+{"t":"2026-10-26T18:15:28Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.57,"mem_avail_mb":229989}
+{"t":"2026-10-26T18:16:28Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.21,"mem_avail_mb":229960}
+{"t":"2026-10-26T18:17:29Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229984}
+{"t":"2026-10-26T18:18:30Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.03,"mem_avail_mb":229936}
+{"t":"2026-10-26T18:19:30Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.26,"mem_avail_mb":229933}
+{"t":"2026-10-26T18:20:31Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":229958}
+{"t":"2026-10-26T18:21:32Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":229908}
+{"t":"2026-10-26T18:22:32Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":229924}
+{"t":"2026-10-26T18:23:33Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":229941}
+{"t":"2026-10-26T18:24:34Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":229943}
+{"t":"2026-10-26T18:25:34Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":229958}
+{"t":"2026-10-26T18:26:35Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":229913}
+{"t":"2026-10-26T18:27:36Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":229931}
+{"t":"2026-10-26T18:28:36Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229945}
+{"t":"2026-10-26T18:29:42Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.14,"mem_avail_mb":229959}
+{"t":"2026-10-26T18:30:43Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.13,"mem_avail_mb":229958}
+{"t":"2026-10-26T18:31:43Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.05,"mem_avail_mb":229940}
+{"t":"2026-10-26T18:32:44Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":229954}
+{"t":"2026-10-26T18:33:45Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.11,"mem_avail_mb":229977}
+{"t":"2026-10-26T18:34:45Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229962}
+{"t":"2026-10-26T18:35:46Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":229939}
+{"t":"2026-10-26T18:36:47Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.12,"mem_avail_mb":229924}
+{"t":"2026-10-26T18:37:47Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.12,"mem_avail_mb":229925}
+{"t":"2026-10-26T18:38:48Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229970}
+{"t":"2026-10-26T18:39:49Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.24,"mem_avail_mb":229992}
+{"t":"2026-10-26T18:40:49Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.20,"mem_avail_mb":230004}
+{"t":"2026-10-26T18:41:50Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229988}
+{"t":"2026-10-26T18:42:56Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":229947}
+{"t":"2026-10-26T18:43:56Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.01,"mem_avail_mb":229966}
+{"t":"2026-10-26T18:44:57Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229934}
+{"t":"2026-10-26T18:46:03Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229953}
+{"t":"2026-10-26T18:47:03Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.13,"mem_avail_mb":229908}
+{"t":"2026-10-26T18:48:04Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.12,"mem_avail_mb":229931}
+{"t":"2026-10-26T18:49:05Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229938}
+{"t":"2026-10-26T18:50:05Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229942}
+{"t":"2026-10-26T18:51:06Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.18,"mem_avail_mb":229951}
+{"t":"2026-10-26T18:52:07Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.19,"mem_avail_mb":229938}
+== uptime
+ 18:52:16 up  2:06,  0 users,  load average: 0.16, 0.10, 0.10
+== boots
+== journal persistent
+/var/log/journal
+== running services
+== security-ish processes
+jupyter-lab     /usr/local/miniconda3/bin/python3.13 /usr/local/miniconda3/bin/jupyter-lab --ip=<ip> --port=8888 --no-browser --allow-root --ServerApp.token=
+== iptables -S
+no iptables
+== iptables drops
+== nft
+no nft
+== hosts.deny
+# You may wish to enable this to ensure any programs that don't
+# validate looked up hostnames still leave understandable logs. In past
+# versions of Debian this has been the default.
+# ALL: PARANOID
+
+== sshd settings
+Port 23
+PasswordAuthentication yes
+PasswordAuthentication yes
+== ssh version
+OpenSSH_8.9p1 Ubuntu-3ubuntu0.13, OpenSSL 3.0.2 15 Mar 2022
+== auth log tail
+== netwatch tail
+{"t":"2026-10-26T18:48:04Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.12,"mem_avail_mb":229931}
+{"t":"2026-10-26T18:49:05Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.04,"mem_avail_mb":229938}
+{"t":"2026-10-26T18:50:05Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.07,"mem_avail_mb":229942}
+{"t":"2026-10-26T18:51:06Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.18,"mem_avail_mb":229951}
+{"t":"2026-10-26T18:52:07Z","ssh_port":23,"ssh_sessions":0,"sshd_procs":1,"fw_drop_pkts":-1,"out_baidu":"200","out_github":"200","load1":0.19,"mem_avail_mb":229938}
+== mem
+               total        used        free      shared  buff/cache   available
+Mem:          241801        3334      206342        6808       32124      229943
+Swap:              0           0           0
+== disk
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          79G   22G   54G  29% /
