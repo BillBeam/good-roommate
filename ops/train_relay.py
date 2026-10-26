@@ -536,7 +536,27 @@ def do_destroy(a):
     log("destroyed", instances_left=len(left))
 
 
-ACTIONS = {"dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "upload": do_upload,
+def do_fetch_tokenizer(a):
+    """Official Qwen3.5-4B tokenizer files at the revision the CPU template check used (for tests off the GPU)."""
+    import urllib.request
+    rev = a.get("rev", "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a")
+    d = os.path.join(data_checkout(), DATA_PREFIX, "tokenizer")
+    os.makedirs(d, exist_ok=True)
+    got = {}
+    for f in ("tokenizer.json", "tokenizer_config.json", "chat_template.jinja", "vocab.json", "merges.txt",
+              "config.json", "generation_config.json", "special_tokens_map.json"):
+        try:
+            data = urllib.request.urlopen(f"https://huggingface.co/Qwen/Qwen3.5-4B/resolve/{rev}/{f}", timeout=120).read()
+            open(os.path.join(d, f), "wb").write(data)
+            got[f] = len(data)
+        except Exception as e:
+            got[f] = redact(e)
+    json.dump({"source": f"https://huggingface.co/Qwen/Qwen3.5-4B/tree/{rev}", "license": "Apache-2.0", "files": got},
+              open(os.path.join(d, "SOURCE.json"), "w"), indent=1)
+    log("fetch_tokenizer", files=got)
+
+
+ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "upload": do_upload,
            "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "destroy": do_destroy}
 
 
