@@ -30,6 +30,12 @@
 > 每一轮工作结束后更新这一节。
 
 - **当前阶段**：M2 第一个训练结果，第一步"起点体检与选型"（中期结论已出，全量评测因网络中断待补跑）
+- **最近一轮完成**：在 M1 第二版考场上补了 Claude 系列基线，和 DeepSeek 同表（[Claude 基线报告](reports/m1v2-claude-baseline.md)）。同一个考场、同一段提示、同一组工具、同一套判分：
+  - Claude 也把考场做穿了。Opus 5.5 每次会话 [0.911](runs/m1v2/claude/claude_stats.json)，剩余空间比例 [94.9%](runs/m1v2/claude/claude_stats.json)（区间 92.4%–97.1%），离理想记忆策略还差 [0.025](runs/m1v2/claude/claude_stats.json)；Fable 5.1 [0.898](runs/m1v2/claude/claude_stats.json)，和 Opus 5.5 分不出高低（差的区间 −0.006–0.032）；两者都比 DeepSeek V4 Pro（0.833）高。
+  - 丢分：Opus 5.5 比理想记忆策略多失的分里，多一半是没记住或没察觉变化（[0.018](runs/m1v2/claude/claude_stats.json)），其余是多问；知道真实状态时 168 次全对，挑店本身不是问题。
+  - 随模型变大：Haiku 5.5 → Sonnet 5.5 涨 0.183，Sonnet 5.5 → Opus 5.5 涨 0.044，Opus 5.5 → Fable 5.1 不再涨。选到"用户自己状态差一点"的近似项从 13.9% 降到 1% 上下。
+  - 花费 [57.02 美元](runs/m1v2/claude/spend_ledger.json)（上限 150 美元；试跑后估全卡 60.75 美元，不用裁剪）。Claude 的输出只用于评测和分析，不进任何训练数据。
+  - 同时改正了 DeepSeek 基线的采样口径：它开着思考，请求里的温度 0 不生效，实际是默认采样（V4 Pro 带工具时 top_p 0.95，Flash top_p 1.0），出处见 [runs/m1v2/docs/](runs/m1v2/docs/deepseek_sampling_2026-10-26.json)。
 - **上一轮完成**：未训练的 Qwen3.5-4B（经硅基流动，免费）在第二版考场里的起点体检，以及训练平台与框架选型。见 [M2 起点报告](reports/m2-start.md)、[选型报告](reports/m2-platform-survey.md)、[硅基流动与 HF 权重对照](reports/m2-siliconflow-vs-hf.md)。数字都来自已跑完的子集：
   - 起点低于 0.75。思考关、温度 0 得 [−1.065](runs/m2/interim/interim_stats.json)（398 次会话，同一批会话上 V4 Pro [0.831](runs/m2/interim/interim_stats.json)），选错的会话里 [88%](runs/m2/interim/interim_stats.json) 是兜圈子用满 14 轮、没选出选项。思考开得 [0.519](runs/m2/interim/interim_stats.json)（区间上界 0.601；78 次会话，几乎只有第一次会话；同一批会话上 V4 Pro [0.648](runs/m2/interim/interim_stats.json)），丢分在提问和挑选。
   - 温度 1 时，同一用户几遍之间的分数有差异：[17 / 21](runs/m2/interim/interim_stats.json) 个用户（81%，思考关、第一次会话）。
@@ -38,7 +44,7 @@
   - 花费 [0 元](runs/m2/spend_ledger.json)（上限 50 元）。
 - **下一轮要做**：
   - 网络恢复后后台补跑全量评测（只更新报告附录）。
-  - 第二步：在训练平台上用 BF16 权重自部署，确认模板怎么处理思考，两种思考模式各重测起点和组内差异，再定训练模式；之后试跑"老师轨迹 → SFT → 几十步 GRPO"。租卡和训练要等决定。
+  - 第二步：在训练平台上用 BF16 权重自部署，确认模板怎么处理思考，两种思考模式各重测起点和组内差异，再定训练模式；之后试跑"老师轨迹 → SFT → 几十步 GRPO"。租卡和训练要等决定。老师轨迹不能用 Claude 的输出（读训练数据前过 `roommate/data_policy.assert_trainable`）。
 - **阻塞**：本环境的出口代理从 2026-10-25 14:01（UTC）起按网络策略拒绝 `api.siliconflow.cn`，要在环境的网络设置里放行这个域名，才能补跑。
 
 ## 路线
@@ -72,6 +78,7 @@
 4. 只用个人账号与个人资源，不涉及任何公司的代码、数据、账号或资源。
 5. API 密钥只从环境变量读取，不进入任何文件、日志或提交。
 6. 只复用许可证允许公开再分发的资源，并在用到的地方注明许可证。
+7. Claude 的输出只用于评测和分析，不进任何训练数据；存放它们的目录有 DATA_POLICY.json，读训练数据的代码先过 `roommate/data_policy.assert_trainable`。
 
 ## 仓库结构
 
@@ -80,6 +87,7 @@
 - `docs/log.md`：工作日志
 - `roommate/`：模拟环境第二版（只用 Python 标准库和 numpy）。生成模拟用户的"一生"与候选选项、维护用户的真实状态和"告诉过 agent 的值"、提供记忆与按属性提问的工具、按真实状态判分，脚本参照策略、一致性检查、选项泄题检验、台词线索校验，以及接 DeepSeek / xAI 模型跑基线；`python -m roommate.run` 一条命令跑完全部并生成报告（`--offline` 只用缓存）
 - `legacy/roommate_v1/`：第一版环境的原样拷贝（提交 d3871eb），只用于报告里 u07 的前后对照；`python -m legacy.run_v1_u07` 用 DeepSeek V4 Pro 在第一版规则下跑 u07
+- `roommate/claude_run.py`、`roommate/agent_claude.py`、`roommate/claude_report.py`、`roommate/data_policy.py`：M1 第二版考场上的 Claude 基线（试跑与估算、按优先级裁剪、全量、每组跑完推到分支、复现检查、统计与报告、"不进训练数据"的标记）；`python -m roommate.claude_run`，要官方 SDK（`pip install anthropic==2.3.0`）和环境变量 CLAUDE_EVAL_API_KEY
 - `roommate/m2.py`、`roommate/m2_report.py`、`roommate/m2_interim.py`：M2 起点体检（经硅基流动调用 Qwen3.5-4B）的运行、统计与报告、只用已跑完部分的中期结论；`python -m roommate.m2 --stages stats,report`
 - `tests/`：单元测试（判分自检、模拟用户只答所问与前后一致、选项不泄题、任意会话边界存档恢复、复现、缓存与计费、与外部基准数据的隔离），`python -m unittest discover -s tests -t .`
 - `bench/`：外部基准的评测入口（目前是 ATRBench），只在评测时手动运行；基准本身克隆到 `external/`，不进仓库

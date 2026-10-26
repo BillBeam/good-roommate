@@ -1,0 +1,41 @@
+{
+ "written_at": "2026-10-26T10:43:25+00:00",
+ "models": [
+  "claude-haiku-5-5",
+  "claude-sonnet-5-5",
+  "claude-opus-5-5",
+  "claude-fable-5-1"
+ ],
+ "core": [
+  "claude-haiku-5-5",
+  "claude-sonnet-5-5",
+  "claude-opus-5-5"
+ ],
+ "control": [
+  "claude-opus-5-5",
+  1
+ ],
+ "extra": "claude-fable-5-1",
+ "budget_usd": 150.0,
+ "reserve_usd": 5.0,
+ "pilot_seed": 1,
+ "pilot_users": 2,
+ "workers": 12,
+ "effort": "high",
+ "max_tokens": 32000,
+ "thinking": {
+  "type": "adaptive",
+  "display": "summarized"
+ },
+ "cache_control": {
+  "type": "ephemeral"
+ },
+ "tool_choice": {
+  "type": "auto"
+ },
+ "sampling": "接口默认（这几个模型不接受 temperature / top_p / top_k）",
+ "key_env": "CLAUDE_EVAL_API_KEY",
+ "base_url": "https://api.anthropic.com",
+ "stages": "full",
+ "offline": false
+}

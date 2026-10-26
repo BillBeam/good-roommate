@@ -1,0 +1,5 @@
+{
+ "for_training": false,
+ "reason": "Claude 的输出只用于评测和分析，不进任何训练数据（SFT、RL、蒸馏都不行）。",
+ "applies_to": "本目录及其子目录下的全部文件"
+}
