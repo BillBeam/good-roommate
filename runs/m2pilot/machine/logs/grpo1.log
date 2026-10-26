@@ -11,3 +11,4 @@ Current Python version 3.10 is below the recommended 3.11 version. It is recomme
 Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights: 100%|██████████| 426/426 [00:00<00:00, 11030.96it/s]
 /root/work/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py:1090: UserWarning: You have passed exclude_modules=.*visual.* but no modules were excluded. Please check that exclude_modules was set correctly.
   warnings.warn(
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.

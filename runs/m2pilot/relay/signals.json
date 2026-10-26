@@ -1,5 +1,5 @@
 {
- "at": "2026-10-26T21:00:23+00:00",
+ "at": "2026-10-26T22:38:55+00:00",
  "state": "Running",
  "monitor_messages": {
   "CpuUsageRate": "",
@@ -25,27 +25,27 @@
   "uhost_cpu_used": {
    "points": 2,
    "last": [
-    1793048424,
+    1793054335,
+    5.0
+   ],
+   "max": 7.0,
+   "min": 5.0,
+   "span_s": 60
+  },
+  "cloudwatch_memory_usage": {
+   "points": 2,
+   "last": [
+    1793054335,
     7.0
    ],
    "max": 7.0,
    "min": 7.0,
    "span_s": 60
   },
-  "cloudwatch_memory_usage": {
-   "points": 2,
-   "last": [
-    1793048424,
-    5.0
-   ],
-   "max": 5.0,
-   "min": 5.0,
-   "span_s": 60
-  },
   "cloudwatch_sys_disk_used_per": {
    "points": 2,
    "last": [
-    1793048424,
+    1793054335,
     23.0
    ],
    "max": 23.0,
@@ -55,27 +55,27 @@
   "cloudwatch_data_disk_used_per": {
    "points": 6,
    "last": [
-    1793048424,
-    29.0
+    1793054335,
+    31.0
    ],
-   "max": 29.0,
+   "max": 31.0,
    "min": 0.0,
    "span_s": 60
   },
   "cloudwatch_gpu_memory_usage": {
    "points": 2,
    "last": [
-    1793048424,
-    17.0
+    1793054335,
+    68.0
    ],
-   "max": 17.0,
-   "min": 17.0,
+   "max": 74.0,
+   "min": 68.0,
    "span_s": 60
   },
   "cloudwatch_gpu_util": {
    "points": 2,
    "last": [
-    1793048424,
+    1793054335,
     100.0
    ],
    "max": 100.0,
@@ -85,10 +85,10 @@
  },
  "gpu_metric": "cloudwatch_gpu_util",
  "gpu_util_max": 100.0,
- "gpu_samples": 1,
- "gpu_window_s": 0,
+ "gpu_samples": 2,
+ "gpu_window_s": 948,
  "verdict": [
   "working",
-  "GPU utilisation up to 100% in the last 0 min"
+  "GPU utilisation up to 100% in the last 15 min"
  ]
 }
