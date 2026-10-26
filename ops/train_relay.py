@@ -101,7 +101,11 @@ def mask(s):
 
 
 def redact(text):
-    return re.sub(r"\d+(\.\d+)?", "#", str(text))
+    text = str(text)
+    for m in _mask:                              # 先遮登录地址（主机名、IP），再遮数字
+        text = text.replace(m, "***")
+    text = re.sub(r"[\w.-]+\.compshare\.cn", "***", text)
+    return re.sub(r"\d+(\.\d+)?", "#", text)
 
 
 def comment(body):
@@ -720,6 +724,16 @@ ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock"
 NEEDS_SSH = {"upload", "run", "wait", "sync", "kill"}
 
 
+def first_ssh_on_this_machine(actions):
+    """本轮在换机器（释放、新开、重启、开机）之前，有没有必须连这台机器的动作（可选的诊断不算）。"""
+    for x in actions:
+        if x["do"] in ("destroy", "grab", "reboot", "start"):
+            return False
+        if x["do"] in NEEDS_SSH and not x.get("optional"):
+            return True
+    return False
+
+
 def record_unreachable(h, action):
     health = data_json("relay/machine_health.json", {})
     health.setdefault(h["UHostId"], {"reboots": [], "unreachable": []})["unreachable"].append(
@@ -748,8 +762,7 @@ def main():
     a = None
     try:
         h = our_machine()
-        if h and h.get("State") == "Running" and any(x["do"] in NEEDS_SSH and not x.get("optional")
-                                                     for x in REQ.get("actions", [])):
+        if h and h.get("State") == "Running" and first_ssh_on_this_machine(REQ.get("actions", [])):
             CUR["id"] = h["UHostId"]
             # 先确认连得上（连不上在两分钟内收尾）；顺手确认网络观察在跑（重启后要重新起）
             ssh(login(h), f"f={REMOTE}/repo/ops/remote/netwatch.sh; [ -f $f ] && ! pgrep -f ops/remote/netwatch.sh >/dev/null "

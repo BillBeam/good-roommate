@@ -2,7 +2,9 @@
 1. 一开始就连不上：10 分钟内收尾，评论开头写"连不上"，兜底关机改成 30 分钟后；
 2. 等待中途断开：断开后 10 分钟内收尾，等待这一步报失败；
 3. 一直连得上的长等待：等待被截到开轮后 100 分钟内，每次心跳的兜底关机都比本轮预计结束晚；
-4. 连不上过的机器：不写明"上面没有仓库里没有的东西"就不释放；写明了才释放。
+4. 连不上过的机器：不写明"上面没有仓库里没有的东西"就不释放；写明了才释放；
+5. 换机器的一轮：旧机器连不上时，可选的诊断失败后照样释放，后面给新机器的动作不触发开轮检查；
+6. 报错里的登录地址（主机名）不出现在 PR 评论里。
 """
 import base64, importlib, json, os, subprocess, sys, tempfile, types
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,7 +36,7 @@ def run_case(actions, ssh_ok_until=None, health=None):
     tr.status_json = lambda: None
     tr.comment = lambda body: calls.__setitem__("comment", body)
     host = {"UHostId": "uhost-1", "Name": "gr-train-x", "Zone": "cn-sh2-03", "State": "Running",
-            "SshLoginCommand": "ssh -p 2222 root@203.0.113.9", "Password": base64.b64encode(b"pw").decode()}
+            "SshLoginCommand": "ssh -p 2222 root@gw-x1.podtcp.compshare.cn", "Password": base64.b64encode(b"pw").decode()}
     def call(action, params=None, timeout=30):
         CLOCK[0] += 1
         if action == "DescribeCompShareInstance":
@@ -61,7 +63,7 @@ def run_case(actions, ssh_ok_until=None, health=None):
                 out = "pipeline running\n" if "for n in" in cmd else ""
                 return subprocess.CompletedProcess(argv, 0, stdout=out if kw.get("text", True) else out.encode(),
                                                    stderr="" if kw.get("text", True) else b"")
-            err = "ssh: connect to host 203.0.113.9 port 2222: Connection timed out\n"
+            err = "ssh: connect to host gw-x1.podtcp.compshare.cn port 2222: Connection timed out\n"
             return subprocess.CompletedProcess(argv, 255, stdout="" if kw.get("text", True) else b"",
                                                stderr=err if kw.get("text", True) else err.encode())
         if argv and argv[0] == "tar":
@@ -107,4 +109,16 @@ s, c, took, hb, data = run_case([{"do": "run", "name": "diag", "background": Fal
                                  {"do": "destroy", "confirm_nothing_unsynced": "last sync after last job"}])
 print("case5 destroy with confirm -> terminate called:", "TerminateCompShareInstance" in c["write"], "| minutes=%.1f" % took)
 assert "TerminateCompShareInstance" in c["write"]
+# 6) 换机器的一轮：旧机器连不上，诊断（可选）失败后照样释放；后面给新机器的 upload 不触发开轮检查
+CLOCK[0] += 10000
+s, c, took, hb, data = run_case([{"do": "run", "name": "diag", "background": False, "optional": True, "cmd": "x"},
+                                 {"do": "destroy", "confirm_nothing_unsynced": "evidence"},
+                                 {"do": "grab", "max_minutes": 0}, {"do": "upload"}])
+print("case6 replace round -> unreachable:", s.get("unreachable"), "| terminate:", "TerminateCompShareInstance" in c["write"])
+assert "TerminateCompShareInstance" in c["write"] and not (s.get("unreachable") or {}).get("failed_action") == "preflight"
+# 7) 报错里的登录地址不出现在评论里
+CLOCK[0] += 10000
+s, c, took, hb, data = run_case([{"do": "upload"}])
+print("case7 comment mentions host:", "gw-x1" in c["comment"] or "compshare.cn" in c["comment"])
+assert "gw-x1" not in c["comment"] and "compshare.cn" not in c["comment"]
 print("ALL OK")
