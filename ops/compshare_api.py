@@ -2,7 +2,8 @@
 
 Keys come only from COMPSHARE_PUBLIC_KEY / COMPSHARE_PRIVATE_KEY. call() only runs
 actions in READ_ONLY. call_write() runs the few lifecycle actions in WRITE and is
-used only by gpu_grab.py, which creates at most one instance and always destroys it.
+used only by gpu_grab.py (one test instance, always destroyed) and train_relay.py (one
+training instance, platform shutdown at most 2 h after the session's last request).
 Signing follows ucloud-sdk-python3 (sorted flattened params + private key, sha1).
 """
 import hashlib
@@ -23,12 +24,16 @@ READ_ONLY = frozenset({
     "DescribeCompShareInstance",
     "CheckCompShareResourceCapacity",
     "GetCompShareInstancePrice",
+    "GetCompShareImageCreateProgress",
+    "DescribeCompShareCustomImages",
 })
 WRITE = frozenset({
     "CreateCompShareInstance",
     "UpdateCompShareStopScheduler",
     "StopCompShareInstance",
     "TerminateCompShareInstance",
+    "StartCompShareInstance",
+    "CreateCompShareCustomImage",
 })
 
 
