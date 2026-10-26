@@ -1,6 +1,8 @@
-# Zero-cost probe of the session -> Actions -> Compshare chain. Manual trigger only.
-# Read-only Compshare calls; results go to the chain-results branch and, if
-# pr_number is given, a short comment on that PR.
+# Zero-cost probe of the session -> Actions -> Compshare chain. Manual or scheduled
+# trigger only. Read-only Compshare calls; results go to the chain-results branch
+# and, if a PR number is given, a short comment on that PR.
+# Scheduled runs take their inputs from ops/probe_request.json, which the session
+# commits to main (the session's GitHub token cannot dispatch workflows).
 name: chain-probe
 
 on:
@@ -14,6 +16,9 @@ on:
         description: "PR to post a summary comment on (optional)"
         required: false
         default: ""
+  schedule:
+    # one-off: 2026-10-26 05:58 UTC (repeats only next year; remove after use)
+    - cron: "58 5 26 10 *"
 
 permissions:
   contents: write
@@ -30,11 +35,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve inputs
+        id: req
+        env:
+          IN_DISPATCHED_AT: ${{ inputs.dispatched_at }}
+          IN_PR: ${{ inputs.pr_number }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ -f ops/probe_request.json ]; then
+            python3 -c "import json;d=json.load(open('ops/probe_request.json'));print('dispatched_at='+d.get('requested_at',''));print('pr_number='+str(d.get('pr_number','')))" >> "$GITHUB_OUTPUT"
+          else
+            echo "dispatched_at=$IN_DISPATCHED_AT" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$IN_PR" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Probe (read-only)
         env:
           COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
           COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
-          DISPATCHED_AT: ${{ inputs.dispatched_at }}
+          DISPATCHED_AT: ${{ steps.req.outputs.dispatched_at }}
         run: python3 ops/chain_probe.py "$RUNNER_TEMP/out"
 
       - name: Push results to chain-results branch
@@ -55,11 +73,11 @@ jobs:
           git push origin chain-results
 
       - name: Comment on PR
-        if: inputs.pr_number != ''
+        if: steps.req.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ github.token }}
           OUT: ${{ runner.temp }}/out
-          PR: ${{ inputs.pr_number }}
+          PR: ${{ steps.req.outputs.pr_number }}
         run: |
           {
             echo "chain-probe run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
