@@ -146,6 +146,20 @@ def main(argv=None):
             dump(sp, state)
             status("pipeline", stage="selfcheck_failed")
             return
+        if st in ("grpo1", "grpo2") and os.path.exists(os.path.join(OUT, f"grpo_s{st[-1]}", "stopped_by_rule.json")):
+            # 停止规则（分数上涨主要来自捷径①）：停下 GRPO，不再跑后面的训练；只把停下时的检查点考一次，供报告用
+            ev = "eval_" + st
+            if ev not in state["done"]:
+                status("pipeline", stage=ev)
+                t0 = time.time()
+                rc = run(ev, args)
+                state["runs"].append({"stage": ev, "rc": rc, "seconds": round(time.time() - t0, 1),
+                                      "end": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+                if rc == 0:
+                    state["done"].append(ev)
+                dump(sp, state)
+            status("pipeline", stage="stopped_by_shortcut_rule", stopped=st, done=state["done"])
+            return
     status("pipeline", stage="all_done", done=state["done"])
 
 
