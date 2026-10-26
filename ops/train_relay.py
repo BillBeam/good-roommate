@@ -613,6 +613,10 @@ def main():
             heartbeat(h)
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
+            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait") or
+                                                         (a["do"] == "run" and a.get("background") is False)):
+                log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
+                continue
             ok = ACTIONS[a["do"]](a)
             summary["actions"].append({"do": a["do"], "name": a.get("name"), "ok": ok is not False})
             if a["do"] == "grab" and not ok:

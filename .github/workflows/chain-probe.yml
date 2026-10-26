@@ -8,6 +8,8 @@
 #   mode "stop": no-op; a running grab notices it and ends its window early.
 #   mode "train": ops/train_relay.py runs the request's actions on the one training machine
 #     (grab, heartbeat = platform shutdown 2 h after the request, upload, run, wait/sync, image, destroy).
+#   mode "keepalive": same as "train" but in its own concurrency group, for short status/heartbeat
+#     requests while a long "train" request is still running (never upload/run here).
 #   mode "teacher": DeepSeek V4 Pro teacher trajectories on this runner (roommate.train.teacher);
 #     the request cache and results go to the m2pilot-data branch so a rerun never pays twice.
 # Results go to the chain-results branch and, if a PR number is given, a PR comment.
@@ -53,7 +55,7 @@ jobs:
           import json
           d = json.load(open("ops/probe_request.json"))
           mode = d.get("mode", "probe")
-          assert mode in ("probe", "grab", "stop", "train", "teacher"), mode
+          assert mode in ("probe", "grab", "stop", "train", "keepalive", "teacher"), mode
           print("mode=" + mode)
           print("dispatched_at=" + d.get("requested_at", ""))
           print("pr_number=" + (str(int(d["pr_number"])) if d.get("pr_number") else ""))
@@ -201,6 +203,29 @@ jobs:
           path: ${{ runner.temp }}/relay/ckpt
           if-no-files-found: ignore
           retention-days: 90
+
+  keepalive:
+    needs: plan
+    if: needs.plan.outputs.mode == 'keepalive'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: m2pilot-keepalive
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get install -y -qq sshpass >/dev/null
+
+      - name: Relay actions (status / heartbeat only)
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+          RELAY_KEEPALIVE: "1"
+        run: python3 ops/train_relay.py "$RUNNER_TEMP/relay"
 
   teacher:
     needs: plan
