@@ -563,6 +563,10 @@ def do_run(a):
         log("run_bg", name=name, rc=p.returncode if p else None)
         if p is not None and p.returncode == 0:
             health_note(last_job_started={"name": name, "at": now_iso()})
+            if a.get("expect_hours"):       # 主线：预计多久跑完（SSH 连不上时据此判断"还没到时间，继续等"）
+                end = time.time() + float(a["expect_hours"]) * 3600
+                data_write("relay/mainline.json", {"job": name, "started": now_iso(), "expected_end": now_iso(end),
+                                                   "expected_end_ts": end})
         return bool(p is not None and p.returncode == 0)
     else:
         t0 = time.time()
@@ -648,6 +652,9 @@ def do_wait(a):
         try:
             st = job_status(c, names) if names else {}
             done = bool(names) and len(st) == len(names) and all(not v.startswith("running") for v in st.values())
+            ml = data_json("relay/mainline.json", {})
+            if ml.get("job") in st and not st[ml["job"]].startswith("running") and not ml.get("ended"):
+                data_write("relay/mainline.json", dict(ml, ended=now_iso(), result=st[ml["job"]]))
             if done or time.time() - last >= SYNC_EVERY:
                 do_sync({"ckpt": bool(done)})
                 last = time.time()
@@ -913,6 +920,78 @@ def do_image_status(a):
     return True
 
 
+def _series(obj):
+    """在监控接口的返回里找时间序列：带 Timestamp/Time 和 Value 的字典列表。"""
+    out = []
+    if isinstance(obj, dict):
+        if ("Timestamp" in obj or "Time" in obj) and "Value" in obj:
+            return [(obj.get("Timestamp") or obj.get("Time"), obj["Value"])]
+        for v in obj.values():
+            out += _series(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            out += _series(v)
+    return out
+
+
+def health_signals(h, minutes=20):
+    """不经 SSH 的健康信号：平台接口里的实例状态、MonitorMessages 快照、最近 minutes 分钟的监控时间序列
+    （GetCompShareInstanceMonitor：CPU、内存、GPU、磁盘等）。gpu_util_max/min：名字里带 gpu 和 util/usage 的指标。"""
+    sig = {"at": now_iso(), "state": h.get("State")}
+    mm = h.get("MonitorMessages")
+    sig["monitor_messages"] = json.loads(re.sub(r"(\d{1,3}\.){3}\d{1,3}", "<ip>", json.dumps(mm, ensure_ascii=False)))[:20] \
+        if isinstance(mm, list) else mm
+    now = int(time.time())
+    try:
+        r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": [h["UHostId"]],
+                                                        "BeginTime": now - minutes * 60, "EndTime": now})
+        sig["monitor_retcode"] = r.get("RetCode")
+        metrics = {}
+        for item in ((r.get("Data") or {}).get("List") or []):
+            for m in item.get("Metrics") or []:
+                key = m.get("MetricKey") or "?"
+                pts = sorted((int(t), float(v)) for t, v in _series(m.get("Results")) if v is not None)
+                metrics[key] = {"points": len(pts), "last": pts[-1] if pts else None,
+                                "max": max((v for _, v in pts), default=None), "min": min((v for _, v in pts), default=None),
+                                "span_s": (pts[-1][0] - pts[0][0]) if len(pts) > 1 else 0}
+        sig["metrics"] = metrics
+        gk = [k for k in metrics if "gpu" in k.lower() and any(w in k.lower() for w in ("util", "usage", "used"))
+              and "mem" not in k.lower()]
+        if gk and any(metrics[k]["points"] for k in gk):
+            sig["gpu_metric"] = gk[0]
+            sig["gpu_util_max"] = max(metrics[k]["max"] for k in gk if metrics[k]["points"])
+            sig["gpu_window_s"] = max(metrics[k]["span_s"] for k in gk)
+    except Exception as e:
+        sig["monitor_error"] = redact(f"{type(e).__name__}: {e}")[:200]
+    return sig
+
+
+def verdict(h, sig):
+    """故障处理表第 1 行（docs/m2pilot/故障处理表.md）：SSH 连不上时，机器是"看不见"还是"坏了"。"""
+    ml = data_json("relay/mainline.json", {})
+    running_expected = bool(ml.get("expected_end")) and not ml.get("ended") and time.time() < ml["expected_end_ts"]
+    if sig.get("state") != "Running":
+        return "not_running", f"instance state {sig.get('state')}"
+    g = sig.get("gpu_util_max")
+    if g is not None and g >= 5:
+        return "working", f"GPU utilisation up to {g:g}% in the last {sig.get('gpu_window_s', 0) // 60} min"
+    if g is not None and sig.get("gpu_window_s", 0) >= 15 * 60:
+        return "idle", f"GPU utilisation below 5% for {sig['gpu_window_s'] // 60} min"
+    if running_expected:
+        return "unknown_before_end", "no usable GPU signal; main line not past its expected end " + ml["expected_end"]
+    return "unknown_after_end", "no usable GPU signal; main line past its expected end or none running"
+
+
+def do_signals(a):
+    """只读：现在能拿到哪些不经 SSH 的信号（写进 relay/signals.json）。"""
+    h = our_machine()
+    sig = health_signals(h, int(a.get("minutes", 20)))
+    sig["verdict"] = verdict(h, sig)
+    data_write("relay/signals.json", sig)
+    summary["signals"] = sig
+    return True
+
+
 def do_destroy(a):
     h = our_machine()
     rec = data_json("relay/machine_health.json", {}).get(h["UHostId"], {}) if h else {}
@@ -967,7 +1046,7 @@ def do_fetch_tokenizer(a):
 
 
 ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "exposure": do_exposure, "token_check": do_token_check, "upload": do_upload,
-           "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "image_status": do_image_status, "destroy": do_destroy}
+           "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "image_status": do_image_status, "signals": do_signals, "destroy": do_destroy}
 
 
 NEEDS_SSH = {"upload", "run", "wait", "sync", "kill"}
@@ -1013,10 +1092,14 @@ def first_ssh_on_this_machine(actions):
     return False
 
 
-def record_unreachable(h, action):
+def record_unreachable(h, action, cause=None, verdict=None):
     health = data_json("relay/machine_health.json", {})
-    health.setdefault(h["UHostId"], {"reboots": [], "unreachable": []})["unreachable"].append(
-        {"at": now_iso(), "run_id": RUN_ID, "action": action})
+    e = {"at": now_iso(), "run_id": RUN_ID, "action": action}
+    if cause:
+        e["cause"] = cause
+    if verdict:
+        e["verdict"] = verdict
+    health.setdefault(h["UHostId"], {"reboots": [], "unreachable": []})["unreachable"].append(e)
     data_write("relay/machine_health.json", health)
 
 
@@ -1036,9 +1119,15 @@ def note_unreachable(e, a):
         h = our_machine()
         summary["machine_state"] = h.get("State") if h else None
         if h:
-            record_unreachable(h, summary["unreachable"]["failed_action"])
+            sig = health_signals(h)
+            v, why = verdict(h, sig)
+            summary["unreachable"]["verdict"] = {"verdict": v, "why": why, "signals": sig}
+            record_unreachable(h, summary["unreachable"]["failed_action"], cause=summary["unreachable"].get("cause"),
+                               verdict=v)
             if h.get("State") == "Running":
-                heartbeat(h, UNREACHABLE_STOP)      # 连不上就不再按 2 小时续：30 分钟后自动关机
+                # 故障处理表第 1 行：在干活，或拿不到证据但主线还没到预计结束时间 → 只是看不见，照常续 2 小时；
+                # 否则（证据显示没在干活，或已过预计结束时间）→ 30 分钟后自动关机，等会话按表处理
+                heartbeat(h, HEARTBEAT if v in ("working", "unknown_before_end") else UNREACHABLE_STOP)
     except Exception as x:
         summary["state_error"] = redact(x)[:200]
 
@@ -1060,7 +1149,7 @@ def main():
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
             if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check", "image",
-                                                                      "image_status") or
+                                                                      "image_status", "signals") or
                                                          (a["do"] == "run" and a.get("background") is False)):
                 log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
                 continue
@@ -1124,6 +1213,9 @@ def main():
         if summary.get("unreachable"):
             u = summary["unreachable"]
             cause = f"（原因：{u['cause']}，不是断网）" if u.get("cause") else ""
+            vd = u.get("verdict") or {}
+            if vd:
+                cause += f"；不经 SSH 的判断：{vd['verdict']}（{vd['why']}），按 docs/m2pilot/故障处理表.md 处理"
             head = (f"**连不上训练机器（SSH 失败）**{cause}：失败的动作是 `{u['failed_action']}`"
                     f"{'（' + u['name'] + '）' if u.get('name') else ''}，{u['at']}；"
                     f"本轮提前结束，没做的动作：{', '.join(u['not_done']) or '无'}。实例状态：{summary.get('machine_state')}。\n\n")

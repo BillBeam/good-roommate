@@ -8,7 +8,9 @@
 7. 重启后的第一次连接同时取回证据（记录仪日志 + diag）；同一台机器不重启第二次；
 8. 已有两台因连不上而释放：不写诊断评论就不开第三台；
 9. 外网检查：不带口令能读 /api/contents 的 Jupyter 判为"开着"，要登录的判为"没开"；
-10. 命令把自己的会话弄断（ssh 退出码 255、没有建连错误）而机器连得上：不算"连不上"，也不重跑这条命令。
+10. 命令把自己的会话弄断（ssh 退出码 255、没有建连错误）而机器连得上：不算"连不上"，也不重跑这条命令；
+11. 故障处理表第 1 行：连不上时按不经 SSH 的信号判断——GPU 在忙，或拿不到信号但主线没到预计结束时间 → 兜底关机续 2 小时；
+    GPU 闲了 20 分钟 → 30 分钟。
 """
 import base64, importlib, json, os, subprocess, sys, tempfile, types
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +21,8 @@ import time as _time
 _time.time = lambda: CLOCK[0]
 _time.sleep = lambda s: CLOCK.__setitem__(0, CLOCK[0] + s)
 
-def run_case(actions, ssh_ok_until=None, health=None, extra_data=None):
+def run_case(actions, ssh_ok_until=None, health=None, extra_data=None, gpu=None):
+    """gpu：假的监控数据 (利用率, 持续秒数)，None 表示监控接口没给 GPU 指标。"""
     """ssh_ok_until: virtual time after which ssh fails (None = always fail)."""
     tmp = tempfile.mkdtemp()
     sys.argv = ["train_relay.py", tmp]
@@ -47,6 +50,11 @@ def run_case(actions, ssh_ok_until=None, health=None, extra_data=None):
             return {"UHostSet": [dict(host)]}, 1
         if action == "GetProjectList":
             return {"ProjectSet": [{"ProjectId": "p"}]}, 1
+        if action == "GetCompShareInstanceMonitor" and gpu is not None:
+            util, span = gpu
+            pts = [{"Timestamp": int(CLOCK[0]) - span + i * 60, "Value": util} for i in range(span // 60 + 1)]
+            return {"RetCode": 0, "Data": {"List": [{"UHostId": "uhost-1", "Metrics": [
+                {"MetricKey": "gpu_util", "Results": [{"Values": pts}]}]}]}}, 1
         return {"RetCode": 0}, 1
     def call_write(action, params=None, timeout=60):
         CLOCK[0] += 1
@@ -174,6 +182,17 @@ s, c, took, hb, data = run_case([{"do": "run", "name": "x", "background": False,
 n_kill = sum("KILLSELF" in x for x in c["cmds"])
 print("case12 dropped by own command -> unreachable:", s.get("unreachable"), "| times run:", n_kill, "| actions:", s["actions"])
 assert not s.get("unreachable") and n_kill == 1 and s["actions"][1]["ok"]
+# 13) 故障处理表第 1 行
+for label, kw, want in (("mainline before end, no GPU signal", {"extra_data": {"relay/mainline.json": {
+        "job": "pipeline", "expected_end": "x", "expected_end_ts": CLOCK[0] + 10 ** 7}}}, 120),
+                        ("GPU busy", {"gpu": (80.0, 1200)}, 120), ("GPU idle 20 min", {"gpu": (0.0, 1200)}, 30)):
+    CLOCK[0] += 10000
+    if "extra_data" in kw:
+        kw["extra_data"]["relay/mainline.json"]["expected_end_ts"] = CLOCK[0] + 10 ** 6
+    s, c, took, hb, data = run_case([{"do": "upload"}], **kw)
+    v = s["unreachable"]["verdict"]["verdict"]
+    print("case13", label, "-> verdict", v, "| heartbeat min", hb[-1], "| minutes %.1f" % took)
+    assert hb[-1] == want and took < 10, (label, hb)
 # 9) 连不上之后又连得上：开轮检查那次连接就取回证据
 CLOCK[0] += 10000
 s, c, took, hb, data = run_case([{"do": "sync"}], ssh_ok_until=CLOCK[0] + 10 ** 6,
