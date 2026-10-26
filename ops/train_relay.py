@@ -255,6 +255,9 @@ def login(h):
     return {"user": user, "host": host, "port": port, "env": dict(os.environ, SSHPASS=pw)}
 
 
+CONNECT_FAIL = re.compile(r"connect to host|Connection (timed out|refused|reset)|No route to host|Could not resolve|"
+                          r"Network is unreachable|Permission denied|banner exchange|kex_exchange_identification|"
+                          r"Connection closed by .* port", re.I)
 SSH_OPTS = ["-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-o", "LogLevel=ERROR",
             "-o", "PreferredAuthentications=password,keyboard-interactive", "-o", "PubkeyAuthentication=no",
             "-o", "ConnectTimeout=15", "-o", "ServerAliveInterval=20", "-o", "ServerAliveCountMax=6"]
@@ -267,11 +270,22 @@ def ssh(c, cmd, timeout=600, stdin=None, binary=False):
             p = subprocess.run(argv, input=stdin, capture_output=True, text=not binary, env=c["env"], timeout=timeout)
         except subprocess.TimeoutExpired:
             return None
-        if p.returncode != 255:  # 255 = ssh itself failed (connect/auth/dropped); retry
+        if p.returncode != 255:  # 255 = ssh itself failed (connect/auth/dropped)
             return p
+        err = p.stderr.decode("utf-8", "replace") if isinstance(p.stderr, bytes) else (p.stderr or "")
+        if not CONNECT_FAIL.search(err):
+            # 不是建连失败（命令可能已经开始执行，比如会话被命令自己杀掉）：不重试同一条命令（免得重复起任务），
+            # 另开一条空连接看看机器到底连不连得上
+            q = subprocess.run(["sshpass", "-e", "ssh", "-p", str(c["port"]), *SSH_OPTS, f"{c['user']}@{c['host']}", "true"],
+                               capture_output=True, text=True, env=c["env"], timeout=60)
+            if q.returncode == 0:
+                log("ssh_command_dropped", rc=255, stderr=redact(err.strip())[-200:])
+                return p                 # 机器连得上，是这条命令自己的问题
+            err = q.stderr or err
+            if not CONNECT_FAIL.search(err):
+                return p
         if attempt + 1 < SSH_TRIES:
             time.sleep(10 * (attempt + 1))
-    err = p.stderr.decode("utf-8", "replace") if isinstance(p.stderr, bytes) else (p.stderr or "")
     raise Unreachable(redact(err.strip().splitlines()[-1] if err.strip() else "ssh rc 255")[:200])
 
 
@@ -836,9 +850,8 @@ ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock"
 NEEDS_SSH = {"upload", "run", "wait", "sync", "kill"}
 # 断连后的第一次连接（重启后、或连不上之后又连上）：同一条命令里拉起记录仪、跑 diag、取回记录仪日志。
 # 那次连接可能是唯一的一次（旧机器重启后只连上过一次，3 秒后又被挡），所以三件事放进一次 ssh。
-EVIDENCE_CMD = (f"f={REMOTE}/repo/ops/remote/netwatch.sh; "
-                f"if [ -f $f ]; then pgrep -f ops/remote/netwatch.sh >/dev/null || (nohup setsid bash $f >/dev/null 2>&1 < /dev/null &); "
-                f"echo '== netwatch restarted:' $(pgrep -fc ops/remote/netwatch.sh); else echo '== netwatch.sh missing'; fi; "
+NETWATCH_START = f"[ -f {REMOTE}/repo/ops/remote/netwatch_ctl.sh ] && bash {REMOTE}/repo/ops/remote/netwatch_ctl.sh start"
+EVIDENCE_CMD = (f"echo '== netwatch:' $({NETWATCH_START} || echo 'netwatch_ctl.sh missing'); "
                 f"echo '== netwatch log (last 400 lines)'; tail -n 400 {REMOTE}/out/diag/netwatch.jsonl 2>/dev/null; "
                 f"[ -f {REMOTE}/repo/ops/remote/diag.sh ] && bash {REMOTE}/repo/ops/remote/diag.sh")
 
@@ -912,8 +925,7 @@ def main():
             if had_outage(h):
                 fetch_evidence(login(h), "after_outage")
             else:
-                ssh(login(h), f"f={REMOTE}/repo/ops/remote/netwatch.sh; [ -f $f ] && ! pgrep -f ops/remote/netwatch.sh >/dev/null "
-                              f"&& (nohup setsid bash $f >/dev/null 2>&1 < /dev/null &); true", timeout=60)
+                ssh(login(h), f"{NETWATCH_START} >/dev/null; true", timeout=60)
         if h and h.get("State") in ("Running", "Starting", "Initializing"):
             heartbeat(h)
         for a in REQ.get("actions", []):

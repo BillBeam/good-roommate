@@ -13,7 +13,7 @@ VLLM=${VLLM_VERSION:-vllm==0.31.0}
 
 # 网络观察（每分钟一行，见 netwatch.sh）和开机时的安全软件、防火墙、sshd 清单
 mkdir -p $W/out/diag
-pgrep -f ops/remote/netwatch.sh >/dev/null || nohup setsid bash $W/repo/ops/remote/netwatch.sh >/dev/null 2>&1 < /dev/null &
+bash $W/repo/ops/remote/netwatch_ctl.sh start
 bash $W/repo/ops/remote/diag.sh > $W/out/diag/diag_setup.txt 2>&1 || true
 
 nvidia-smi > $OUT/nvidia-smi.txt

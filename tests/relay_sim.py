@@ -7,7 +7,8 @@
 6. 报错里的登录地址（主机名）不出现在 PR 评论里；
 7. 重启后的第一次连接同时取回证据（记录仪日志 + diag）；同一台机器不重启第二次；
 8. 已有两台因连不上而释放：不写诊断评论就不开第三台；
-9. 外网检查：不带口令能读 /api/contents 的 Jupyter 判为"开着"，要登录的判为"没开"。
+9. 外网检查：不带口令能读 /api/contents 的 Jupyter 判为"开着"，要登录的判为"没开"；
+10. 命令把自己的会话弄断（ssh 退出码 255、没有建连错误）而机器连得上：不算"连不上"，也不重跑这条命令。
 """
 import base64, importlib, json, os, subprocess, sys, tempfile, types
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,6 +63,9 @@ def run_case(actions, ssh_ok_until=None, health=None, extra_data=None):
             calls["ssh"] += 1
             calls["cmds"].append(argv[-1])
             CLOCK[0] += 15
+            if ssh_ok_until is not None and CLOCK[0] < ssh_ok_until and "KILLSELF" in argv[-1]:
+                return subprocess.CompletedProcess(argv, 255, stdout="" if kw.get("text", True) else b"",
+                                                   stderr="" if kw.get("text", True) else b"")
             if ssh_ok_until is not None and CLOCK[0] < ssh_ok_until:
                 cmd = argv[-1]
                 out = "pipeline running\n" if "for n in" in cmd else ""
@@ -163,6 +167,13 @@ for H, want in ((Open, True), (Locked, False)):
     print("case11", H.__name__, "open_without_auth =", r["open_without_auth"], r["/api/contents"])
     assert r["open_without_auth"] is want
     srv.shutdown()
+# 12) 命令自己把会话弄断，机器其实连得上
+CLOCK[0] += 10000
+s, c, took, hb, data = run_case([{"do": "run", "name": "x", "background": False, "cmd": "KILLSELF"},
+                                 {"do": "sync"}], ssh_ok_until=CLOCK[0] + 10 ** 6)
+n_kill = sum("KILLSELF" in x for x in c["cmds"])
+print("case12 dropped by own command -> unreachable:", s.get("unreachable"), "| times run:", n_kill, "| actions:", s["actions"])
+assert not s.get("unreachable") and n_kill == 1 and s["actions"][1]["ok"]
 # 9) 连不上之后又连得上：开轮检查那次连接就取回证据
 CLOCK[0] += 10000
 s, c, took, hb, data = run_case([{"do": "sync"}], ssh_ok_until=CLOCK[0] + 10 ** 6,

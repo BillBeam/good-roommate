@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 每分钟记一行机器自己看到的网络状况到 out/diag/netwatch.jsonl（setup 和每轮中转开头都会确保它在跑）：
+# 每分钟记一行机器自己看到的网络状况到 out/diag/netwatch.jsonl（由 netwatch_ctl.sh 起停；setup 和每轮中转开头都会确保它在跑）：
 #   ssh_port：sshd 实际监听的端口（这类机器的 sshd 在容器里，端口不一定是 22）；
 #   ssh_sessions：这个端口上已建立的连接数；sshd_procs：sshd 进程数（监听进程 + 每条连接各一个）；
 #   fw_drop_pkts：本机防火墙 DROP/REJECT 累计丢弃的包数（没有 iptables 时记 -1）；

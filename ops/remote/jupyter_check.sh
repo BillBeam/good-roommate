@@ -5,7 +5,7 @@ mask() { sed -E 's/([0-9]{1,3}\.){3}[0-9]{1,3}/<ip>/g'; }
 cls() { case "$1" in 127.*) echo loopback;; 10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*) echo private;; 0.0.0.0) echo all-interfaces;; *) echo public;; esac; }
 {
 echo "== pid 1"; ps -o pid=,user=,args= -p 1 | cut -c1-200
-JP=$(pgrep -f jupyter-lab | head -1)
+JP=$(pgrep -o -f "[j]upyter-lab")
 echo "== jupyter pid=$JP"
 [ -n "$JP" ] && ps -o pid=,ppid=,user=,etime=,args= -p "$JP" | sed -E 's/(token|password)=[^ ]*/\1=<value>/Ig' | cut -c1-300
 P=$JP; echo "== parent chain"
