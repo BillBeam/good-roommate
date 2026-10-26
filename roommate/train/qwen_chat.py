@@ -96,19 +96,23 @@ class QwenChat:
 
 def assistant_spans(chat, messages):
     """把一段完整对话（system + 用户 + 若干轮 assistant/tool，没有中途的真实用户消息）套模板，
-    返回 (ids, mask)：mask = 1 的是 assistant 生成的 token（生成提示之后到 <|im_end|>，含 <|im_end|>）。
-    用逐步前缀检查保证"前缀套模板"和"整段套模板"逐 token 一致，否则抛错（这样的样本不能用）。"""
-    ids, mask = [], []
+    返回 (ids, mask)：mask = 1 的是 assistant 生成的部分（生成提示之后到 <|im_end|>，含 <|im_end|>）。
+    和采样端一样分块编码：前文（含生成提示）一块，模型生成的部分一块，模板接着写的工具结果一块。
+    这样训练序列和"采样时模型看到的前文 + 它自己生成的 token"逐 token 对得上；整段一次性编码在思考为空时
+    会把生成提示里的换行和生成的换行并成一个 token，对不上。文字层面要求逐轮前缀一致，否则抛错。"""
+    ids, mask, text, pending = [], [], "", ""
     for i, m in enumerate(messages):
         if m["role"] != "assistant":
             continue
-        pre = chat.encode(chat.render(messages[:i], add_generation_prompt=True))
-        full = chat.encode(chat.render(messages[:i + 1], add_generation_prompt=False))
-        if full[:len(ids)] != ids or pre[:len(ids)] != ids or full[:len(pre)] != pre:
+        pre = chat.render(messages[:i], add_generation_prompt=True)
+        full = chat.render(messages[:i + 1], add_generation_prompt=False)
+        if not pre.startswith(text) or not full.startswith(pre):
             raise ValueError(f"prefix mismatch at message {i}")
-        end = len(full)
-        while end > 0 and full[end - 1] != chat.im_end_id:   # 模板在 <|im_end|> 后面还有一个换行，不算生成的
-            end -= 1
-        mask += [0] * (len(pre) - len(ids)) + [1] * (end - len(pre)) + [0] * (len(full) - end)
-        ids = full
+        add = chat.encode(pending + pre[len(text):])
+        gen = full[len(pre):]
+        end = gen.rindex(IM_END) + len(IM_END)
+        g = chat.encode(gen[:end])
+        ids += add + g
+        mask += [0] * len(add) + [1] * len(g)
+        pending, text = gen[end:], full
     return ids, mask
