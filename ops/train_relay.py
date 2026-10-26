@@ -445,6 +445,7 @@ def do_upload(a):
         p = ssh(c, f"mkdir -p {REMOTE}/repo {REMOTE}/out/logs {REMOTE}/out/pids && tar xzf - -C {REMOTE}/repo && "
                    f"cd {REMOTE}/repo && echo {os.environ.get('GITHUB_SHA', '')} > COMMIT", stdin=f.read(), binary=True)
     log("upload", rc=p.returncode if p else None, bytes=os.path.getsize(tar))
+    return bool(p is not None and p.returncode == 0)
 
 
 def do_run(a):
@@ -457,6 +458,7 @@ def do_run(a):
                   f"echo $! > {REMOTE}/out/pids/{name}.pid")
         p = ssh(c, script, timeout=60)
         log("run_bg", name=name, rc=p.returncode if p else None)
+        return bool(p is not None and p.returncode == 0)
     else:
         t0 = time.time()
         p = ssh(c, f"mkdir -p {REMOTE}/out/logs {REMOTE}/out/pids; bash -lc {shlex.quote(inner)} 2>&1 | tail -c 20000 "
@@ -464,6 +466,7 @@ def do_run(a):
         tail = (p.stdout or "")[-3000:] if p else "timeout"
         log("run_fg", name=name, seconds=round(time.time() - t0, 1), tail=tail)
         summary.setdefault("fg_output", {})[name] = tail
+        return bool(p is not None and p.returncode != 255)
 
 
 def status_json():
@@ -638,7 +641,8 @@ def main():
                 continue
             ok = ACTIONS[a["do"]](a)
             summary["actions"].append({"do": a["do"], "name": a.get("name"), "ok": ok is not False})
-            if a["do"] == "grab" and not ok:
+            if a["do"] in ("grab", "upload", "reboot") and ok is False:
+                log("stop_after_failed", do=a["do"])    # 没传上新代码就不往下跑（免得跑旧代码）
                 break
             h = our_machine()
             if h and h.get("State") == "Running" and a["do"] not in ("destroy",):
