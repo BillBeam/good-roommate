@@ -1,0 +1,170 @@
+{
+ "run_id": "40296742134",
+ "instance_name": "gr-probe-40296742134",
+ "started_utc": "2026-10-26T09:04:27+00:00",
+ "events": [
+  {
+   "t": "2026-10-26T09:04:29+00:00",
+   "msg": "grab_window_open"
+  },
+  {
+   "t": "2026-10-26T09:04:52+00:00",
+   "msg": "candidate",
+   "zone": "cn-wlcb-01",
+   "zone_name": "华北二A",
+   "gpu": "4090",
+   "vram": 24,
+   "cpu": 16,
+   "mem": 64,
+   "hourly": 2.05,
+   "image": "vLLM v0.25.1",
+   "balance": "余额够"
+  },
+  {
+   "t": "2026-10-26T09:05:10+00:00",
+   "msg": "created",
+   "uhost_id": "uhost-1wxwiz8e1idk",
+   "api_seconds": 18.432
+  },
+  {
+   "t": "2026-10-26T09:05:13+00:00",
+   "msg": "stop_scheduler_set",
+   "RetCode": 0,
+   "at": "2026-10-26T09:49:10+00:00"
+  },
+  {
+   "t": "2026-10-26T09:06:27+00:00",
+   "msg": "running",
+   "create_to_running_seconds": 76.2,
+   "ssh_port": 23
+  },
+  {
+   "t": "2026-10-26T09:06:55+00:00",
+   "msg": "ssh_stability",
+   "tcp_failures": 1,
+   "tcp_median_ms": 228.7,
+   "tcp_max_ms": 242.4
+  },
+  {
+   "t": "2026-10-26T09:06:58+00:00",
+   "msg": "login_ok",
+   "create_to_login_seconds": 107.9,
+   "user": "root"
+  },
+  {
+   "t": "2026-10-26T09:07:03+00:00",
+   "msg": "bundle_uploaded",
+   "rc": 0
+  },
+  {
+   "t": "2026-10-26T09:07:09+00:00",
+   "msg": "remote_finished",
+   "rc": 0,
+   "tail": "REMOTE_DONE\n"
+  },
+  {
+   "t": "2026-10-26T09:07:14+00:00",
+   "msg": "remote_result_fetched",
+   "rc": 0
+  },
+  {
+   "t": "2026-10-26T09:07:33+00:00",
+   "msg": "destroyed",
+   "seconds": 19.7,
+   "tries": [
+    {
+     "action": "Terminate",
+     "state": "Running",
+     "RetCode": 0,
+     "Message": ""
+    }
+   ]
+  }
+ ],
+ "window_minutes": 300.0,
+ "limits": {
+  "max_hourly": 11.0,
+  "min_vram": 24,
+  "bf16_gpus": [
+   "3090",
+   "4090",
+   "4090D",
+   "4090_48G",
+   "5090",
+   "A100",
+   "A800",
+   "H20",
+   "H100",
+   "H800",
+   "L20",
+   "L40",
+   "L40S",
+   "A40",
+   "A6000"
+  ],
+  "sweep_every_s": 30,
+  "destroy_at_min": 40.0,
+  "stop_at_min": 44.0
+ },
+ "sweeps": 1,
+ "balance": "余额够",
+ "t_create": 1793005510.9728868,
+ "machine": {
+  "zone": "cn-wlcb-01",
+  "zone_name": "华北二A",
+  "gpu": "4090",
+  "vram": 24,
+  "cpu": 16,
+  "mem": 64,
+  "hourly": 2.05,
+  "image": "vLLM v0.25.1"
+ },
+ "create_to_running_seconds": 76.2,
+ "ssh_stability": {
+  "tcp_attempts": 20,
+  "tcp_failures": 1,
+  "tcp_connect_ms": [
+   233.0,
+   222.4,
+   230.8,
+   221.9,
+   233.1,
+   223.7,
+   231.6,
+   233.0,
+   222.9,
+   230.3,
+   229.8,
+   217.8,
+   242.4,
+   223.0,
+   226.9,
+   221.1,
+   230.5,
+   221.7,
+   228.7
+  ],
+  "tcp_median_ms": 228.7,
+  "tcp_max_ms": 242.4,
+  "keyscan": [
+   {
+    "ok": true,
+    "seconds": 3.22
+   },
+   {
+    "ok": true,
+    "seconds": 3.13
+   },
+   {
+    "ok": true,
+    "seconds": 3.15
+   }
+  ]
+ },
+ "create_to_login_seconds": 107.9,
+ "remote_tests_ran": true,
+ "t_destroyed": 1793005653.9329047,
+ "instance_lifetime_minutes": 2.38,
+ "outcome": "tested_and_destroyed",
+ "finished_utc": "2026-10-26T09:07:33+00:00"
+}

@@ -1,0 +1,157 @@
+{
+ "steps": {
+  "gpu": {
+   "nvidia_smi": {
+    "rc": 0,
+    "seconds": 0.12,
+    "stdout": "Mon Oct 26 09:07:06 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.80                 Driver Version: 595.80         CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:00:03.0 Off |                  Off |\n|  0%   31C    P8              3W /  450W |       1MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+\n",
+    "stderr": ""
+   },
+   "query": {
+    "rc": 0,
+    "seconds": 0.03,
+    "stdout": "NVIDIA GeForce RTX 4090, 595.80, 24564 MiB, 8.9\n",
+    "stderr": ""
+   },
+   "nvcc": {
+    "rc": 0,
+    "seconds": 0.02,
+    "stdout": "cuda\ncuda-12\ncuda-12.8\ncuda-13.0\ncuda-13.2\n",
+    "stderr": "/bin/sh: 1: nvcc: not found\n"
+   },
+   "os": {
+    "rc": 0,
+    "seconds": 0.03,
+    "stdout": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\n5.15.0-113-generic\n16\n               total        used        free      shared  buff/cache   available\nMem:              62           2          58           0           1          59\n",
+    "stderr": ""
+   },
+   "driver_version": "595.80",
+   "cuda_version": "13.2",
+   "torch": {
+    "rc": 1,
+    "seconds": 0.03,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'torch'\n"
+   },
+   "wall_seconds": 0.23
+  },
+  "disk": {
+   "df": {
+    "rc": 0,
+    "seconds": 0.01,
+    "stdout": "Filesystem              Size  Used Avail Use% Mounted on\noverlay                  79G  2.4M   76G   1% /\nUPFS:upfs-13n5o97wrrr4   40T   27T   13T  68% /model\n/dev/vda1                20G  4.4G   15G  23% /entrypoint.sh\ntmpfs                    32G     0   32G   0% /dev/shm\n/dev/vda10              5.4M   24K  4.7M   1% /cloud\n/dev/vda2                79G  2.4M   76G   1% /etc/hosts\ntmpfs                    32G   12K   32G   1% /proc/driver/nvidia\ntmpfs                    32G  4.0K   32G   1% /etc/nvidia/nvidia-application-profiles-rc.d\ntmpfs                    32G     0   32G   0% /proc/acpi\ntmpfs                    32G     0   32G   0% /sys/firmware\ntmpfs                    32G     0   32G   0% /sys/devices/virtual/powercap\ntmpfs                    32G     0   32G   0% /proc/scsi\n",
+    "stderr": ""
+   },
+   "df_root_bytes": {
+    "total": 84415418368,
+    "used": 2494464,
+    "free": 80854245376
+   },
+   "workdir": "/root/gr",
+   "df_workdir_bytes": {
+    "total": 84415418368,
+    "used": 2494464,
+    "free": 80854245376
+   },
+   "wall_seconds": 0.01
+  },
+  "pydeps": {
+   "before": {
+    "rc": 0,
+    "seconds": 0.04,
+    "stdout": "{'modelscope': False, 'jinja2': False, 'tokenizers': False, 'transformers': False, 'huggingface_hub': False, 'torch': False}\n",
+    "stderr": ""
+   },
+   "pip_install": {
+    "rc": 0,
+    "seconds": 0.04,
+    "stdout": "/usr/bin/python3: No module named pip\n",
+    "stderr": ""
+   },
+   "pip_config": {
+    "rc": 1,
+    "seconds": 0.04,
+    "stdout": "[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\n\n",
+    "stderr": "/usr/bin/python3: No module named pip\n"
+   },
+   "wall_seconds": 0.11
+  },
+  "tokenizer_download": {
+   "modelscope": {
+    "rc": 1,
+    "seconds": 0.04,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 2, in <module>\nModuleNotFoundError: No module named 'modelscope'\n"
+   },
+   "modelscope_files": {},
+   "hf_mirror_pinned": {
+    "tokenizer.json": {
+     "rc": 22,
+     "seconds": 1.63,
+     "stdout": "429 0 1.575556",
+     "stderr": "curl: (22) The requested URL returned error: 429\n",
+     "sha256": null
+    },
+    "chat_template.jinja": {
+     "rc": 22,
+     "seconds": 0.64,
+     "stdout": "429 0 0.623800",
+     "stderr": "curl: (22) The requested URL returned error: 429\n",
+     "sha256": null
+    },
+    "tokenizer_config.json": {
+     "rc": 22,
+     "seconds": 0.58,
+     "stdout": "429 0 0.553306",
+     "stderr": "curl: (22) The requested URL returned error: 429\n",
+     "sha256": null
+    }
+   },
+   "cpu_reference_chat_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+   "wall_seconds": 2.89
+  },
+  "template_check": {
+   "modelscope": {
+    "skipped": "tokenizer files missing"
+   },
+   "hf_mirror_pinned": {
+    "skipped": "tokenizer files missing"
+   },
+   "wall_seconds": 0.0
+  },
+  "weights_download": {
+   "budget_seconds": 1741,
+   "modelscope": {
+    "rc": 1,
+    "seconds": 0.04,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 2, in <module>\nModuleNotFoundError: No module named 'modelscope'\n"
+   },
+   "bytes": 0,
+   "safetensors": [],
+   "wall_seconds": 0.04
+  },
+  "disk_after": {
+   "df": {
+    "rc": 0,
+    "seconds": 0.01,
+    "stdout": "Filesystem              Size  Used Avail Use% Mounted on\noverlay                  79G  2.4M   76G   1% /\nUPFS:upfs-13n5o97wrrr4   40T   27T   13T  68% /model\n/dev/vda1                20G  4.4G   15G  23% /entrypoint.sh\ntmpfs                    32G     0   32G   0% /dev/shm\n/dev/vda10              5.4M   24K  4.7M   1% /cloud\n/dev/vda2                79G  2.4M   76G   1% /etc/hosts\ntmpfs                    32G   12K   32G   1% /proc/driver/nvidia\ntmpfs                    32G  4.0K   32G   1% /etc/nvidia/nvidia-application-profiles-rc.d\ntmpfs                    32G     0   32G   0% /proc/acpi\ntmpfs                    32G     0   32G   0% /sys/firmware\ntmpfs                    32G     0   32G   0% /sys/devices/virtual/powercap\ntmpfs                    32G     0   32G   0% /proc/scsi\n",
+    "stderr": ""
+   },
+   "df_root_bytes": {
+    "total": 84415418368,
+    "used": 2502656,
+    "free": 80854237184
+   },
+   "workdir": "/root/gr",
+   "df_workdir_bytes": {
+    "total": 84415418368,
+    "used": 2502656,
+    "free": 80854237184
+   },
+   "wall_seconds": 0.01
+  }
+ },
+ "started_unix": 1793005626.1198602,
+ "finished_unix": 1793005629.410752
+}
