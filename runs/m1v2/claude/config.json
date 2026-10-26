@@ -1,5 +1,5 @@
 {
- "written_at": "2026-10-26T10:22:57+00:00",
+ "written_at": "2026-10-26T10:43:25+00:00",
  "models": [
   "claude-haiku-5-5",
   "claude-sonnet-5-5",
@@ -36,6 +36,6 @@
  "sampling": "接口默认（这几个模型不接受 temperature / top_p / top_k）",
  "key_env": "CLAUDE_EVAL_API_KEY",
  "base_url": "https://api.anthropic.com",
- "stages": "pilot,estimate",
+ "stages": "full",
  "offline": false
 }

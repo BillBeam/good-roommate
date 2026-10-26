@@ -1,56 +1,56 @@
 {
- "total_usd": 1.8455483150000007,
+ "total_usd": 57.023081709999964,
  "deepseek_cny_total": 0.0,
  "by_model_role": {
   "claude-haiku-5-5|agent": {
-   "api_calls": 35,
+   "api_calls": 1281,
    "cache_hits": 0,
-   "prompt_tokens": 75077,
-   "cached_prompt_tokens": 37904,
-   "completion_tokens": 11666,
+   "prompt_tokens": 2719856,
+   "cached_prompt_tokens": 1389136,
+   "completion_tokens": 422916,
    "reasoning_tokens": 0,
-   "cost_usd": 0.010856114999999996,
-   "cache_write_tokens": 37071
+   "cost_usd": 0.39159651000000006,
+   "cache_write_tokens": 1327006
   },
   "claude-sonnet-5-5|agent": {
-   "api_calls": 35,
+   "api_calls": 1347,
    "cache_hits": 0,
-   "prompt_tokens": 71489,
-   "cached_prompt_tokens": 37336,
-   "completion_tokens": 5254,
+   "prompt_tokens": 2784574,
+   "cached_prompt_tokens": 1528705,
+   "completion_tokens": 195571,
    "reasoning_tokens": 0,
-   "cost_usd": 0.14160510000000004,
-   "cache_write_tokens": 34051
+   "cost_usd": 5.246330000000001,
+   "cache_write_tokens": 1252023
   },
   "claude-opus-5-5|agent": {
-   "api_calls": 39,
+   "api_calls": 1408,
    "cache_hits": 0,
-   "prompt_tokens": 84102,
-   "cached_prompt_tokens": 46401,
-   "completion_tokens": 7308,
+   "prompt_tokens": 2972509,
+   "cached_prompt_tokens": 1669860,
+   "completion_tokens": 230806,
    "reasoning_tokens": 0,
-   "cost_usd": 0.3438352000000002,
-   "cache_write_tokens": 37591
+   "cost_usd": 11.459369000000002,
+   "cache_write_tokens": 1298681
   },
   "claude-fable-5-1|agent": {
-   "api_calls": 53,
+   "api_calls": 1895,
    "cache_hits": 0,
-   "prompt_tokens": 126829,
-   "cached_prompt_tokens": 81728,
-   "completion_tokens": 10564,
+   "prompt_tokens": 4496538,
+   "cached_prompt_tokens": 2911016,
+   "completion_tokens": 330773,
    "reasoning_tokens": 0,
-   "cost_usd": 1.1120495,
-   "cache_write_tokens": 44963
+   "cost_usd": 37.073073999999984,
+   "cache_write_tokens": 1580580
   },
   "claude-opus-5-5|control": {
-   "api_calls": 30,
+   "api_calls": 363,
    "cache_hits": 0,
-   "prompt_tokens": 63800,
-   "cached_prompt_tokens": 27047,
-   "completion_tokens": 2406,
+   "prompt_tokens": 770035,
+   "cached_prompt_tokens": 327586,
+   "completion_tokens": 28803,
    "reasoning_tokens": 0,
-   "cost_usd": 0.2372024,
-   "cache_write_tokens": 36661
+   "cost_usd": 2.8527122000000023,
+   "cache_write_tokens": 441339
   }
  }
 }
