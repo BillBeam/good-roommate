@@ -23,3 +23,20 @@ Traceback (most recent call last):
   File "/root/work/repo/roommate/train/sampler.py", line 45, in _post
     raise SamplerError(last)
 roommate.train.sampler.SamplerError: URLError(ConnectionRefusedError(111, 'Connection refused'))
+
+=== 2026-10-26T14:20:41Z /root/work/venv/bin/python -m roommate.train.selfcheck
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights: 100%|██████████| 426/426 [00:00<00:00, 6411.77it/s]
+/root/work/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py:1090: UserWarning: You have passed exclude_modules=.*visual.* but no modules were excluded. Please check that exclude_modules was set correctly.
+  warnings.warn(
+[PASS] 10 显卡上的 BF16 计算正常 {"gpu": "NVIDIA GeForce RTX 4090", "capability": [8, 9], "bf16_supported": true, "matmul_rel_err": 0.0028735988307744265}
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[PASS] 3 第 0 步采样端与训练端 logprob 之差 {"n": 33399, "mean": 0.013718516369907651, "p99": 0.1265106201171875, "max": 0.4771895408630371, "segments": 24, "mean_len": 2748.4583333333335}
+[FAIL] 4 不同微批大小下训练端 logprob 一致 {"error": "OutOfMemoryError: CUDA out of memory. Tried to allocate 58.00 MiB. GPU 0 has a total capacity of 47.40 GiB of which 3.67 GiB is free. Process 17755 has 19.58 GiB memory in use. Including non-PyTorch memory, this process has 24.14 GiB memory in use. 23.70 GiB allowed; Of the allocated memory 21.79 GiB is allocated by PyTorch, and 1.88 GiB is reserved by PyTorch but unallocated. If reserv
+[FAIL] 1 LoRA 真的生效 {"error": "AssertionError: ('layers.0.mlp.gate_proj', ['mtp.layers.0.mlp.gate_proj.weight', 'model.language_model.layers.0.mlp.gate_proj.weight'])"}
+[PASS] 2 2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码 {"prompt_tokens": 3336, "T1.0": {"tokens": 1024, "nan": 0, "replacement_chars": 0, "printable_frac": 1.0, "distinct_8gram_frac": 0.7353353915239966, "has_think_end": false}, "T0.0": {"tokens": 500, "nan": 0, "replacement_chars": 0, "printable_frac": 1.0, "distinct_8gram_frac": 0.7255739455419113, "has_think_end": true}}
+[FAIL] 5 优势符号单步测试；逐 token logprob；温度没被改写 {"adv+1": {"before": -0.8987107276916504, "after": -0.897325873374939, "delta": 0.0013848543167114258}, "adv-1": {"before": -0.8987107276916504, "after": -0.8980406522750854, "delta": 0.0006700754165649414}, "generated_tokens": 33399, "with_sampler_logprob": 33399, "stop_token_appended": 0, "temperature_test": {"T1.0": {"n": 1000, "top1_freq": 0.771, "mean_p_top1": 0.7743542730658538, "z": -0.3469
+[FAIL] 6 训练样本的 token 序列与采样时看到的逐 token 一致 {"error": "AssertionError: ('layers.0.mlp.gate_proj', ['mtp.layers.0.mlp.gate_proj.weight', 'model.language_model.layers.0.mlp.gate_proj.weight'])"}
+[PASS] 7 只有模型生成的 token 计入 loss {"spans_checked": 84, "spans_with_non_generated_text": 0}
+[PASS] 8 1、8、32 路并发采样时吞吐随并发数上升 {"c1": {"seconds": 2.5776400566101074, "gen_tokens": 256, "tokens_per_s": 99.31565089683987}, "c8": {"seconds": 3.1501712799072266, "gen_tokens": 2048, "tokens_per_s": 650.1233799770768}, "c32": {"seconds": 4.177425384521484, "gen_tokens": 8192, "tokens_per_s": 1961.0164744901547}}
+[PASS] 9 奖励和优势与设计公式一致；记忆保存后再恢复内容不变 {"rewards": [[0.85, -0.3], [0.85, 0.7], [0.7, 0.55], [0.85, 0.7], [0.85, 0.7], [0.85, -0.6], [0.85, 0.85], [0.7, -0.3]], "returns": [[0.55, -0.3], [1.5499999999999998, 0.7], [1.25, 0.55], [1.5499999999999998, 0.7], [1.5499999999999998, 0.7], [0.25, -0.6], [1.7, 0.85], [0.39999999999999997, -0.3]], "advantages": [[-0.9828857570554075, -1.0785358323012055], [0.8041792557726063, 0.7572698397008465], 
