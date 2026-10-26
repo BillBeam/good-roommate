@@ -1,0 +1,12 @@
+{
+ "at": "2026-10-26T17:39:14+00:00",
+ "config_form": "ENVREF:${JUPYTER_TOKEN}",
+ "running_token_len": "137",
+ "running_equals_env_JUPYTER_TOKEN": false,
+ "running_equals_config_text": false,
+ "running_equals_instance_field": {
+  "Password": false,
+  "FileBrowserPassword": false
+ },
+ "running_sha8": "aff0b580"
+}

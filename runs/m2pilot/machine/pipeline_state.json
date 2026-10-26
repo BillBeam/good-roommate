@@ -3,15 +3,9 @@
  "runs": [
   {
    "stage": "selfcheck",
-   "rc": 1,
-   "seconds": 418.0,
-   "end": "2026-10-26T14:15:36Z"
-  },
-  {
-   "stage": "selfcheck",
    "rc": 0,
-   "seconds": 260.2,
-   "end": "2026-10-26T14:25:01Z"
+   "seconds": 488.7,
+   "end": "2026-10-26T17:30:13Z"
   }
  ]
 }

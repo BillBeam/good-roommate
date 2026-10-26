@@ -11,7 +11,276 @@
    ],
    "bf16_supported": true,
    "matmul_rel_err": 0.0028757217805832624
+  },
+  {
+   "no": 3,
+   "name": "第 0 步采样端与训练端 logprob 之差",
+   "pass": true,
+   "n": 32713,
+   "mean": 0.014554455106119078,
+   "p99": 0.12569904327392578,
+   "max": 0.40466904640197754,
+   "segments": 24,
+   "mean_len": 2720.9166666666665
+  },
+  {
+   "no": 4,
+   "name": "不同微批大小下训练端 logprob 一致",
+   "pass": true,
+   "bs1_repeat_mean_abs_diff": 0.0,
+   "bs1_repeat_p99_abs_diff": 0.0,
+   "bs1_repeat_max_abs_diff": 0.0,
+   "bs2_vs_bs1_mean_abs_diff": 0.012864643527638567,
+   "bs2_vs_bs1_max_abs_diff": 0.23777008056640625,
+   "bs2_vs_bs1_p99_abs_diff": 0.11980056762695312,
+   "bs4_vs_bs1_mean_abs_diff": 0.012863383445031705,
+   "bs4_vs_bs1_max_abs_diff": 0.23777008056640625,
+   "bs4_vs_bs1_p99_abs_diff": 0.11980056762695312,
+   "grad_cosine_two_orders": 0.9998858571052551,
+   "grad_rel_diff": 0.01510482095181942,
+   "criterion": "bs2、bs4 与 bs1 的平均差 < 0.02，且两种累加顺序的梯度余弦 > 0.999",
+   "criterion_change": "原先看最大差（< 0.02）；BF16 下填充成批次后个别 token 的差可到 0.2 以上（第 3 项采样端与训练端的最大差也在 0.5 左右），最大差只反映个别 token 的舍入，改看平均差，最大差、p99 照样记录"
+  },
+  {
+   "no": 1,
+   "name": "LoRA 真的生效",
+   "pass": false,
+   "lora_effect_sampler": 0.11553906906765876,
+   "lora_effect_trainer": 0.11687833963985572,
+   "trainer_vs_sampler_with_lora": {
+    "n": 3569,
+    "mean": 0.04797952003676508,
+    "p99": 0.7391467094421387,
+    "max": 4.707679271697998
+   },
+   "trainer_vs_sampler_without_lora": {
+    "n": 3569,
+    "mean": 0.04207000856708831,
+    "p99": 0.6247749328613281,
+    "max": 3.8507797718048096
+   },
+   "tokens": 3569,
+   "lora_b_std": 0.002
+  },
+  {
+   "no": 2,
+   "name": "2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码",
+   "pass": true,
+   "prompt_tokens": 2189,
+   "T1.0": {
+    "tokens": 679,
+    "nan": 0,
+    "replacement_chars": 0,
+    "printable_frac": 1.0,
+    "distinct_8gram_frac": 0.6563492063492063,
+    "has_think_end": true
+   },
+   "T0.0": {
+    "tokens": 1024,
+    "nan": 0,
+    "replacement_chars": 0,
+    "printable_frac": 1.0,
+    "distinct_8gram_frac": 0.36875,
+    "has_think_end": false
+   }
+  },
+  {
+   "no": 5,
+   "name": "优势符号单步测试；逐 token logprob；温度没被改写",
+   "pass": true,
+   "adv+1": {
+    "before": -1.3900197744369507,
+    "after": -1.1493048667907715,
+    "delta": 0.2407149076461792,
+    "lora_dtype": "torch.float32"
+   },
+   "adv-1": {
+    "before": -1.3900197744369507,
+    "after": -3.240172863006592,
+    "delta": -1.8501530885696411,
+    "lora_dtype": "torch.float32"
+   },
+   "generated_tokens": 38069,
+   "with_sampler_logprob": 38069,
+   "stop_token_appended": 0,
+   "temperature_test": {
+    "T1.0": {
+     "n": 850,
+     "top1_freq": 0.7670588235294118,
+     "mean_p_top1": 0.7754955126997128,
+     "z": -0.8026285178800912
+    },
+    "T0.6": {
+     "n": 900,
+     "top1_freq": 0.8933333333333333,
+     "mean_p_top1": 0.786855572220502,
+     "z": 9.968888293284742
+    }
+   }
+  },
+  {
+   "no": 6,
+   "name": "训练样本的 token 序列与采样时看到的逐 token 一致",
+   "pass": true,
+   "rescore_vs_rollout": {
+    "n": 16616,
+    "mean": 0.011847389833065847,
+    "p99": 0.11920619010925293,
+    "max": 0.32004213333129883
+   },
+   "segments_equal_to_template_rendering": 5,
+   "segments_checked": 24
+  },
+  {
+   "no": 7,
+   "name": "只有模型生成的 token 计入 loss",
+   "pass": true,
+   "spans_checked": 87,
+   "spans_with_non_generated_text": 0
+  },
+  {
+   "no": 8,
+   "name": "1、8、32 路并发采样时吞吐随并发数上升",
+   "pass": true,
+   "c1": {
+    "seconds": 1.9362480640411377,
+    "gen_tokens": 256,
+    "tokens_per_s": 132.2144640215692
+   },
+   "c8": {
+    "seconds": 2.3068807125091553,
+    "gen_tokens": 2048,
+    "tokens_per_s": 887.7788907309493
+   },
+   "c32": {
+    "seconds": 3.065912961959839,
+    "gen_tokens": 8192,
+    "tokens_per_s": 2671.9610444398872
+   }
+  },
+  {
+   "no": 9,
+   "name": "奖励和优势与设计公式一致；记忆保存后再恢复内容不变",
+   "pass": true,
+   "rewards": [
+    [
+     0.85,
+     0.7
+    ],
+    [
+     0.0,
+     -0.3
+    ],
+    [
+     0.85,
+     -0.15
+    ],
+    [
+     -0.3,
+     -0.44999999999999996
+    ],
+    [
+     0.85,
+     0.7
+    ],
+    [
+     -0.44999999999999996,
+     -0.3
+    ],
+    [
+     0.7,
+     0.4
+    ],
+    [
+     0.85,
+     -0.3
+    ]
+   ],
+   "returns": [
+    [
+     1.5499999999999998,
+     0.7
+    ],
+    [
+     -0.3,
+     -0.3
+    ],
+    [
+     0.7,
+     -0.15
+    ],
+    [
+     -0.75,
+     -0.44999999999999996
+    ],
+    [
+     1.5499999999999998,
+     0.7
+    ],
+    [
+     -0.75,
+     -0.3
+    ],
+    [
+     1.1,
+     0.4
+    ],
+    [
+     0.55,
+     -0.3
+    ]
+   ],
+   "advantages": [
+    [
+     1.2269590320460018,
+     1.4705179498453134
+    ],
+    [
+     -0.8483545307289497,
+     -0.7491317857702541
+    ],
+    [
+     0.2734365842845376,
+     -0.4161843254279189
+    ],
+    [
+     -1.3531605324850189,
+     -1.082079246112589
+    ],
+    [
+     1.2269590320460018,
+     1.4705179498453134
+    ],
+    [
+     -1.3531605324850189,
+     -0.7491317857702541
+    ],
+    [
+     0.7221530302899327,
+     0.8046230291606431
+    ],
+    [
+     0.10516791703251457,
+     -0.7491317857702541
+    ]
+   ],
+   "items": 16,
+   "memory": {
+    "memory_entries": 8,
+    "same_memory": true,
+    "same_second_session": true,
+    "memory_after_first": {
+     "attr:allergy": "\"无\"",
+     "attr:diet": "\"控碳水\"",
+     "attr:cuisine": "\"火锅\"",
+     "attr:spicy": "\"爱吃辣\"",
+     "attr:budget": "\"高\"",
+     "attr:home": "\"滨江\"",
+     "attr:commute": "\"地铁\"",
+     "attr:pet": "\"无\""
+    }
+   }
   }
  ],
- "all_pass": true
+ "all_pass": false
 }
