@@ -129,12 +129,18 @@ def outage_numbers(relay=os.path.join(ROOT, "relay")):
     if not (os.path.exists(runs_p) and os.path.isdir(logs_d)):
         return None
     runs = jl(runs_p)
+    causes_p = os.path.join(relay, "outage_causes.json")
+    causes = {k: v for k, v in jload(causes_p).items() if not k.startswith("_")} if os.path.exists(causes_p) else {}
     events = []
     for f in sorted(glob.glob(os.path.join(logs_d, "*.jsonl"))):
         rid = os.path.basename(f)[:-6]
         events += [dict(e, run=rid) for e in jl(f)]
     events.sort(key=lambda e: e["t"])
-    ssh_fail = [e for e in events if e.get("rc") == 255 or e.get("msg") in ("job_status_empty", "unreachable")]
+    # 只算平台/网络造成的断连；中转自身原因、做镜像等核实过不算的，单列
+    def platform(e):
+        return causes.get(e["run"], {}).get("counts_as_platform_outage", True)
+    ssh_fail = [e for e in events if (e.get("rc") == 255 or e.get("msg") in ("job_status_empty", "unreachable"))
+                and platform(e)]
     if not ssh_fail:
         return None
     first_fail = ssh_fail[0]
@@ -155,6 +161,8 @@ def outage_numbers(relay=os.path.join(ROOT, "relay")):
            "first_failed_action": {"run": first_fail["run"], "action_started": started["t"], "failed_at": first_fail["t"],
                                    "what": started.get("do")},
            "ssh_failures_logged": len(ssh_fail),
+           "not_counted": {k: {"cause": v["cause"], "detail": v.get("detail")} for k, v in causes.items()
+                           if not v.get("counts_as_platform_outage", True)},
            "reboot": reboot and {"at": reboot["t"], "ssh_after": after and after.get("out", "").split("\n")[0],
                                  "ssh_after_at": after and after["t"],
                                  "next_failure_at": after_fail and after_fail["t"]}}
