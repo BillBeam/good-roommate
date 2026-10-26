@@ -516,7 +516,7 @@ def do_upload(a):
 def do_run(a):
     c = conn()
     name, cmd = a["name"], a["cmd"]
-    inner = f"cd {REMOTE}/repo && {cmd}; echo $? > {REMOTE}/out/pids/{name}.rc"
+    inner = f"cd {REMOTE}/repo && {cmd}; rc=$?; echo $rc > {REMOTE}/out/pids/{name}.rc; exit $rc"
     if a.get("background", True):
         script = (f"mkdir -p {REMOTE}/out/logs {REMOTE}/out/pids; rm -f {REMOTE}/out/pids/{name}.rc; "
                   f"nohup setsid bash -lc {shlex.quote(inner)} >> {REMOTE}/out/logs/{name}.log 2>&1 < /dev/null & "
@@ -528,10 +528,11 @@ def do_run(a):
         return bool(p is not None and p.returncode == 0)
     else:
         t0 = time.time()
-        p = ssh(c, f"mkdir -p {REMOTE}/out/logs {REMOTE}/out/pids; bash -lc {shlex.quote(inner)} 2>&1 | tail -c 20000 "
-                   f"| tee -a {REMOTE}/out/logs/{name}.log", timeout=int(a.get("timeout_min", 30)) * 60)
+        # pipefail：退出码是命令自己的（不是 tail/tee 的），关卡（gate）才有意义
+        p = ssh(c, f"set -o pipefail; mkdir -p {REMOTE}/out/logs {REMOTE}/out/pids; bash -lc {shlex.quote(inner)} 2>&1 "
+                   f"| tail -c 20000 | tee -a {REMOTE}/out/logs/{name}.log", timeout=int(a.get("timeout_min", 30)) * 60)
         tail = re.sub(r"(\d{1,3}\.){3}\d{1,3}", "<ip>", (p.stdout or "")[-3000:]) if p else "timeout"
-        log("run_fg", name=name, seconds=round(time.time() - t0, 1), tail=tail)
+        log("run_fg", name=name, seconds=round(time.time() - t0, 1), rc=p.returncode if p else None, tail=tail)
         summary.setdefault("fg_output", {})[name] = tail
         if a.get("gate"):               # 关卡：命令本身失败（退出码非 0）就不往下做
             return bool(p is not None and p.returncode == 0)
@@ -667,6 +668,7 @@ def do_image(a):
                                                                               if k not in ("request_uuid",)}}
     data_write("relay/image.json", info)
     summary["image"] = info
+    return final is not None
 
 
 def do_destroy(a):
