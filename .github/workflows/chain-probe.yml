@@ -1,8 +1,10 @@
-# Zero-cost probe of the session -> Actions -> Compshare chain. Manual or scheduled
-# trigger only. Read-only Compshare calls; results go to the chain-results branch
-# and, if a PR number is given, a short comment on that PR.
-# Scheduled runs take their inputs from ops/probe_request.json, which the session
-# commits to main (the session's GitHub token cannot dispatch workflows).
+# Zero-cost probe of the session -> Actions -> Compshare chain. Triggers: manual,
+# schedule, or a push to the dedicated chain-request branch (and only that branch).
+# Never pull_request / issue_comment or other events outsiders can cause.
+# Read-only Compshare calls; results go to the chain-results branch and, if a PR
+# number is given, a short comment on that PR.
+# Scheduled and push runs take their inputs from ops/probe_request.json in the
+# triggering commit (the session's GitHub token cannot dispatch workflows).
 name: chain-probe
 
 on:
@@ -16,6 +18,8 @@ on:
         description: "PR to post a summary comment on (optional)"
         required: false
         default: ""
+  push:
+    branches: [chain-request]
   schedule:
     # one-off: 2026-10-26 05:58 UTC (repeats only next year; remove after use)
     - cron: "58 5 26 10 *"
@@ -41,7 +45,7 @@ jobs:
           IN_DISPATCHED_AT: ${{ inputs.dispatched_at }}
           IN_PR: ${{ inputs.pr_number }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ -f ops/probe_request.json ]; then
+          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] && [ -f ops/probe_request.json ]; then
             python3 -c "import json;d=json.load(open('ops/probe_request.json'));print('dispatched_at='+d.get('requested_at',''));print('pr_number='+str(d.get('pr_number','')))" >> "$GITHUB_OUTPUT"
           else
             echo "dispatched_at=$IN_DISPATCHED_AT" >> "$GITHUB_OUTPUT"
