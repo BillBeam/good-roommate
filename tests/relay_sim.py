@@ -44,7 +44,7 @@ def run_case(actions, ssh_ok_until=None, health=None, extra_data=None, gpu=None)
     tr.comment = lambda body: calls.__setitem__("comment", body)
     host = {"UHostId": "uhost-1", "Name": "gr-train-x", "Zone": "cn-sh2-03", "State": "Running",
             "SshLoginCommand": "ssh -p 2222 root@gw-x1.podtcp.compshare.cn", "Password": base64.b64encode(b"pw").decode()}
-    def call(action, params=None, timeout=30):
+    def call(action, params=None, timeout=30, json_body=False):
         CLOCK[0] += 1
         if action == "DescribeCompShareInstance":
             return {"UHostSet": [dict(host)]}, 1

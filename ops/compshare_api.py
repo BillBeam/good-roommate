@@ -68,11 +68,12 @@ def _flatten(d):
     return out
 
 
-def call(action, params=None, timeout=30):
-    """Return (response_json, elapsed_seconds). Never returns or logs the request."""
+def call(action, params=None, timeout=30, json_body=False):
+    """Return (response_json, elapsed_seconds). Never returns or logs the request.
+    json_body: send a JSON body (arrays stay arrays) instead of form fields; some actions only accept that."""
     if action not in READ_ONLY:
         raise ValueError(f"{action} is not in the read-only allowlist")
-    return _send(action, params, timeout)
+    return _send(action, params, timeout, json_body=json_body)
 
 
 NO_RETRY = {"CreateCompShareInstance", "CreateCompShareCustomImage"}   # 重发可能多建一台/一个镜像
@@ -87,17 +88,22 @@ def call_write(action, params=None, timeout=60):
 TRIES = 6   # 默认重试次数；中转可以调低（连不上时要在几分钟内收尾）
 
 
-def _send(action, params, timeout, tries=None):
+def _send(action, params, timeout, tries=None, json_body=False):
     tries = tries or TRIES
     payload = _flatten({**(params or {}), "Action": action})
     payload["PublicKey"] = os.environ["COMPSHARE_PUBLIC_KEY"]
     raw = "".join(k + payload[k] for k in sorted(payload)) + os.environ["COMPSHARE_PRIVATE_KEY"]
     payload["Signature"] = hashlib.sha1(raw.encode("utf-8")).hexdigest()
+    if json_body:   # 签名照旧按展开后的参数算；请求体用 JSON，数组保持数组
+        data = json.dumps({**(params or {}), "Action": action, "PublicKey": payload["PublicKey"],
+                           "Signature": payload["Signature"]}).encode()
+        ctype = "application/json"
+    else:
+        data, ctype = urllib.parse.urlencode(payload).encode(), "application/x-www-form-urlencoded"
     req = urllib.request.Request(
         BASE_URL,
-        data=urllib.parse.urlencode(payload).encode(),
-        headers={"Content-Type": "application/x-www-form-urlencoded",
-                 "U-Timestamp-Ms": str(int(time.time() * 1000))},
+        data=data,
+        headers={"Content-Type": ctype, "U-Timestamp-Ms": str(int(time.time() * 1000))},
         method="POST",
     )
     t0 = time.monotonic()
