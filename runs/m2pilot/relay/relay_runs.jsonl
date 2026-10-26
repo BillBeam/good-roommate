@@ -1,1 +1,2 @@
 {"run_id": "40327230063", "requested_at": "2026-10-26T13:02:29Z", "finished": "2026-10-26T13:03:19+00:00", "actions": [{"do": "dscheck", "name": null, "ok": true}, {"do": "stock", "name": null, "ok": true}], "dscheck": {"deepseek_key_present": false}, "machine_state": null, "minutes": 0.5, "grab": null}
+{"run_id": "40327588930", "requested_at": "2026-10-26T13:05:10Z", "finished": "2026-10-26T13:05:35+00:00", "actions": [{"do": "fetch_tokenizer", "name": null, "ok": true}], "machine_state": null, "minutes": 0.1, "grab": null}
