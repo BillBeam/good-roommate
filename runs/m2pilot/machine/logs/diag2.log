@@ -1,0 +1,32 @@
+0
+---
+/usr/bin/python3
+/bin/python3
+/usr/bin/pip
+/bin/pip
+/usr/bin/pip3
+/bin/pip3
+---
+/opt:
+nvidia
+
+/usr/local/bin:
+corepack
+node
+npm
+nproc
+npx
+tini
+ls: cannot access '/root/miniconda3*': No such file or directory
+ls: cannot access '/opt/conda*': No such file or directory
+/usr/lib/python3
+/usr/lib/python3.10
+/usr/lib/python3.11
+/usr/local/lib/python3.10
+Python 3.10.12
+# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
+# newer versions of the distribution.
+deb http://archive.ubuntu.com/ubuntu/ jammy main restricted
+overlay         100G   17G   84G  17% /
+/bin/bash
+tini

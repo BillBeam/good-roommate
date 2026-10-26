@@ -1,0 +1,4 @@
+{"step": "venv", "seconds": 406}
+{"step": "vllm", "seconds": 893}
+{"step": "extras", "seconds": 903}
+{"step": "model_small_files", "seconds": 908}
