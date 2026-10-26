@@ -1,7 +1,8 @@
 {
  "done": [
   "selfcheck",
-  "eval_pre"
+  "eval_pre",
+  "sft"
  ],
  "runs": [
   {
@@ -33,6 +34,12 @@
    "rc": 0,
    "seconds": 4851.5,
    "end": "2026-10-26T20:48:57Z"
+  },
+  {
+   "stage": "sft",
+   "rc": 0,
+   "seconds": 1166.0,
+   "end": "2026-10-26T21:08:26Z"
   }
  ]
 }
