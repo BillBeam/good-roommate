@@ -1,9 +1,9 @@
 # Zero-cost probe of the session -> Actions -> Compshare chain. Triggers: manual,
-# schedule, or a push to the dedicated chain-request branch (and only that branch).
+# or a push to the dedicated chain-request branch (and only that branch).
 # Never pull_request / issue_comment or other events outsiders can cause.
 # Read-only Compshare calls; results go to the chain-results branch and, if a PR
 # number is given, a short comment on that PR.
-# Scheduled and push runs take their inputs from ops/probe_request.json in the
+# Push runs take their inputs from ops/probe_request.json in the
 # triggering commit (the session's GitHub token cannot dispatch workflows).
 name: chain-probe
 
@@ -20,9 +20,6 @@ on:
         default: ""
   push:
     branches: [chain-request]
-  schedule:
-    # one-off: 2026-10-26 05:58 UTC (repeats only next year; remove after use)
-    - cron: "58 5 26 10 *"
 
 permissions:
   contents: write

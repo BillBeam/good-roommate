@@ -99,6 +99,55 @@ def compshare(out):
     }
 
 
+SWEEP_GPUS = ("4090", "4090_48G", "5090", "3090", "A800", "A100", "H20")
+SWEEP_IMAGE_NAMES = ("vLLM", "Ubuntu 22.04 64位")
+
+
+def inventory(out):
+    """Stock and 1-hour price for each suitable GPU type in each zone (read-only)."""
+    rows = out["inventory"] = []
+    zones, _ = compshare_api.call("DescribeCompShareSupportZone")
+    for z in zones.get("ZoneInfo") or []:
+        loc = {"Region": z["Region"], "Zone": z["Zone"]}
+        types, _ = compshare_api.call("DescribeAvailableCompShareInstanceTypes", {**loc, "InstanceType": "uhost"})
+        imgs, _ = compshare_api.call("DescribeCompShareImages", {**loc, "Limit": 100, "Offset": 0})
+        image = next((i for name in SWEEP_IMAGE_NAMES for i in imgs.get("ImageSet") or []
+                      if i.get("Status") == "Available" and i.get("Name", "").startswith(name)), None)
+        for t in types.get("AvailableInstanceTypes") or []:
+            if t.get("Name") not in SWEEP_GPUS or image is None:
+                continue
+            for charge in ("Postpay", "Spot"):
+                row = {"zone": z["Zone"], "zone_name": z.get("Describe"), "gpu": t["Name"],
+                       "vram_gib": (t.get("GraphicsMemory") or {}).get("Value"),
+                       "charge": charge, "image": image.get("Name")}
+                cap, _ = compshare_api.call("CheckCompShareResourceCapacity", {
+                    **loc, "GpuType": t["Name"], "MachineType": "G", "MinimalCpuPlatform": "Auto",
+                    "CompShareImageId": image["CompShareImageId"], "ChargeType": charge,
+                    "Disks": [{"IsBoot": True, "Type": "CLOUD_SSD", "Size": 100}]})
+                if cap.get("RetCode") != 0:
+                    row["error"] = f"RetCode {cap.get('RetCode')}: {cap.get('Message')}"
+                    rows.append(row)
+                    continue
+                specs = cap.get("Specs") or []
+                row["specs_total"] = len(specs)
+                row["in_stock"] = [[s.get("Gpu"), s.get("Cpu"), s.get("Mem")] for s in specs if s.get("ResourceEnough")]
+                one = next((s for s in specs if s.get("Gpu") == 1), None)
+                if one:
+                    pr, _ = compshare_api.call("GetCompShareInstancePrice", {
+                        **loc, "GpuType": t["Name"], "Gpu": 1, "Cpu": one["Cpu"], "Memory": one["Mem"] * 1024,
+                        "ChargeType": charge, "Disks": [{"IsBoot": True, "Type": "CLOUD_SSD", "Size": 100}],
+                        "CompShareImageId": image["CompShareImageId"], "Quantity": 1})
+                    det = (pr.get("PriceDetails") or [{}])[0]
+                    row["one_gpu_spec"] = [1, one["Cpu"], one["Mem"]]
+                    hourly = round(sum(float(det.get(k) or 0) for k in
+                                       ("Instance", "Disks", "SystemDisks", "CompShareImage")), 4)
+                    # the price API answers 0 for combinations it does not sell (e.g. Spot on 4090_48G)
+                    row["one_gpu_hourly_cny"] = hourly if pr.get("RetCode") == 0 and hourly > 0 else None
+                    if pr.get("RetCode") != 0:
+                        row["price_error"] = f"RetCode {pr.get('RetCode')}: {pr.get('Message')}"
+                rows.append(row)
+
+
 def ssh(out):
     rows = out["ssh"] = []
     for host in SSH_HOSTS:
@@ -196,7 +245,7 @@ def main():
            "dispatched_utc": os.environ.get("DISPATCHED_AT") or None,
            "run_id": os.environ.get("GITHUB_RUN_ID"),
            "runner": {"os": os.environ.get("RUNNER_OS"), "arch": os.environ.get("RUNNER_ARCH")}}
-    for step in (compshare, ssh):
+    for step in (compshare, inventory, ssh):
         try:
             step(out)
         except Exception as e:
