@@ -166,76 +166,69 @@ def main():
             v_base = sampler.prompt_logprobs(probe["ids"])
             with tr.model.disable_adapter():
                 t_base = tr.logprobs(probe["ids"], pmask).tolist()
-            torch.manual_seed(1)
-            for _, mod in tr.lora_modules():                 # 给 LoRA 一个确定的非零初值（B 原本是 0）
-                torch.nn.init.normal_(mod.lora_B["default"].weight, std=float(os.environ.get("M2P_LORA_STD", "0.002")))
-            t_lora = tr.logprobs(probe["ids"], pmask).tolist()
-            tr.export(SHM)
-            sampler.update_weights(SHM)
+            pos = [t for t in range(1, len(probe["ids"])) if v_base[t] is not None]
+            sigma = statistics.mean(abs(t_base[t - 1] - v_base[t]) for t in pos)   # 不带 LoRA 时两端的差：BF16 噪声的大小
+
+            def judge(v_l, t_l):
+                """判定规则：(1) 两端的 LoRA 效应都 > 5σ；(2) 两端效应相差 ≤ 15%；(3) 逐 token 的 LoRA 变化两端之差的均值 ≤ 4σ。
+                只有 BF16 噪声时 (3) 约 1.4–1.6σ（两份独立噪声相减）；采样端没带上 LoRA、对错层、比例不对时，(1)(2)(3) 至少一条明显不满足。"""
+                ps = [t for t in pos if v_l[t] is not None]
+                dv = [v_l[t] - v_base[t] for t in ps]
+                dt = [t_l[t - 1] - t_base[t - 1] for t in ps]
+                ev = statistics.mean(abs(x) for x in dv)
+                et = statistics.mean(abs(x) for x in dt)
+                dd = stats([a - b for a, b in zip(dv, dt)])
+                r = {"effect_sampler": ev, "effect_trainer": et, "effect_rel_diff": abs(ev - et) / max(et, 1e-9),
+                     "change_diff": dd, "change_diff_over_sigma": dd["mean"] / sigma,
+                     "corr": statistics.correlation(dv, dt) if len(ps) > 2 and ev > 0 else None}
+                r["pass"] = ev > 5 * sigma and et > 5 * sigma and r["effect_rel_diff"] <= 0.15 and dd["mean"] <= 4 * sigma
+                return r
+
+            def measure(std, seed, faults=()):
+                torch.manual_seed(seed)
+                for _, mod in tr.lora_modules():                 # 给 LoRA 一个确定的非零初值（B 原本是 0）
+                    torch.nn.init.normal_(mod.lora_B["default"].weight, std=std)
+                t_l = tr.logprobs(probe["ids"], pmask).tolist()
+                tr.export(SHM)
+                sampler.update_weights(SHM)
+                out = {"correct": judge(sampler.prompt_logprobs(probe["ids"]), t_l)}
+                for name, fault in faults:
+                    if fault is None:                             # 采样端没带上 LoRA：采样端还是基础模型
+                        out[name] = judge(v_base, t_l)
+                        continue
+                    tr.export(SHM, fault=fault)
+                    sampler.update_weights(SHM)
+                    out[name] = judge(sampler.prompt_logprobs(probe["ids"]), t_l)
+                return out, t_l
+
+            small_std = float(os.environ.get("M2P_LORA_STD", "0.002"))
+            big_std = 10 * small_std
+            faults = [("fault_sampler_without_lora", None), ("fault_wrong_layer", {"layer_shift": 1}),
+                      ("fault_scale_x2", {"scale": 2.0})]
+            big, _ = measure(big_std, 2, faults)
+            # 恢复成小的 LoRA（同一个随机种子），后面几项（带 LoRA 生成等）和以前一样；小 LoRA 的数照记
+            small, t_lora = measure(small_std, 1)
             v_lora = sampler.prompt_logprobs(probe["ids"])
-            pos = [t for t in range(1, len(probe["ids"])) if v_base[t] is not None and v_lora[t] is not None]
-            eff_v = statistics.mean(abs(v_lora[t] - v_base[t]) for t in pos)
-            eff_t = statistics.mean(abs(t_lora[t - 1] - t_base[t - 1]) for t in pos)
-            agree = stats([t_lora[t - 1] - v_lora[t] for t in pos])
-            agree_base = stats([t_base[t - 1] - v_base[t] for t in pos])
-            # LoRA 带来的变化逐 token 对比：(采样端 带 − 不带) 对 (训练端 带 − 不带)。两端原有的数值差在这里相减抵掉，
-            # 直接回答"两端加的是不是同一个 LoRA"
-            dv = [v_lora[t] - v_base[t] for t in pos]
-            dt = [t_lora[t - 1] - t_base[t - 1] for t in pos]
-            dd = stats([a - b for a, b in zip(dv, dt)])
-            corr = statistics.correlation(dv, dt) if len(pos) > 2 else None
+            caught = {k: not v["pass"] for k, v in big.items() if k != "correct"}
+            ok = big["correct"]["pass"] and all(caught.values())
             gset = set(gen_pos)
-            gp = [i for i, t in enumerate(pos) if t in gset]
-            gen = {"tokens": len(gp), "lora_effect_sampler": statistics.mean(abs(dv[i]) for i in gp) if gp else None,
-                   "trainer_vs_sampler_without_lora": stats([t_base[pos[i] - 1] - v_base[pos[i]] for i in gp]),
-                   "trainer_vs_sampler_with_lora": stats([t_lora[pos[i] - 1] - v_lora[pos[i]] for i in gp]),
-                   "lora_change_diff": stats([dv[i] - dt[i] for i in gp])}
-            eff = (eff_v + eff_t) / 2
-            original = eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05
-            small = {"lora_b_std": float(os.environ.get("M2P_LORA_STD", "0.002")), "lora_effect_sampler": eff_v,
-                     "lora_effect_trainer": eff_t, "trainer_vs_sampler_with_lora": agree, "lora_change_diff": dd,
-                     "lora_change_corr": corr, "generated_tokens_only": gen, "original_rule_pass": original}
-            # 判定用放大 10 倍的测试 LoRA：BF16 的舍入噪声（两端差约 0.04–0.06）不随 LoRA 变大而变大，
-            # LoRA 带来的变化随之变大；两端加的若是同一个 LoRA，逐 token 的变化之差相对效应就很小，否则会跟着效应一起变大
-            big_std = 10 * small["lora_b_std"]
-            torch.manual_seed(2)
-            for _, mod in tr.lora_modules():
-                torch.nn.init.normal_(mod.lora_B["default"].weight, std=big_std)
-            tb = tr.logprobs(probe["ids"], pmask).tolist()
-            tr.export(SHM)
-            sampler.update_weights(SHM)
-            vb = sampler.prompt_logprobs(probe["ids"])
-            posb = [t for t in pos if vb[t] is not None]
-            dvb = [vb[t] - v_base[t] for t in posb]
-            dtb = [tb[t - 1] - t_base[t - 1] for t in posb]
-            eff_vb = statistics.mean(abs(x) for x in dvb)
-            eff_tb = statistics.mean(abs(x) for x in dtb)
-            ddb = stats([a - b for a, b in zip(dvb, dtb)])
-            corrb = statistics.correlation(dvb, dtb)
-            effb = (eff_vb + eff_tb) / 2
-            ok = (abs(eff_vb - eff_tb) / effb < 0.10 and ddb["mean"] < 0.25 * effb and corrb > 0.95
-                  and eff_vb > 2 * agree_base["mean"])
-            # 恢复成原来那个小的 LoRA（同一个随机种子），后面几项（带 LoRA 生成等）和以前一样
-            torch.manual_seed(1)
-            for _, mod in tr.lora_modules():
-                torch.nn.init.normal_(mod.lora_B["default"].weight, std=small["lora_b_std"])
-            tr.export(SHM)
-            sampler.update_weights(SHM)
-            record(1, "LoRA 真的生效", ok,
-                   lora_b_std=big_std, lora_effect_sampler=eff_vb, lora_effect_trainer=eff_tb,
-                   lora_change_diff=ddb, lora_change_corr=corrb, trainer_vs_sampler_without_lora=agree_base,
-                   tokens=len(posb), small_lora=small,
-                   criterion="测试 LoRA（B 的初值 std 0.02）下：两端效应相差 < 10%；逐 token 的 LoRA 变化两端之差 < 效应的 25%，"
-                             "相关系数 > 0.95；效应大于不带 LoRA 时两端差的 2 倍",
+            gp = [t for t in pos if t in gset and v_lora[t] is not None]
+            record(1, "LoRA 真的生效", ok, sigma_no_lora=sigma, tokens=len(pos), test_lora_std=big_std,
+                   correct=big["correct"], injected_faults={k: v for k, v in big.items() if k != "correct"},
+                   faults_caught=caught, small_lora={"std": small_std, **small["correct"]},
+                   generated_tokens_only={"tokens": len(gp), "sigma_no_lora": statistics.mean(
+                       abs(t_base[t - 1] - v_base[t]) for t in gp) if gp else None},
+                   criterion="σ = 不带 LoRA 时采样端与训练端 logprob 之差的均值（BF16 噪声）。测试 LoRA（B 初值 std 0.02）下："
+                             "两端效应都 > 5σ，两端效应相差 ≤ 15%，逐 token 的 LoRA 变化两端之差的均值 ≤ 4σ；"
+                             "并且同一规则对注入的三种故障（采样端没带 LoRA、LoRA 对错层、比例 ×2）都判不通过",
                    original_rule="（std 0.002 的 LoRA）两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
-                   criterion_change="std 0.002 时 LoRA 的效应（约 0.11）和两端原有的 BF16 差（约 0.04）同一量级，"
-                                    "两端差带不带 LoRA 时的舍入并不相同、相减抵不掉（逐 token 变化之差约 0.06，正是两份噪声的合成），"
-                                    "测不出\"同一个 LoRA\"和\"略有不同的 LoRA\"的区别；放大测试 LoRA 让信号远大于噪声再判，"
-                                    "小 LoRA 的数照样记录（small_lora）")
-            show = gen_pos[:40]
+                   criterion_change="std 0.002 时 LoRA 效应（约 0.11）和 BF16 噪声（σ 约 0.04）同一量级，两端差带不带 LoRA 时"
+                                    "的舍入并不相同、相减抵不掉（逐 token 变化之差 0.060 ≈ √(0.045²+0.038²)），按原规则这个大小的"
+                                    "LoRA 永远过不了，也分不出对错；改为放大测试 LoRA 并以 σ 为尺度判，同时在自检里注入三种故障，"
+                                    "证明规则判得出来")
             MATERIAL["lora_compare"] = [{"token": chat.decode([probe["ids"][t]]), "sampler_without_lora": v_base[t],
                                          "sampler_with_lora": v_lora[t], "trainer_with_lora": t_lora[t - 1],
-                                         "trainer_without_lora": t_base[t - 1]} for t in show]
+                                         "trainer_without_lora": t_base[t - 1]} for t in gen_pos[:40]]
 
         except Exception as e:  # 一项出错不影响其余各项
             record(1, "LoRA 真的生效", False, error=f"{type(e).__name__}: {e}"[:500])
@@ -316,34 +309,70 @@ def main():
             torch.cuda.empty_cache()
         # ---------- 6 训练样本与采样时看到的逐 token 一致 ----------
         try:
-            # 把 LoRA 清零，使采样端回到基础模型，再在整段序列上取采样端的 logprob，
-            # 和当初逐轮生成时返回的 logprob 比：前文若有任何不同，差会很大。
+            exact = calls_consistent
+
+            def rescore(s, lp=None):
+                """整段重新打分（采样端），和逐轮生成时返回的 logprob 比，查 logprob 有没有对错位置。"""
+                lp = s["lp"] if lp is None else lp
+                again = sampler.prompt_logprobs(s["ids"])
+                return [again[t] - lp[t] for t, m in enumerate(s["mask"])
+                        if m and lp[t] is not None and again[t] is not None]
+
+            ex_bad = ex_n = 0
+            for s in segs:
+                b, n = exact(s)
+                ex_bad, ex_n = ex_bad + b, ex_n + n
+            # 把 LoRA 清零，使采样端回到基础模型（采样时用的就是基础模型），再整段重新打分
             for _, mod in tr.lora_modules():
                 torch.nn.init.zeros_(mod.lora_B["default"].weight)
             tr.export(SHM)
             sampler.update_weights(SHM)
-            d6, same_tpl, n_tpl = [], 0, 0
+            d6 = []
             for s in segs[:12]:
-                again = sampler.prompt_logprobs(s["ids"])
-                d6 += [again[t] - s["lp"][t] for t, m in enumerate(s["mask"]) if m and s["lp"][t] is not None
-                       and again[t] is not None]
+                d6 += rescore(s)
+            st6 = stats(d6)
+            rescore_ok = st6["n"] > 0 and st6["mean"] < 0.02 and st6["p99"] < 0.5
+            # 故障注入：同一套判定对下面三种"真的不一致"必须判不通过
+            s0 = next(s for s in segs if len(s.get("calls", [])) >= 2 and chat.think_end_id in
+                      s["ids"][s["calls"][0]["at"]:s["calls"][0]["at"] + s["calls"][0]["recv"]["n"]])
+            a0 = s0["calls"][0]["at"]
+            k = a0 - 3                                              # 前文里多一个 token（如两个换行并成/拆开）
+            ins = {**s0, "ids": s0["ids"][:k] + [s0["ids"][k]] + s0["ids"][k:],
+                   "mask": s0["mask"][:k] + [0] + s0["mask"][k:], "lp": s0["lp"][:k] + [None] + s0["lp"][k:]}
+            te = s0["ids"].index(chat.think_end_id, a0)              # 第一轮的思考被删掉（模板删思考那类不一致）
+            dele = {**s0, "ids": s0["ids"][:a0] + s0["ids"][te:], "mask": s0["mask"][:a0] + s0["mask"][te:],
+                    "lp": s0["lp"][:a0] + s0["lp"][te:]}
+            shifted_lp = [None] + s0["lp"][:-1]                      # logprob 和 token 错开一位
+            f_ins, f_del = exact(ins)[0], exact(dele)[0]
+            st_shift = stats(rescore(s0, shifted_lp))
+            st_ins = stats(rescore(ins))
+            faults = {"inserted_token": {"exact_mismatched_calls": f_ins, "rescore": st_ins,
+                                         "caught": f_ins > 0 or not (st_ins["mean"] < 0.02 and st_ins["p99"] < 0.5)},
+                      "first_turn_thinking_deleted": {"exact_mismatched_calls": f_del, "caught": f_del > 0},
+                      "logprob_shifted_by_one": {"rescore": st_shift,
+                                                 "caught": not (st_shift["mean"] < 0.02 and st_shift["p99"] < 0.5)}}
+            same_tpl = n_tpl = 0
             for recs in trajs:
                 for r in recs:
                     for s in r.get("segments", [])[:1]:
                         msgs = [{"role": "system", "content": __import__("roommate.agent_llm", fromlist=["x"]).system_prompt(
                             0.15, "refuse_told")}] + r["transcript"]
                         nud = [i for i, m in enumerate(msgs) if m["role"] == "user" and m["content"] == NUDGE]
-                        upto = msgs[:nud[0]] if nud else msgs
-                        tpl = chat.encode(chat.render(upto, add_generation_prompt=False))
+                        tpl = chat.encode(chat.render(msgs[:nud[0]] if nud else msgs, add_generation_prompt=False))
                         n_tpl += 1
                         same_tpl += int(tpl[:len(s["ids"])] == s["ids"][:len(tpl)])
-            st6 = stats(d6)
-            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", st6["n"] > 0 and st6["p99"] < 0.5 and st6["mean"] < 0.02,
-                   rescore_vs_rollout=st6, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl,
-                   criterion="重新整段打分和逐轮采样时的 logprob 之差：均值 < 0.02，p99 < 0.5（最大差照记）",
-                   original_rule="均值 < 0.02，最大差 < 0.5", original_rule_pass=st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
-                   criterion_change="前文要是有一个 token 不同，会有成片的 token 差得很大，均值和 p99 都会跳；"
-                                    "单个 token 的最大差是 BF16 舍入（第 3 项同类数据上最大差到过 1.04），和第 4 项一样改看均值和 p99")
+            ok6 = ex_n > 0 and ex_bad == 0 and rescore_ok and all(f["caught"] for f in faults.values())
+            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", ok6,
+                   exact_calls_checked=ex_n, exact_calls_mismatched=ex_bad, rescore_vs_rollout=st6,
+                   injected_faults=faults, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl,
+                   criterion="逐次调用核对：训练样本 = 发给采样端的序列 + 采样端返回的序列（指纹比对，零容差）；"
+                             "整段重新打分和采样时 logprob 之差：均值 < 0.02，p99 < 0.5（查 logprob 对错位置；最大差照记）；"
+                             "并且对注入的三种不一致（前文多一个 token、第一轮思考被删、logprob 错开一位）都判不通过",
+                   original_rule="整段重新打分和采样时 logprob 之差：均值 < 0.02，最大差 < 0.5",
+                   original_rule_pass=st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
+                   criterion_change="原规则只靠数值比：单个 token 的 BF16 舍入就能超过最大差门槛（17:44 那次 18246 个 token 里"
+                                    "最大 0.54，均值 0.0125），而前文差一个 token 时数值不一定变大；改为指纹逐 token 核对（零容差）"
+                                    "判序列一致，数值比只查 logprob 位置，用均值和 p99")
             MATERIAL["template_drop_example"] = template_example(chat, trajs)
 
         except Exception as e:  # 一项出错不影响其余各项
@@ -351,46 +380,32 @@ def main():
             torch.cuda.empty_cache()
         # ---------- 7 loss 掩码 ----------
         try:
-            bad = 0
-            checked = 0
-            no_lp = 0
-            quotes = []
+            not_gen, checked, flags = 0, 0, []
             for recs in trajs:
                 for r in recs:
-                    tool_texts = [m["content"] for m in r["transcript"] if m["role"] == "tool"]
                     for s in r.get("segments", []):
-                        # 计入 loss 的每个 token 都要有采样端当时返回的 logprob，也就是确实是采样端生成的
-                        no_lp += sum(1 for v, m in zip(s["lp"], s["mask"]) if m and v is None)
-                        spans, cur = [], []
-                        for t, m in enumerate(s["mask"]):
-                            if m:
-                                cur.append(s["ids"][t])
-                            elif cur:
-                                spans.append(cur)
-                                cur = []
-                        if cur:
-                            spans.append(cur)
-                        for sp in spans:
-                            txt = chat.decode(sp)
-                            checked += 1
-                            if "<tool_response>" in txt or "<|im_start|>" in txt:      # 模板拼进来的标记
-                                bad += 1
-                            elif any(len(x) > 8 and x in txt for x in tool_texts) or r["transcript"][0]["content"][:30] in txt:
-                                # 模型在自己的输出里原样引用了工具结果或用户的话：是它生成的，记下来备查，不算错
-                                hit = next((x for x in tool_texts if len(x) > 8 and x in txt), r["transcript"][0]["content"][:30])
-                                i = txt.find(hit)
-                                quotes.append({"uid": r["uid"], "idx": r["idx"], "quoted": hit[:120],
-                                               "context": txt[max(0, i - 120):i + len(hit) + 60]})
-            appended7 = sum(t["appended_stop"] for recs in trajs for r in recs for t in r.get("turn_stats", []))
-            record(7, "只有模型生成的 token 计入 loss", bad == 0 and no_lp <= appended7, spans_checked=checked,
-                   spans_with_template_markers=bad, loss_tokens_without_sampler_logprob=no_lp,
-                   stop_tokens_appended=appended7, spans_quoting_context=len(quotes), quote_examples=quotes[:3],
-                   criterion="计入 loss 的 token 都有采样端返回的 logprob（确实是采样端生成的；补上的结束符除外），"
-                             "且计入 loss 的片段里没有模板标记（<tool_response>、<|im_start|>）",
-                   original_rule="片段里没有模板标记，也不含任何一条完整的工具结果或用户第一句话的前 30 字",
-                   original_rule_pass=bad == 0 and not quotes,
-                   criterion_change="原规则按文字找，模型在思考里原样引用记忆或用户的话也会被算成\"不是生成的\"；"
-                                    "改成逐 token 核对是不是采样端生成的（精确），引用另记备查")
+                        not_gen += len(loss_not_from_sampler(s, chat.stop_ids))
+                        f, n = flagged_spans(s, r["transcript"], chat)
+                        checked += n
+                        flags += [dict(x, uid=r["uid"], idx=r["idx"]) for x in f]
+            # 故障注入：把一段工具返回的 token 错算进 loss，判定必须不通过
+            s7 = next(s for s in segs if 0 in s["mask"][s["calls"][0]["at"] + s["calls"][0]["recv"]["n"] + 2:])
+            j = next(t for t in range(s7["calls"][0]["at"] + s7["calls"][0]["recv"]["n"] + 2, len(s7["ids"]))
+                     if not s7["mask"][t])
+            bad7 = {**s7, "mask": s7["mask"][:j] + [1] * 5 + s7["mask"][j + 5:]}
+            fault_caught = len(loss_not_from_sampler(bad7, chat.stop_ids)) > 0
+            ok7 = checked > 0 and not_gen == 0 and fault_caught
+            record(7, "只有模型生成的 token 计入 loss", ok7, spans_checked=checked,
+                   loss_tokens_not_from_sampler=not_gen,
+                   injected_fault={"tool_response_tokens_marked_as_loss": 5, "caught": fault_caught},
+                   old_rule_flags=len(flags), old_rule_flags_not_all_from_sampler=sum(not f["all_from_sampler"] for f in flags),
+                   flag_examples=flags[:5],
+                   criterion="计入 loss 的每个 token 都在采样端返回的范围里（按每次调用的指纹逐 token 核对；采样端停下但没返回的"
+                             "停止 token 除外）；并且把工具返回的 token 错算进 loss 时判不通过",
+                   original_rule="计入 loss 的片段里没有模板标记，也不含任何一条完整的工具结果或用户第一句话的前 30 字",
+                   original_rule_pass=not flags,
+                   criterion_change="原规则按文字找，模型在思考里原样引用工具结果或用户的话也会被标成\"不是生成的\"；"
+                                    "改为逐 token 核对是不是采样端生成的（精确）；原规则标出的片段照记，并注明是否全是采样端生成的")
             MATERIAL["mask_example"] = mask_example(chat, trajs)
 
         except Exception as e:  # 一项出错不影响其余各项
@@ -465,6 +480,73 @@ def memory_roundtrip(sw, user):
     return same_mem and same_next, {"memory_entries": len(e1.episodes[0].memory.entries), "same_memory": same_mem,
                                     "same_second_session": same_next,
                                     "memory_after_first": {k: v["value"] for k, v in e1.episodes[0].memory.entries.items()}}
+
+
+def loss_not_from_sampler(seg, stop_ids):
+    """计入 loss（mask = 1）却不在采样端返回范围里的位置。采样端在停止 token 上停下、但输出里没带它时，
+    agent 会补上这个停止 token（它是模型自己选的，只是没返回），不算。"""
+    got = set()
+    for c in seg.get("calls", []):
+        if "recv" in c:
+            got.update(range(c["at"], c["at"] + c["recv"]["n"]))
+    out = []
+    for t, m in enumerate(seg["mask"]):
+        if m and t not in got:
+            appended_stop = seg["ids"][t] in stop_ids and (t - 1) in got and seg["lp"][t] is None
+            if not appended_stop:
+                out.append(t)
+    return out
+
+
+def flagged_spans(seg, transcript, chat):
+    """原来第 7 项按文字找的那几种：计入 loss 的片段里有模板标记、某条完整的工具结果、或用户第一句话的前 30 字。
+    每处另记这段是否全是采样端生成的（逐 token 按调用指纹核对）。"""
+    got = set()
+    for c in seg.get("calls", []):
+        if "recv" in c:
+            got.update(range(c["at"], c["at"] + c["recv"]["n"]))
+    tool_texts = [m["content"] for m in transcript if m["role"] == "tool"]
+    user0 = transcript[0]["content"][:30]
+    spans, cur = [], []
+    for t, m in enumerate(seg["mask"]):
+        if m:
+            cur.append(t)
+        elif cur:
+            spans.append(cur)
+            cur = []
+    if cur:
+        spans.append(cur)
+    out = []
+    for sp in spans:
+        txt = chat.decode([seg["ids"][t] for t in sp])
+        why, hit = None, None
+        for mk in ("<tool_response>", "<|im_start|>"):
+            if mk in txt:
+                why, hit = "template_marker", mk
+        if why is None:
+            hit = next((x for x in tool_texts if len(x) > 8 and x in txt), None)
+            why = "tool_text" if hit else None
+        if why is None and user0 in txt:
+            why, hit = "user_text", user0
+        if why:
+            i = txt.find(hit)
+            out.append({"why": why, "matched": hit[:200], "span_tokens": len(sp),
+                        "all_from_sampler": all(t in got for t in sp),
+                        "context": txt[max(0, i - 200):i + len(hit) + 120]})
+    return out, len(spans)
+
+
+def calls_consistent(seg):
+    """自检第 6 项的逐次调用核对（零容差、不受数值误差影响）：训练样本里每次调用之前的部分 = 当时发给采样端的序列，
+    紧跟着的 = 采样端返回的序列（两边都是在 HTTP 这一层记下的指纹）。返回 (对不上的调用数, 调用数)。"""
+    from .sampler import ids_sha
+    bad = 0
+    for c in seg.get("calls", []):
+        a = c["at"]
+        if "sent" not in c or c["sent"]["n"] != a or ids_sha(seg["ids"][:a]) != c["sent"]["sha"] \
+                or ids_sha(seg["ids"][a:a + c["recv"]["n"]]) != c["recv"]["sha"]:
+            bad += 1
+    return bad, len(seg.get("calls", []))
 
 
 def template_example(chat, trajs):

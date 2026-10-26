@@ -63,8 +63,10 @@ class ScriptedSampler:
         ids = self.c.encode(out) + [self.c.im_end_id]
         self.calls.append(list(prompt_ids))
         rng = random.Random(len(prompt_ids))
+        from roommate.train.sampler import ids_sha      # 和真的采样端客户端一样，返回发出/收到的序列指纹
         return {"ids": ids, "lp": [-rng.random() for _ in ids], "top": [], "finish_reason": "stop",
-                "stop_reason": None, "appended_stop": False}
+                "stop_reason": None, "appended_stop": False,
+                "sent": {"n": len(prompt_ids), "sha": ids_sha(prompt_ids)}, "recv": {"n": len(ids), "sha": ids_sha(ids)}}
 
 
 @unittest.skipUnless(TOK and have("transformers"), "需要 M2P_TOKENIZER 与 transformers")
@@ -104,6 +106,41 @@ class TestTokens(unittest.TestCase):
         seg2 = self.c.decode(r0["segments"][1]["ids"])
         self.assertNotIn("读一下记忆", seg2)
         self.assertIn(NUDGE, seg2)
+
+    def test_calls_consistent_and_injected_faults(self):
+        """自检第 6 项的逐 token 核对：真实拼出的段全部对得上；前文多一个 token、第一轮思考被删，都核对得出来。"""
+        from roommate.train.selfcheck import calls_consistent
+        recs, _ = self.run_agent()
+        segs = [s for r in recs for s in r["segments"]]
+        n = 0
+        for s in segs:
+            bad, k = calls_consistent(s)
+            self.assertEqual(bad, 0)
+            n += k
+        self.assertGreater(n, 4)
+        s0 = next(s for s in segs if len(s["calls"]) >= 2)
+        a0 = s0["calls"][0]["at"]
+        ins = dict(s0, ids=s0["ids"][:a0 - 3] + [s0["ids"][a0 - 3]] + s0["ids"][a0 - 3:])
+        self.assertGreater(calls_consistent(ins)[0], 0)
+        te = s0["ids"].index(self.c.think_end_id, a0)
+        dele = dict(s0, ids=s0["ids"][:a0] + s0["ids"][te:])
+        self.assertGreater(calls_consistent(dele)[0], 0)
+
+    def test_loss_provenance(self):
+        """自检第 7 项：计入 loss 的 token 都在采样端返回的范围里；把工具返回错算进 loss 时查得出来。"""
+        from roommate.train.selfcheck import flagged_spans, loss_not_from_sampler
+        recs, _ = self.run_agent()
+        for r in recs:
+            for s in r["segments"]:
+                self.assertEqual(loss_not_from_sampler(s, self.c.stop_ids), [])
+                flags, n = flagged_spans(s, r["transcript"], self.c)
+                self.assertGreater(n, 0)
+                self.assertTrue(all(f["all_from_sampler"] for f in flags))
+        s = next(s for r in recs for s in r["segments"] if len(s["calls"]) >= 2)
+        end = s["calls"][0]["at"] + s["calls"][0]["recv"]["n"]
+        j = next(t for t in range(end + 2, len(s["ids"])) if not s["mask"][t])
+        bad = dict(s, mask=s["mask"][:j] + [1] * 3 + s["mask"][j + 3:])
+        self.assertNotEqual(loss_not_from_sampler(bad, self.c.stop_ids), [])
 
     def test_incremental_equals_template(self):
         recs, _ = self.run_agent()

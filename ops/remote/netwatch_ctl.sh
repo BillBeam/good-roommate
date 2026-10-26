@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 网络观察（netwatch.sh）的开关：start / stop / restart / status。按 PID 文件管理，
 # 不用 pgrep -f / pkill -f（它们会匹配到调用者自己那条命令行，把自己的 ssh 会话杀掉，或误以为已经在跑）。
-W=/root/work; PIDF=$W/out/diag/netwatch.pid; SCRIPT=$W/repo/ops/remote/netwatch.sh
+W=${NETWATCH_W:-/root/work}; PIDF=$W/out/diag/netwatch.pid; SCRIPT=$W/repo/ops/remote/netwatch.sh
 mkdir -p $W/out/diag
 running() { [ -f $PIDF ] && p=$(cat $PIDF) && [ -n "$p" ] && grep -q netwatch.sh /proc/$p/cmdline 2>/dev/null; }
 case "${1:-status}" in

@@ -45,6 +45,7 @@ class LocalAgent:
         ids, lps, gen = [], [], []
         r = self.sampler.complete(prompt, min(self.think_budget, room), self.temperature, self.top_p,
                                   seed=_seed(tag, 0), stop_ids=c.stop_ids)
+        calls = [{"at": len(prompt), **{k: r[k] for k in ("sent", "recv") if k in r}}]
         ids += r["ids"]
         lps += r["lp"]
         gen += [1] * len(r["ids"])
@@ -64,6 +65,7 @@ class LocalAgent:
             if remain > 0:
                 r2 = self.sampler.complete(prompt + ids, remain, self.temperature, self.top_p,
                                            seed=_seed(tag, 1), stop_ids=c.stop_ids)
+                calls.append({"at": len(prompt) + len(ids), **{k: r2[k] for k in ("sent", "recv") if k in r2}})
                 ids += r2["ids"]
                 lps += r2["lp"]
                 gen += [1] * len(r2["ids"])
@@ -74,11 +76,11 @@ class LocalAgent:
         think = ids.index(c.think_end_id) if c.think_end_id in ids else len(ids)
         think_gen = sum(gen[:think])
         return {"ids": ids, "lp": lps, "gen": gen, "think_tokens": think_gen, "think_hit": think_hit,
-                "truncated": truncated, "appended_stop": appended}
+                "truncated": truncated, "appended_stop": appended, "calls": calls}
 
     def _new_segment(self, messages):
         ids = self.chat.encode(self.chat.render(messages, add_generation_prompt=True))
-        return {"ids": ids, "mask": [0] * len(ids), "lp": [None] * len(ids), "prompts": []}
+        return {"ids": ids, "mask": [0] * len(ids), "lp": [None] * len(ids), "prompts": [], "calls": []}
 
     # ---------- 一次会话 ----------
     def run_session(self, ctx):
@@ -102,6 +104,7 @@ class LocalAgent:
                 overflow = True
                 issues.append({"turn": turns, "kind": "context_overflow"})
                 break
+            seg["calls"] += g["calls"]          # 每次调用采样端：发出去的、收回来的 token 序列指纹（自检第 6 项核对）
             seg["ids"] += g["ids"]
             seg["mask"] += g["gen"]
             seg["lp"] += [lp if m else None for lp, m in zip(g["lp"], g["gen"])]

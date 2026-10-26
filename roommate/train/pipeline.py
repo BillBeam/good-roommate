@@ -20,6 +20,7 @@ import subprocess
 import sys
 import time
 
+from . import serve
 from .common import CKPT, OUT, dump, load, status
 
 STAGES = ["selfcheck", "eval_pre", "sft", "eval_sft", "grpo1", "eval_grpo1", "grpo2", "eval_grpo2"]
@@ -90,7 +91,7 @@ def drill(c, log):
     if killed is None:
         return p.returncode
     time.sleep(5)
-    subprocess.run(["pkill", "-f", "vllm.entrypoints"], check=False)   # 被杀进程留下的采样端
+    serve.kill_stale()   # 被杀进程留下的采样端
     time.sleep(10)
     ck = json.load(open(os.path.join(CKPT, "grpo_s1", "latest", "extra.json")))
     t1 = time.time()
@@ -128,7 +129,7 @@ def main(argv=None):
         if st == "sft" and not glob.glob("runs/m2pilot/teacher/seed*/policies/*/transcripts.jsonl.gz"):
             status("pipeline", stage="waiting_teacher")
             return
-        subprocess.run(["pkill", "-f", "vllm.entrypoints"], check=False)   # 上一阶段若异常退出，可能留下采样端
+        serve.kill_stale()   # 上一阶段若异常退出，可能留下采样端
         time.sleep(3)
         t0 = time.time()
         status("pipeline", stage=st)

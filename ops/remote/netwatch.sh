@@ -5,7 +5,7 @@
 #   fw_drop_pkts：本机防火墙 DROP/REJECT 累计丢弃的包数（没有 iptables 时记 -1）；
 #   out_baidu / out_github：机器往外访问是否正常（HTTP 状态码）。
 # 只记计数，不记 IP。SSH 连不上时，这份记录能说明：机器是否还活着、连接有没有到达机器、是不是本机防火墙挡的。
-OUT=/root/work/out/diag; mkdir -p "$OUT"
+OUT=${NETWATCH_W:-/root/work}/out/diag; mkdir -p "$OUT"
 PORT=$(awk '/^[[:space:]]*Port[[:space:]]/ {print $2; exit}' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* 2>/dev/null)
 PORT=${PORT:-22}
 while true; do

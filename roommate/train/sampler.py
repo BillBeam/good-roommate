@@ -7,11 +7,17 @@
   roommate.train.vllm_ext 里的 update_weights_from_path 载入，然后清前缀缓存。
 """
 
+import hashlib
 import json
 import threading
 import time
 import urllib.error
 import urllib.request
+
+
+def ids_sha(ids):
+    """token 序列的指纹（自检第 6 项用）。"""
+    return hashlib.sha1(json.dumps([int(x) for x in ids]).encode()).hexdigest()[:16]
 
 
 class SamplerError(RuntimeError):
@@ -58,6 +64,8 @@ class VLLMClient:
 
     def complete(self, prompt_ids, max_tokens, temperature, top_p=1.0, seed=None, stop_ids=None, top_logprobs=1,
                  ignore_eos=False):
+        """返回里另有 sent / recv：发给采样端的 token 序列、采样端返回的 token 序列的指纹（在 HTTP 这一层算），
+        自检第 6 项拿它们逐 token 核对训练样本和采样时模型看到的是否一致。"""
         body = {"model": self.model, "prompt": list(prompt_ids), "max_tokens": int(max_tokens),
                 "temperature": float(temperature), "top_p": float(top_p), "top_k": -1, "min_p": 0.0,
                 "repetition_penalty": 1.0, "presence_penalty": 0.0, "frequency_penalty": 0.0,
@@ -85,7 +93,9 @@ class VLLMClient:
             self.stats["gen_tokens"] += len(ids)
             self.stats["seconds"] += time.time() - t0
         return {"ids": ids, "lp": lps, "top": tops, "finish_reason": ch.get("finish_reason"),
-                "stop_reason": stop_reason, "appended_stop": appended}
+                "stop_reason": stop_reason, "appended_stop": appended,
+                "sent": {"n": len(body["prompt"]), "sha": ids_sha(body["prompt"])},
+                "recv": {"n": len(ids) - int(appended), "sha": ids_sha(ids[:len(ids) - int(appended)])}}
 
     def prompt_logprobs(self, ids):
         """整段序列每个位置（从第 2 个 token 起）在采样端模型下的 logprob。"""

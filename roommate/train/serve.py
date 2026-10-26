@@ -49,6 +49,54 @@ def start(model, log_path, gpu_util=0.40, max_model_len=32768, port=PORT, device
     raise RuntimeError("vLLM did not become healthy")
 
 
+SERVER_MODULE = "vllm.entrypoints.openai.api_server"
+
+
+def _ancestors():
+    """本进程和它的全部祖先进程。"""
+    out, pid = set(), os.getpid()
+    while pid > 1 and pid not in out:
+        out.add(pid)
+        try:
+            with open(f"/proc/{pid}/stat") as f:
+                pid = int(f.read().rsplit(")", 1)[1].split()[1])
+        except OSError:
+            break
+    return out
+
+
+def stale_servers(module=SERVER_MODULE):
+    """还在跑的采样端进程：按进程自己的参数逐项比（argv 里有 "-m" 紧跟着这个模块名），不按整条命令行做子串匹配，
+    并且排除本进程和祖先进程（命令行里恰好写着这个模块名的 shell 不会被当成采样端）。"""
+    skip, found = _ancestors(), []
+    for d in os.listdir("/proc"):
+        if not d.isdigit() or int(d) in skip:
+            continue
+        try:
+            with open(f"/proc/{d}/cmdline", "rb") as f:
+                argv = f.read().decode("utf-8", "replace").split("\0")
+        except OSError:
+            continue
+        if any(argv[i] == "-m" and argv[i + 1] == module for i in range(len(argv) - 1)):
+            found.append(int(d))
+    return found
+
+
+def kill_stale(module=SERVER_MODULE):
+    """结束上一阶段异常退出后留下的采样端（连同它的引擎子进程：它们在同一个进程组里）。返回结束了哪些。"""
+    import signal
+    killed = stale_servers(module)
+    for pid in killed:
+        try:
+            os.killpg(os.getpgid(pid), signal.SIGKILL)
+        except OSError:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+    return killed
+
+
 def stop(proc):
     if proc is None or proc.poll() is not None:
         return

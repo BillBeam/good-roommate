@@ -227,19 +227,36 @@ class Trainer:
         return hits[0]
 
     @torch.no_grad()
-    def merged_weights(self, with_lora=True):
+    def merged_weights(self, with_lora=True, fault=None):
+        """fault 只给自检第 1 项做故障注入用：{"scale": 2.0} 按错的比例合并；{"layer_shift": 1} 把每层的 LoRA
+        合并进下一个同类子模块（同名、同形状的下一层），模拟名字对错层。"""
+        import re as _re
+        mods = list(self.lora_modules())
+        src = {n: n for n, _ in mods}
+        if fault and fault.get("layer_shift"):
+            groups = {}
+            for n, _ in mods:
+                groups.setdefault(_re.sub(r"layers\.\d+\.", "layers.*.", n), []).append(n)
+            for names in groups.values():
+                names.sort(key=lambda x: int(_re.search(r"layers\.(\d+)\.", x).group(1)))
+                k = int(fault["layer_shift"])
+                for j, n in enumerate(names):
+                    src[n] = names[(j - k) % len(names)]      # 这一层拿到的是前 k 层的 LoRA
+        by = dict(mods)
         out = {}
-        for n, mod in self.lora_modules():
+        for n, mod in mods:
             W = mod.base_layer.weight
             if with_lora:
-                A, B = mod.lora_A["default"].weight, mod.lora_B["default"].weight
-                W = (W.float() + mod.scaling["default"] * (B.float() @ A.float())).to(W.dtype)
+                m2 = by[src[n]]
+                A, B = m2.lora_A["default"].weight, m2.lora_B["default"].weight
+                scale = mod.scaling["default"] * (fault.get("scale", 1.0) if fault else 1.0)
+                W = (W.float() + scale * (B.float() @ A.float())).to(W.dtype)
             out[self._ckpt_name(n)] = W.contiguous()
         return out
 
-    def export(self, path, with_lora=True):
+    def export(self, path, with_lora=True, fault=None):
         from safetensors.torch import save_file
-        w = self.merged_weights(with_lora)
+        w = self.merged_weights(with_lora, fault)
         tmp = path + ".tmp"
         save_file({k: v.cpu() for k, v in w.items()}, tmp)
         os.replace(tmp, path)
