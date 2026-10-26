@@ -1,0 +1,23 @@
+{
+ "seed": 1,
+ "adapter": "/root/work/ckpt/sft/final",
+ "steps": 30,
+ "groups": 4,
+ "samples": 8,
+ "lr": 5e-05,
+ "save_every": 5,
+ "resume": false,
+ "stop_after": null,
+ "gpu_util": 0.4,
+ "sleep_mode": false,
+ "pool_size": 336,
+ "train_setting": {
+  "temperature": 1.0,
+  "think_budget": 4096,
+  "answer_cap": 2048
+ },
+ "needs_first_in_pool": 0.7172619047619048,
+ "tis_cap": 2.0,
+ "vllm_boot_seconds": 48.0,
+ "first_sync_seconds": 9.796223402023315
+}

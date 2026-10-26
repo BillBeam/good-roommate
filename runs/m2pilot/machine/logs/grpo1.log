@@ -1,0 +1,7 @@
+
+=== 2026-10-26T21:58:50Z /root/work/venv/bin/python -m roommate.train.grpo --seed 1 --adapter /root/work/ckpt/sft/final
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights: 100%|██████████| 426/426 [00:00<00:00, 13220.96it/s]
+/root/work/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py:1090: UserWarning: You have passed exclude_modules=.*visual.* but no modules were excluded. Please check that exclude_modules was set correctly.
+  warnings.warn(
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
