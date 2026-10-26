@@ -529,6 +529,8 @@ def do_run(a):
         tail = re.sub(r"(\d{1,3}\.){3}\d{1,3}", "<ip>", (p.stdout or "")[-3000:]) if p else "timeout"
         log("run_fg", name=name, seconds=round(time.time() - t0, 1), tail=tail)
         summary.setdefault("fg_output", {})[name] = tail
+        if a.get("gate"):               # 关卡：命令本身失败（退出码非 0）就不往下做
+            return bool(p is not None and p.returncode == 0)
         return bool(p is not None and p.returncode != 255)
 
 
@@ -643,7 +645,7 @@ def do_image(a):
                                                           "UHostId": h["UHostId"], "Name": a.get("name", "m2pilot-env")})
     img = r.get("CompShareImageId") or r.get("ImageId")
     log("image_create", RetCode=r.get("RetCode"), Message=redact(r.get("Message")), image=img)
-    final = None
+    final, last_hb = None, time.time()
     while img and time.time() - t0 < 3600:
         g, _ = api.call("GetCompShareImageCreateProgress", {"Region": h["_region"], "Zone": h["Zone"],
                                                             "CompShareImageId": img})
@@ -654,6 +656,9 @@ def do_image(a):
         if status.lower() in ("failed", "error"):
             break
         time.sleep(20)
+        if time.time() - last_hb > SYNC_EVERY:      # 长等待：兜底关机始终在前面
+            heartbeat(h)
+            last_hb = time.time()
     info = {"image_id": img, "seconds": round(time.time() - t0, 1), "final": {k: v for k, v in (final or {}).items()
                                                                               if k not in ("request_uuid",)}}
     data_write("relay/image.json", info)
@@ -771,7 +776,7 @@ def main():
                                                                        "at": now_iso(), "error": str(e)[:200]})
                 continue
             summary["actions"].append({"do": a["do"], "name": a.get("name"), "ok": ok is not False})
-            if a["do"] in ("grab", "upload", "reboot") and ok is False:
+            if (a["do"] in ("grab", "upload", "reboot", "destroy") or a.get("gate")) and ok is False:
                 log("stop_after_failed", do=a["do"])    # 没传上新代码就不往下跑（免得跑旧代码）
                 break
             h = our_machine()
