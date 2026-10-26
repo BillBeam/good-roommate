@@ -147,6 +147,9 @@ def data_checkout():
         git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com", cwd=d)
         if hdr:
             git("config", "http.https://github.com/.extraheader", hdr, cwd=d)
+        # 两轮中转可能同时往数据分支推：只追加的 .jsonl 两边的行都留（union），其他文件以本轮为准（rebase -X theirs）
+        with open(os.path.join(d, ".git", "info", "attributes"), "a") as f:
+            f.write("*.jsonl merge=union\n")
     return d
 
 
@@ -156,12 +159,18 @@ def data_push(message):
     if git("diff", "--cached", "--quiet", cwd=d, check=False).returncode == 0:
         return
     git("commit", "-q", "-m", message, cwd=d)
-    for i in range(5):
+    for i in range(6):
         if git("push", "-q", "origin", DATA_BRANCH, cwd=d, check=False).returncode == 0:
-            return
-        git("pull", "-q", "--rebase", "origin", DATA_BRANCH, cwd=d, check=False)
-        time.sleep(5 * (i + 1))
+            return True
+        git("fetch", "-q", "origin", DATA_BRANCH, cwd=d, check=False)
+        r = git("rebase", "-X", "theirs", f"origin/{DATA_BRANCH}", cwd=d, check=False)
+        if r.returncode != 0:              # 还是合不上：退回去（不能留在半截 rebase 里），下一次再试
+            git("rebase", "--abort", cwd=d, check=False)
+            log("data_rebase_failed", err=redact((r.stderr or r.stdout or "")[-300:]))
+        time.sleep(3 * (i + 1))
     log("data_push_failed")
+    summary["data_push_failed"] = True
+    return False
 
 
 def data_json(rel, default):
@@ -817,6 +826,46 @@ def do_exposure(a):
     return True
 
 
+TOKEN_CMD = r"""C=/etc/supervisor/conf.d/jupyterlab.conf; JP=$(pgrep -o -f "[j]upyter-lab --")
+form=$(grep -oE 'ServerApp\.token=[^ ]+' $C | head -1 | cut -d= -f2- | sed -E 's/^(\$\{?[A-Za-z_]+\}?).*/ENVREF:\1/; t; s/.*/LITERAL/')
+run=$(tr '\0' '\n' < /proc/$JP/cmdline | grep -oE 'ServerApp\.token=.*' | head -1 | cut -d= -f2-)
+env=$(tr '\0' '\n' < /proc/$JP/environ | grep -E '^JUPYTER_TOKEN=' | cut -d= -f2-)
+lit=$(grep -oE 'ServerApp\.token=[^ ]+' $C | head -1 | cut -d= -f2-)
+h() { printf %s "$1" | sha256sum | cut -c1-8; }
+echo "form=$form run_len=${#run} run_sha8=$(h "$run") env_len=${#env} env_sha8=$(h "$env") conf_value_sha8=$(h "$lit")" """
+
+
+def do_token_check(a):
+    """Jupyter 的口令是每台机器不同的（平台开机时给的），还是写死在镜像里的同一个：
+    看配置里是引用环境变量还是字面值；运行中的口令和 JUPYTER_TOKEN、和平台接口返回的本机密码字段是否相同。
+    只记长度、哈希前 8 位和是否相同。"""
+    import base64 as b64
+    import hashlib
+    c = conn()
+    p = ssh(c, TOKEN_CMD, timeout=60)
+    line = (p.stdout or "").strip().splitlines()[-1] if p and p.stdout else ""
+    kv = dict(x.split("=", 1) for x in line.split() if "=" in x)
+    h = our_machine()
+    sha8 = lambda v: hashlib.sha256(v.encode()).hexdigest()[:8]
+    match = {}
+    for field in ("Password", "FileBrowserPassword"):
+        v = h.get(field) or ""
+        cands = [v]
+        try:
+            cands.append(b64.b64decode(v).decode("utf-8"))
+        except Exception:
+            pass
+        match[field] = any(x and sha8(x) == kv.get("run_sha8") for x in cands)
+    res = {"config_form": kv.get("form"), "running_token_len": kv.get("run_len"),
+           "running_equals_env_JUPYTER_TOKEN": kv.get("run_sha8") == kv.get("env_sha8") and kv.get("env_len") != "0",
+           "running_equals_config_text": kv.get("run_sha8") == kv.get("conf_value_sha8"),
+           "running_equals_instance_field": match, "running_sha8": kv.get("run_sha8")}
+    summary["token_check"] = res
+    data_write("relay/token_check.json", {"at": now_iso(), **res})
+    log("token_check", **res)
+    return True
+
+
 def do_destroy(a):
     h = our_machine()
     rec = data_json("relay/machine_health.json", {}).get(h["UHostId"], {}) if h else {}
@@ -870,7 +919,7 @@ def do_fetch_tokenizer(a):
     log("fetch_tokenizer", files=got)
 
 
-ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "exposure": do_exposure, "upload": do_upload,
+ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "exposure": do_exposure, "token_check": do_token_check, "upload": do_upload,
            "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "destroy": do_destroy}
 
 
@@ -957,7 +1006,7 @@ def main():
             heartbeat(h)
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
-            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure") or
+            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check") or
                                                          (a["do"] == "run" and a.get("background") is False)):
                 log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
                 continue
