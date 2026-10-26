@@ -1,0 +1,15 @@
+{
+  "_note": "Parameters a real 30-minute test launch would use. Probe workflow only quotes them; nothing here creates anything.",
+  "Region": "cn-wlcb",
+  "Zone": "cn-wlcb-01",
+  "GpuType": "4090",
+  "Gpu": 1,
+  "Cpu": 16,
+  "MemoryGiB": 64,
+  "MinimalCpuPlatform": "Auto",
+  "CompShareImageId": "compshareImage-1t4y5aeosple",
+  "CompShareImageName": "vLLM v0.25.1",
+  "Disks": [{"IsBoot": true, "Type": "CLOUD_SSD", "Size": 100}],
+  "ChargeType": "Postpay",
+  "Quantity": 1
+}

@@ -1,0 +1,73 @@
+# Zero-cost probe of the session -> Actions -> Compshare chain. Manual trigger only.
+# Read-only Compshare calls; results go to the chain-results branch and, if
+# pr_number is given, a short comment on that PR.
+name: chain-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      dispatched_at:
+        description: "UTC time the caller dispatched this run (ISO 8601), for timing"
+        required: false
+        default: ""
+      pr_number:
+        description: "PR to post a summary comment on (optional)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: chain-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Probe (read-only)
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+          DISPATCHED_AT: ${{ inputs.dispatched_at }}
+        run: python3 ops/chain_probe.py "$RUNNER_TEMP/out"
+
+      - name: Push results to chain-results branch
+        env:
+          OUT: ${{ runner.temp }}/out
+        run: |
+          dest="runs/chain/${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth=1 origin chain-results; then
+            git switch -c chain-results FETCH_HEAD
+          else
+            git switch --orphan chain-results
+          fi
+          mkdir -p "$dest" && cp -r "$OUT"/. "$dest"/
+          git add "$dest"
+          git commit -q -m "chain-probe results for run ${GITHUB_RUN_ID}"
+          git push origin chain-results
+
+      - name: Comment on PR
+        if: inputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ runner.temp }}/out
+          PR: ${{ inputs.pr_number }}
+        run: |
+          {
+            echo "chain-probe run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+            echo
+            echo "Results: \`runs/chain/${GITHUB_RUN_ID}/result.json\` on branch \`chain-results\`."
+            echo
+            echo '```json'
+            python3 -c "import json;d=json.load(open('$OUT/result.json'));print(json.dumps({'checks':d.get('compshare',{}).get('checks'),'ssh':[{k:r.get(k) for k in ('host','handshake_ok','tcp_connect_median_ms')} for r in d.get('ssh',[])]},ensure_ascii=False,indent=1))"
+            echo '```'
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md
