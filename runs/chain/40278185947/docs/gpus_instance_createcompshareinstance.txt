@@ -1,0 +1,1161 @@
+https://www.compshare.cn/docs/gpus/instance/createcompshareinstance
+
+CreateCompShareInstance — 创建GPU实例 · 优云智算文档
+Skip to Content
+CTRL K
+平台介绍
+平台概述
+平台介绍
+加入社群
+用户等级与推荐
+会员等级
+用户推荐
+产品更新公告
+GPU-新功能发布记录
+模型API-新功能发布记录
+服务协议
+协议概览
+优云智算服务框架协议
+优云智算云服务法律声明及隐私政策
+优云智算用户协议
+优云智算云平台安全规则
+优云智算激励活动协议
+GPU 产品指南
+GPU产品介绍
+功能概览
+已上线卡型
+可用区介绍
+GPU操作指南
+【新人必看】入门指南
+镜像选择
+创建实例
+登录实例
+本地数据上传
+文件管理
+制作私有镜像
+调用公共模型库
+防火墙及端口设置
+独享带宽
+配置外网加速
+云硬盘扩容与挂载
+云存储挂载
+模型库挂载
+自启动
+手动安装监控
+无卡模式
+GPU抢占式实例
+GPU抢占式实例
+发布社区镜像
+如何发布社区镜像
+更新已发布的社区镜像
+计费与回收
+计费概览
+计费方式说明
+独享带宽计费
+到期或欠费说明
+续费管理
+回收规则
+GPU最佳实践
+Isaac系列镜像使用教程
+Windows实例远程登录手册
+通过VNC搭建Ubuntu图形界面
+ubuntu如何安装Dify
+ubuntu如何安装Docker
+Windows安装Nvidia驱动和Cuda
+ubuntu安装Nvidia驱动和Cuda
+使用LangBot快速部署QQ、微信、飞书、钉钉机器人
+使用Clawdbot连接Telegram
+使用Clawdbot连接飞书
+GPU常见问题FAQ
+GPU 接口文档
+API接口范例
+常见错误码
+GPU实例
+创建GPU资源
+获取实例资源列表
+切换实例公网带宽归属
+启动实例
+关闭实例
+删除实例
+重启实例
+重装实例
+重置实例密码
+升降配实例
+获取支持的可用区信息列表
+查询网络加速服务状态
+检查指定规格的资源可用性
+获取可用机型列表
+获取机型族列表
+查询软件端口映射列表
+查询模型仓库模型列表
+获取实例监控数据
+变更实例计费方式
+查询创建实例价格
+查询实例升配价格
+查询实例当前计费信息
+查询退费金额
+获取实例上软件的访问地址
+修改实例名称
+更新容器实例端口
+设置/更新定时关机
+取消定时关机
+实例镜像
+获取自制镜像列表
+创建自制镜像
+删除算力平台自制镜像
+获取社区镜像列表
+获取平台镜像列表
+查询镜像已共享的账户列表
+获取镜像标签列表
+查询他人共享给自己的镜像
+查询已收藏的镜像列表
+查询自己发布的社区镜像
+查询指定用户的社区镜像
+查询镜像制作进度
+共享/取消共享镜像
+发布镜像到社区
+收藏镜像
+取消收藏镜像
+更新镜像信息
+磁盘与云存储
+创建并挂载云盘
+删除云盘
+卸载云盘
+扩容云盘
+挂载已有云盘
+查询云盘扩容价格
+云存储Pro
+接口概览与调用流程
+创建云存储Pro
+查询云存储Pro
+挂载云存储Pro
+卸载云存储Pro
+扩容云存储Pro
+删除云存储Pro
+查询购买价格
+查询扩容价格
+查询退费金额
+挂载 US3 对象存储到实例
+云存储文件上传和下载
+团队管理
+创建团队
+邀请成员加入团队
+删除团队
+查询成员订单列表
+查询成员订单数量
+查询成员未支付订单
+查询成员未支付订单数量
+导出团队账单
+获取团队详情
+查询已创建的团队列表
+查询团队邀请记录
+查询已加入的团队列表
+查询团队操作日志
+查询成员产品类型列表
+设置成员额度
+修改成员角色
+更新团队信息
+CLI&Skill
+CLI 快速开始
+MiniMax H3 文档
+产品介绍
+视频生成
+图片生成
+音频生成
+任务与资产管理
+积分与计费
+API 调用
+MiniMax H3 视频任务 API
+Qwen-Image 图片生成 API
+IndexTTS 2.5 语音任务 API
+模型 API 文档
+模型API产品介绍
+模型API服务
+套餐包使用说明
+套餐包快速上手
+套餐计费逻辑
+套餐用量统计
+客户端接入
+OpenClaw 云端服务
+按量计费说明
+按量API调用指南
+快速开始
+通用说明
+认证鉴权
+错误码
+文本生成
+如何获取模型列表
+模型协议支持说明
+API支持与扩展字段说明
+OpenAI-Completions 说明
+OpenAI-Response说明
+Embeddings 向量嵌入
+Gemini 快速开始
+Claude (Anthropic) 兼容说明
+DeepSeek-OCR 模型调用示例
+思考模型配置
+DeepSeek V3.1模型开启关闭思考说明
+Doubao豆包模型思考功能参数说明
+图片生成
+Qwen-Image-Edit
+Qwen-Image
+Nano Banana Pro
+Nano Banana 2
+gpt-image-2
+doubao-seedream
+Qwen-Image-Edit
+Qwen-Image
+stepfun-ai/step1x-edit API
+视频生成
+Flash VSR 视频超分 API
+doubao-seedance-1-5-pro
+doubao-seedance-2-0
+火山方舟素材管理
+火山方舟私域虚拟人像素材管理
+Vidu 系列
+Vidu/文生视频
+Vidu/图生视频
+Vidu/参考图生视频
+Vidu/首尾帧生视频
+Vidu/视频延长
+Vidu/对口型
+Wan-AI/Wan2.2-I2V
+Wan-AI/Wan2.2-T2V
+Wan-AI/Wan2.5-I2V
+Wan-AI/Wan2.5-T2V
+Wan-AI/Wan2.6-I2V
+Wan-AI/Wan2.6-T2V
+MiniMax/Hailuo-2.3-I2V
+MiniMax/Hailuo-2.3-T2V
+音频生成
+IndexTTS
+自定义音色
+IndexTeam/IndexTTS 扩展参数
+suno音乐生成
+MiniMax/speech-hd
+通义千问 Qwen-TTS
+常见问题答疑
+最佳实践
+OpenClaw 接入指南
+Claude Code 接入指南
+Codex 接入指南
+OpenCode 接入指南
+如何在codex中调用优云智算Agent Plan
+ComfyUI插件接入
+常见客户端接入 API
+Dify
+RAGFlow
+AnythingLLM
+纳米AI
+n8n
+GPT4All
+Cherry Studio
+Chatbox
+ChatHub
+ChatWise
+OpenWeb UI
+Obsidian
+MCP 说明
+MCP 简介
+通过 CLINE 接入 MCP 服务
+通过 UCloud API 实现 MCP Client
+API常见问题FAQ
+Agent 托管
+产品介绍
+产品介绍
+快速开始
+Agent 前置配置
+接入模型服务
+安装技能与专家包
+注入人设
+连接消息通道
+Agent 使用与操作
+对话与会话管理
+文件管理
+自动任务
+实例详情
+切换与重装
+计费说明
+计费与升配续费
+到期与数据说明
+账号与账单
+账号注册
+注册流程
+注销账号
+实名认证
+认证概览
+个人认证
+高校认证
+企业认证
+团队管理
+团队功能概览
+管理员账号操作说明
+团队成员账号操作说明
+账单与发票
+账号充值
+提现规则
+查看账单
+开具发票
+API接口范例
+常见错误码
+GPU实例
+创建GPU资源
+获取实例资源列表
+切换实例公网带宽归属
+启动实例
+关闭实例
+删除实例
+重启实例
+重装实例
+重置实例密码
+升降配实例
+获取支持的可用区信息列表
+查询网络加速服务状态
+检查指定规格的资源可用性
+获取可用机型列表
+获取机型族列表
+查询软件端口映射列表
+查询模型仓库模型列表
+获取实例监控数据
+变更实例计费方式
+查询创建实例价格
+查询实例升配价格
+查询实例当前计费信息
+查询退费金额
+获取实例上软件的访问地址
+修改实例名称
+更新容器实例端口
+设置/更新定时关机
+取消定时关机
+实例镜像
+获取自制镜像列表
+创建自制镜像
+删除算力平台自制镜像
+获取社区镜像列表
+获取平台镜像列表
+查询镜像已共享的账户列表
+获取镜像标签列表
+查询他人共享给自己的镜像
+查询已收藏的镜像列表
+查询自己发布的社区镜像
+查询指定用户的社区镜像
+查询镜像制作进度
+共享/取消共享镜像
+发布镜像到社区
+收藏镜像
+取消收藏镜像
+更新镜像信息
+磁盘与云存储
+创建并挂载云盘
+删除云盘
+卸载云盘
+扩容云盘
+挂载已有云盘
+查询云盘扩容价格
+云存储Pro
+接口概览与调用流程
+创建云存储Pro
+查询云存储Pro
+挂载云存储Pro
+卸载云存储Pro
+扩容云存储Pro
+删除云存储Pro
+查询购买价格
+查询扩容价格
+查询退费金额
+挂载 US3 对象存储到实例
+云存储文件上传和下载
+团队管理
+创建团队
+邀请成员加入团队
+删除团队
+查询成员订单列表
+查询成员订单数量
+查询成员未支付订单
+查询成员未支付订单数量
+导出团队账单
+获取团队详情
+查询已创建的团队列表
+查询团队邀请记录
+查询已加入的团队列表
+查询团队操作日志
+查询成员产品类型列表
+设置成员额度
+修改成员角色
+更新团队信息
+GPU 接口文档
+GPU实例
+创建GPU资源
+复制页面
+复制页面
+将页面内容复制为 Markdown
+查看 Markdown
+在新窗口查看 Markdown 原文
+在 ChatGPT 中打开
+基于此页面继续提问
+在 Claude 中打开
+基于此页面继续提问
+在 DeepSeek 中打开
+基于此页面继续提问
+在 Perplexity 中打开
+基于此页面继续提问
+复制 MCP Server
+复制当前文档的 MCP Server 地址
+连接到 Cursor
+将文档 MCP Server 安装到 Cursor
+连接到 VS Code
+将文档 MCP Server 安装到 VS Code
+GPU API 接口
+创建GPU实例
+接口说明
+创建一台优云智算 GPU 实例。调用成功后返回实例短 ID（
+UHostIds
+），可通过
+DescribeCompShareInstance
+查询实例状态。
+POST
+https://api.compshare.cn
+Action
+CreateCompShareInstance
+复制
+试一试
+▶
+使用限制
+创建前须调用
+CheckCompShareResourceCapacity
+判断目标规格是否有库存（勿用 Describe 类接口代替）。该接口按 GpuType、CPU 平台、镜像和磁盘配置模拟调度，返回各 GPU/CPU/Memory 组合的
+ResourceEnough
+。
+实例创建数量受账户等级配额限制，详见下方「配额说明」。
+账户存在未支付订单时，无法创建新实例。
+CLOUD_RSSD
+磁盘类型仅 A800 机型支持。
+抢占式实例（
+Spot
+）不支持以下 GPU 类型：4090_48G、A800、H20、P40、2080。
+配额说明
+账户等级
+最大实例数
+未充值（Level 0）
+1
+Level 1（已充值）
+5
+Level 2
+20
+Level 3
+50
+Level 4
+100
+白名单用户配额独立配置，不受上述限制。
+请求参数
+公共参数
+名称
+类型
+必填
+描述
+示例值
+Action
+String
+是
+接口名称，固定值
+CreateCompShareInstance
+Region
+String
+是
+地域。通过
+DescribeCompShareSupportZone
+获取
+cn-wlcb
+Zone
+String
+是
+可用区。通过
+DescribeCompShareSupportZone
+获取
+cn-wlcb-01
+实例规格参数
+名称
+类型
+必填
+描述
+示例值
+GpuType
+String
+是
+GPU 卡型号。枚举值见下方「GPU 类型列表」
+4090
+GPU
+Integer
+是
+GPU 卡数量。取值范围 1~8 或 1~10，因卡型号而异，详见「GPU 类型列表」
+1
+CPU
+Integer
+是
+虚拟 CPU 核数。需与 GPU 类型和卡数匹配，可通过
+DescribeAvailableCompShareInstanceTypes
+查询合法组合
+16
+Memory
+Integer
+是
+内存大小，单位 MB。必须为 1024 的整数倍，需与 GPU/CPU 匹配
+65536
+MachineType
+String
+否
+机型，默认
+G
+。当前仅支持
+G
+（GPU 型）
+G
+MinimalCpuPlatform
+String
+否
+CPU 平台。
+Auto
+表示自动选择（优先 AMD，不足时回退 Intel）；也可指定
+Intel/Auto
+或
+Amd/Auto
+。部分 GPU 型号仅支持 Intel 平台（H20、A800、A100、P40、4090_48G、3080Ti、2080Ti、2080、V100S）
+Auto
+镜像与登录参数
+名称
+类型
+必填
+描述
+示例值
+CompShareImageId
+String
+是
+优云智算平台镜像 ID。包括系统镜像、自制镜像和社区镜像。镜像必须处于 Available 状态
+compshare-image-xxx
+磁盘参数
+磁盘通过
+Disks
+数组传入，至少包含一块系统盘（
+IsBoot=true
+）。
+名称
+类型
+必填
+描述
+示例值
+Disks
+Array of Object
+是
+磁盘配置数组，元素结构见下表
+[{"IsBoot":true,"Type":"CLOUD_SSD","Size":100}]
+Disks 元素结构
+字段
+类型
+必填
+描述
+IsBoot
+Boolean
+是
+是否为系统盘。
+true
+为系统盘，
+false
+为数据盘
+Type
+String
+是
+磁盘类型。平台可用：
+CLOUD_SSD
+（SSD，系统盘 100GB 免费）、
+CLOUD_RSSD
+（RSSD，仅 A800）
+Size
+Integer
+是
+磁盘大小，单位 GB。SSD 系统盘 ≤100GB 部分免费；RSSD 系统盘全量计费
+CouponId
+String
+否
+云盘代金券 ID；不适用于系统盘和本地盘
+计费参数
+名称
+类型
+必填
+描述
+示例值
+ChargeType
+String
+否
+计费模式，默认
+Month
+。枚举值：
+Month
+（按月）、
+Day
+（按天）、
+Postpay
+（按量后付费）、
+Spot
+（抢占式，实际以后付费运行，可能被回收）
+Month
+Quantity
+Integer
+否
+购买时长，默认
+1
+。
+Month
+时为月数，
+Day
+时为天数。不支持传
+0
+（购买到月末）
+1
+其他参数
+名称
+类型
+必填
+描述
+示例值
+Name
+String
+否
+实例名称，默认
+host
+。最长 63 个字符，支持中文、英文、数字及
+_
+.
+,
+:
+-
+my-gpu-instance
+Remark
+String
+否
+实例备注信息，可用于存储创建页面选择的驱动等自定义信息
+driver:535.129.03
+SecurityGroupId
+String
+否
+防火墙 ID。不传则系统根据镜像端口自动创建防火墙
+firewall-xxx
+MaxCount
+Integer
+否
+批量创建数量
+1
+EnableUS3
+Boolean
+否
+是否挂载 US3 对象存储（仅容器镜像生效）
+true
+EnableCfs
+Boolean
+否
+仅容器可用区实例生效。是否挂载当前账号在同一可用区已有的云存储Pro（CFS），默认 false；没有已有 CFS 时实例仍正常创建，但不挂载，也不会自动购买 CFS。详见
+云存储Pro
+false
+GPU 类型列表
+GpuType
+显存
+最大 GPU 数
+最大 CPU
+最大内存（GB）
+CPU 平台
+支持抢占式
+4090
+24GB
+10
+140
+680
+Intel / AMD
+是
+4090_48G
+48GB
+8
+124
+940
+Intel / AMD
+否
+5090
+—
+8
+124
+940
+Intel / AMD
+是
+A100
+80GB
+8
+124
+1024
+Intel
+是
+A800
+80GB
+8
+124
+1800
+Intel
+否
+H20
+96GB
+8
+188
+1800
+Intel
+否
+3090
+24GB
+8
+124
+450
+AMD
+是
+3080Ti
+12GB
+8
+12
+125
+Intel
+是
+2080Ti
+11GB
+8
+48
+192
+—
+是
+2080
+11GB
+8
+92
+334
+—
+否
+P40
+24GB
+8
+48
+502
+—
+否
+V100S
+32GB
+8
+92
+576
+—
+是
+CPU 与内存的合法组合需通过
+DescribeAvailableCompShareInstanceTypes
+查询，非任意搭配。
+响应参数
+名称
+类型
+描述
+示例值
+Action
+String
+响应名称
+CreateCompShareInstanceResponse
+RetCode
+Integer
+返回码。
+0
+表示成功，非
+0
+为错误
+0
+Message
+String
+错误信息。成功时为空
+""
+UHostIds
+Array of String
+创建成功的实例短 ID 列表
+["uhost-xxx"]
+Warning
+Array of String
+警告信息列表（如有）
+[]
+请求示例
+Python（使用 UCloud SDK）
+安装 SDK：
+pip
+install
+--upgrade
+ucloud-sdk-python3
+示例代码：
+from
+ucloud.core
+import
+exc
+from
+ucloud.client
+import
+Client
+def
+main
+():
+client
+=
+Client({
+"region"
+:
+"cn-wlcb"
+,
+"public_key"
+:
+"my_public_key"
+,
+# 替换为你的公钥（控制台 账户中心 → API 密钥：https://console.compshare.cn/uaccount/api_manage）
+"private_key"
+:
+"my_private_key"
+,
+# 替换为你的私钥
+"base_url"
+:
+"https://api.compshare.cn"
+,
+})
+try
+:
+resp
+=
+client.ucompshare().invoke(
+"CreateCompShareInstance"
+, {
+"Region"
+:
+"cn-wlcb"
+,
+"Zone"
+:
+"cn-wlcb-01"
+,
+"MachineType"
+:
+"G"
+,
+"CompShareImageId"
+:
+"compshareImage-xxxx"
+,
+# 替换为实际的镜像 ID
+"GPU"
+:
+1
+,
+"GpuType"
+:
+"4090"
+,
+"CPU"
+:
+16
+,
+"Memory"
+:
+64
+*
+1024
+,
+# 单位 MB，64 * 1024 = 64GB
+"ChargeType"
+:
+"Postpay"
+,
+"Name"
+:
+"my-instance"
+,
+"Disks"
+: [
+{
+"IsBoot"
+: true,
+"Size"
+:
+100
+,
+# 系统盘大小，单位 GB
+"Type"
+:
+"CLOUD_SSD"
+,
+}
+],
+})
+print
+(
+"实例创建成功，UHostIds:"
+, resp.get(
+"UHostIds"
+))
+except
+exc.UCloudException
+as
+e:
+print
+(e)
+if
+__name__
+==
+"__main__"
+:
+main()
+Go（使用 UCloud SDK）
+安装依赖：
+go
+get
+github.com/ucloud/ucloud-sdk-go
+示例代码：
+package
+main
+import
+(
+"
+fmt
+"
+"
+github.com/ucloud/ucloud-sdk-go/ucloud
+"
+"
+github.com/ucloud/ucloud-sdk-go/ucloud/auth
+"
+"
+github.com/ucloud/ucloud-sdk-go/ucloud/request
+"
+"
+github.com/ucloud/ucloud-sdk-go/ucloud/response
+"
+)
+type
+DiskParam
+struct
+{
+IsBoot
+bool
+Type
+string
+// CLOUD_SSD / CLOUD_RSSD
+Size
+*int
+// 磁盘大小 (GB)
+}
+type
+CreateCompShareInstanceRequest
+struct
+{
+request
+.
+CommonBase
+MachineType
+*
+string
+CompShareImageId
+*
+string
+GpuType
+*
+string
+GPU
+*int
+CPU
+*int
+Memory
+*int
+// 单位 MB
+ChargeType
+*
+string
+`required:"false"`
+Name
+*
+string
+`required:"false"`
+Quantity
+*int
+`required:"false"`
+Disks            []
+DiskParam
+}
+type
+CreateCompShareInstanceResponse
+struct
+{
+response
+.
+CommonBase
+UHostIds []
+string
+`json:"UHostIds"`
+// 创建成功的实例 ID 列表
+}
+func
+main
+() {
+cfg
+:=
+ucloud.
+NewConfig
+()
+cfg.Region
+=
+"cn-wlcb"
+cfg.BaseUrl
+=
+"https://api.compshare.cn"
+credential
+:=
+auth.
+NewCredential
+()
+credential.PublicKey
+=
+"my_public_key"
+// 替换为你的公钥（控制台 账户中心 → API 密钥：https://console.compshare.cn/uaccount/api_manage）
+credential.PrivateKey
+=
+"my_private_key"
+// 替换为你的私钥
+client
+:=
+ucloud.
+NewClient
+(
+&
+cfg,
+&
+credential)
+req
+:=
+&
+CreateCompShareInstanceRequest
+{
+MachineType:      ucloud.
+String
+(
+"G"
+),
+CompShareImageId: ucloud.
+String
+(
+"compshareImage-xxxx"
+),
+// 替换为实际的镜像 ID
+GpuType:          ucloud.
+String
+(
+"4090"
+),
+GPU:              ucloud.
+Int
+(
+1
+),
+CPU:              ucloud.
+Int
+(
+16
+),
+Memory:           ucloud.
+Int
+(
+64
+*
+1024
+),
+// 单位 MB，64 * 1024 = 64 GB
+ChargeType:       ucloud.
+String
+(
+"Postpay"
+),
+Name:             ucloud.
+String
+(
+"my-instance"
+),
+Disks: []
+DiskParam
+{
+{IsBoot:
+true
+, Type:
+"CLOUD_SSD"
+, Size: ucloud.
+Int
+(
+100
+)},
+},
+}
+req.
+SetRegion
+(
+"cn-wlcb"
+)
+req.
+SetZone
+(
+"cn-wlcb-01"
+)
+resp
+:=
+&
+CreateCompShareInstanceResponse
+{}
+if
+err
+:=
+client.
+InvokeAction
+(
+"CreateCompShareInstance"
+, req, resp); err
+!=
+nil
+{
+fmt.
+Printf
+(
+"调用失败: RetCode=
+%d
+Msg=
+%s
+err=
+%v\n
+"
+, resp.RetCode, resp.Message, err)
+return
+}
+fmt.
+Printf
+(
+"实例创建成功，UHostIds:
+%v\n
+"
+, resp.UHostIds)
+}
+响应示例
+{
+"Action"
+:
+"CreateCompShareInstanceResponse"
+,
+"RetCode"
+:
+0
+,
+"UHostIds"
+: [
+"uhost-xxxx"
+]
+}
+Last updated on
+September 22, 2026
+常见错误码
+获取实例资源列表

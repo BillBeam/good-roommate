@@ -1,0 +1,1435 @@
+{
+  "started_utc": "2026-10-26T06:09:38+00:00",
+  "dispatched_utc": "2026-10-26T06:09:30Z",
+  "run_id": "40278185947",
+  "runner": {
+    "os": "Linux",
+    "arch": "X64"
+  },
+  "compshare": {
+    "launch_config": {
+      "_note": "Parameters a real 30-minute test launch would use. Probe workflow only quotes them; nothing here creates anything.",
+      "Region": "cn-wlcb",
+      "Zone": "cn-wlcb-01",
+      "GpuType": "4090",
+      "Gpu": 1,
+      "Cpu": 16,
+      "MemoryGiB": 64,
+      "MinimalCpuPlatform": "Auto",
+      "CompShareImageId": "compshareImage-1t4y5aeosple",
+      "CompShareImageName": "vLLM v0.25.1",
+      "Disks": [
+        {
+          "IsBoot": true,
+          "Type": "CLOUD_SSD",
+          "Size": 100
+        }
+      ],
+      "ChargeType": "Postpay",
+      "Quantity": 1
+    },
+    "calls": {
+      "balance": {
+        "action": "GetBalance",
+        "seconds": 0.857,
+        "response": {
+          "RetCode": 0,
+          "Action": "GetBalanceResponse",
+          "AccountInfo": {
+            "Amount": "0.00",
+            "AmountFree": "0.00",
+            "AmountFreeze": "0.00",
+            "AmountCredit": "0.00",
+            "AmountAvailable": "0.00"
+          }
+        }
+      },
+      "zones": {
+        "action": "DescribeCompShareSupportZone",
+        "seconds": 0.434,
+        "response": {
+          "Action": "DescribeCompShareSupportZoneResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "ZoneInfo": [
+            {
+              "Region": "cn-wlcb",
+              "RegionId": 1000039,
+              "Zone": "cn-wlcb-01",
+              "ZoneId": 10027,
+              "Describe": "华北二A",
+              "IsPod": false,
+              "DisableImageSync": false,
+              "UnsupportedImageTypes": []
+            },
+            {
+              "Region": "cn-sh2",
+              "RegionId": 1000009,
+              "Zone": "cn-sh2-02",
+              "ZoneId": 8200,
+              "Describe": "上海二B",
+              "IsPod": false,
+              "DisableImageSync": false,
+              "UnsupportedImageTypes": [
+                "Community"
+              ]
+            },
+            {
+              "Region": "cn-bj2",
+              "RegionId": 1000001,
+              "Zone": "cn-bj2-03",
+              "ZoneId": 5001,
+              "Describe": "华北一C",
+              "IsPod": true,
+              "DisableImageSync": false,
+              "UnsupportedImageTypes": [
+                "System",
+                "Other"
+              ]
+            },
+            {
+              "Region": "cn-sh2",
+              "RegionId": 1000009,
+              "Zone": "cn-sh2-01",
+              "ZoneId": 8100,
+              "Describe": "上海二A",
+              "IsPod": true,
+              "DisableImageSync": false,
+              "UnsupportedImageTypes": [
+                "System",
+                "Other"
+              ]
+            },
+            {
+              "Region": "cn-sh2",
+              "RegionId": 1000009,
+              "Zone": "cn-sh2-03",
+              "ZoneId": 8300,
+              "Describe": "上海二C",
+              "IsPod": true,
+              "DisableImageSync": false,
+              "UnsupportedImageTypes": [
+                "System",
+                "Other"
+              ]
+            }
+          ]
+        }
+      },
+      "instance_types": {
+        "action": "DescribeAvailableCompShareInstanceTypes",
+        "seconds": 0.42,
+        "response": {
+          "Action": "DescribeAvailableCompShareInstanceTypesResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "AvailableInstanceTypes": [
+            {
+              "Name": "4090",
+              "Zone": "cn-wlcb-01",
+              "Status": "Normal",
+              "Description": "RTX40系",
+              "CpuPlatforms": {
+                "Intel": [
+                  "Intel/IceLake"
+                ],
+                "Amd": [
+                  "Amd/EPYC3",
+                  "Amd/EPYC2"
+                ]
+              },
+              "Disks": [
+                {
+                  "Name": "cloudDisk",
+                  "BootDisk": [
+                    {
+                      "Name": "CLOUD_SSD",
+                      "InstantResize": true,
+                      "MaximalSize": 1000,
+                      "Features": [
+                        "SNAPSHOT"
+                      ]
+                    }
+                  ],
+                  "DataDisk": [
+                    {
+                      "Name": "CLOUD_SSD",
+                      "MinimalSize": 10,
+                      "MaximalSize": 1500,
+                      "Features": [
+                        "SNAPSHOT"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "MachineSizes": [
+                {
+                  "Gpu": 1,
+                  "Collection": [
+                    {
+                      "Cpu": 16,
+                      "Memory": [
+                        64,
+                        94
+                      ],
+                      "MinimalCpuPlatform": [
+                        "Amd/Epyc2",
+                        "Amd/Epyc3",
+                        "Intel/IceLake",
+                        "Intel/SapphireRapids"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Gpu": 2,
+                  "Collection": [
+                    {
+                      "Cpu": 32,
+                      "Memory": [
+                        128,
+                        192
+                      ],
+                      "MinimalCpuPlatform": [
+                        "Amd/Epyc2",
+                        "Amd/Epyc3",
+                        "Intel/IceLake",
+                        "Intel/SapphireRapids"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Gpu": 4,
+                  "Collection": [
+                    {
+                      "Cpu": 64,
+                      "Memory": [
+                        256,
+                        384
+                      ],
+                      "MinimalCpuPlatform": [
+                        "Amd/Epyc2",
+                        "Amd/Epyc3",
+                        "Intel/IceLake",
+                        "Intel/SapphireRapids"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Gpu": 8,
+                  "Collection": [
+                    {
+                      "Cpu": 92,
+                      "Memory": [
+                        940
+                      ],
+                      "MinimalCpuPlatform": [
+                        "Amd/Epyc2",
+                        "Amd/Epyc3",
+                        "Intel/IceLake",
+                        "Intel/SapphireRapids"
+                      ]
+                    },
+                    {
+                      "Cpu": 124,
+                      "Memory": [
+                        940
+                      ],
+                      "MinimalCpuPlatform": [
+                        "Amd/Epyc2",
+                        "Amd/Epyc3"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "Features": [
+                {
+                  "Name": "NetCapability",
+                  "Modes": [
+                    {
+                      "Name": "Normal"
+                    },
+                    {
+                      "Name": "Super",
+                      "RelatedToImageFeature": [
+                        "NetEnhanced"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "GraphicsMemory": {
+                "Value": 24,
+                "Rate": 3
+              },
+              "Performance": {
+                "Value": 83,
+                "Rate": 3
+              },
+              "MachineClass": "GPU",
+              "InstanceType": "uhost",
+              "ParentType": "G"
+            }
+          ]
+        }
+      },
+      "images": {
+        "action": "DescribeCompShareImages",
+        "seconds": 1.005,
+        "response": {
+          "RetCode": 0,
+          "TotalCount": 82,
+          "selected": [
+            {
+              "AppOnlyAccess": false,
+              "OpenApplications": [],
+              "CompShareImageId": "compshareImage-1t4y5aeosple",
+              "Name": "vLLM v0.25.1",
+              "Author": "优云智算",
+              "AuthInfo": 0,
+              "ImageOwnerAlias": "Official",
+              "ImageType": "App",
+              "Container": "True",
+              "Status": "Available",
+              "Size": 40960,
+              "ActualSize": 40960,
+              "Visibility": 0,
+              "Description": "",
+              "Tags": null,
+              "Price": 0,
+              "Cover": "https://cdn.udelivrs.com/2025/12/9bdec786dae60c9c2452ed8c77942990_1765180521873.png",
+              "CreatedCount": 620,
+              "RecommendCount": 0,
+              "Softwares": {
+                "Framework": "vLLM",
+                "FrameworkVersion": "0.25.1",
+                "CUDAVersion": "13.2",
+                "Applications": null,
+                "OsVersion": "Ubuntu 22.04",
+                "PythonVersion": "3.12",
+                "FrameworkVersionIndex": 0
+              },
+              "FirewallPorts": null,
+              "SoftwarePorts": [
+                {
+                  "Software": "JupyterLab",
+                  "Port": 8888
+                },
+                {
+                  "Software": "FileBrowser",
+                  "Port": 8889
+                }
+              ],
+              "FavoritesCount": 0,
+              "IsSelfShared": false,
+              "CreateTime": 1784714998,
+              "UpdateTime": 1784794601,
+              "removed": 0,
+              "SupportedGpuTypes": [
+                "2080",
+                "2080Ti",
+                "3080Ti",
+                "3090",
+                "4090",
+                "4090_48G",
+                "5090",
+                "A100",
+                "A800",
+                "H20",
+                "P40",
+                "V100S"
+              ],
+              "GpuTypesDescribe": {
+                "2080": "2080",
+                "2080Ti": "2080Ti",
+                "3080Ti": "3080Ti",
+                "3090": "3090",
+                "4090": "RTX40系",
+                "4090_48G": "48G RTX40系",
+                "5090": "RTX50系",
+                "A100": "A100",
+                "A800": "A800",
+                "H20": "H20",
+                "P40": "P40",
+                "V100S": "V100S"
+              },
+              "TopOrganizationId": 0,
+              "CompShareImageLock": false,
+              "SourceGpuType": "",
+              "AutoStart": false,
+              "ImageFree": false,
+              "ImageUseTime": 0,
+              "ImageSupportZone": null,
+              "Zone": ""
+            }
+          ]
+        }
+      },
+      "capacity": {
+        "action": "CheckCompShareResourceCapacity",
+        "seconds": 1.104,
+        "response": {
+          "Action": "CheckCompShareResourceCapacityResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "Specs": [
+            {
+              "Cpu": 16,
+              "Gpu": 1,
+              "Mem": 64,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 16,
+              "Gpu": 1,
+              "Mem": 94,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 32,
+              "Gpu": 2,
+              "Mem": 128,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 32,
+              "Gpu": 2,
+              "Mem": 192,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 64,
+              "Gpu": 4,
+              "Mem": 256,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 64,
+              "Gpu": 4,
+              "Mem": 384,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 92,
+              "Gpu": 8,
+              "Mem": 940,
+              "ResourceEnough": false
+            },
+            {
+              "Cpu": 124,
+              "Gpu": 8,
+              "Mem": 940,
+              "ResourceEnough": false
+            }
+          ]
+        }
+      },
+      "price": {
+        "action": "GetCompShareInstancePrice",
+        "seconds": 0.817,
+        "response": {
+          "Action": "GetCompShareInstancePriceResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "PriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.05,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "OriginalPriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.15,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "ListPriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.15,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ]
+        }
+      },
+      "price_illegal_cpu_control": {
+        "action": "GetCompShareInstancePrice",
+        "seconds": 1.15,
+        "response": {
+          "Action": "GetCompShareInstancePriceResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "PriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.05,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "OriginalPriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.16,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "ListPriceDetails": [
+            {
+              "ChargeType": "Postpay",
+              "Instance": 2.16,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ]
+        }
+      },
+      "price_spot_same_spec": {
+        "action": "GetCompShareInstancePrice",
+        "seconds": 1.318,
+        "response": {
+          "Action": "GetCompShareInstancePriceResponse",
+          "RetCode": 0,
+          "request_uuid": "<redacted>",
+          "PriceDetails": [
+            {
+              "ChargeType": "Spot",
+              "Instance": 1.31,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "OriginalPriceDetails": [
+            {
+              "ChargeType": "Spot",
+              "Instance": 1.38,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ],
+          "ListPriceDetails": [
+            {
+              "ChargeType": "Spot",
+              "Instance": 1.38,
+              "Disks": 0,
+              "SystemDisks": 0
+            }
+          ]
+        }
+      }
+    },
+    "checks": {
+      "spec_in_machine_sizes": true,
+      "spec_in_capacity_list": true,
+      "spec_in_stock_now": false,
+      "image_available": true,
+      "price_retcode": 0,
+      "hourly_cny": 2.05,
+      "balance": {
+        "Amount": "0.00",
+        "AmountFree": "0.00",
+        "AmountFreeze": "0.00",
+        "AmountCredit": "0.00",
+        "AmountAvailable": "0.00"
+      }
+    }
+  },
+  "inventory": [
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 2.05
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 1.31
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 3.79
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 2.09
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 3.61
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": null
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "3090",
+      "vram_gib": 24,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 1.13
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "3090",
+      "vram_gib": 24,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 0.79
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "A800",
+      "vram_gib": 80,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        240
+      ],
+      "one_gpu_hourly_cny": 6.99
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "A800",
+      "vram_gib": 80,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        240
+      ],
+      "one_gpu_hourly_cny": 2.87
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "H20",
+      "vram_gib": 96,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        240
+      ],
+      "one_gpu_hourly_cny": 7.12
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "H20",
+      "vram_gib": 96,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        240
+      ],
+      "one_gpu_hourly_cny": null
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "A100",
+      "vram_gib": 80,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 1,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 10.21
+    },
+    {
+      "zone": "cn-wlcb-01",
+      "zone_name": "华北二A",
+      "gpu": "A100",
+      "vram_gib": 80,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 1,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 7.14
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 3.79
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 2.09
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 2.05
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        64
+      ],
+      "one_gpu_hourly_cny": 1.31
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": 3.61
+    },
+    {
+      "zone": "cn-sh2-02",
+      "zone_name": "上海二B",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 4,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        16,
+        96
+      ],
+      "one_gpu_hourly_cny": null
+    },
+    {
+      "zone": "cn-bj2-03",
+      "zone_name": "华北一C",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        14,
+        32
+      ],
+      "one_gpu_hourly_cny": 2.13
+    },
+    {
+      "zone": "cn-bj2-03",
+      "zone_name": "华北一C",
+      "gpu": "4090",
+      "vram_gib": 24,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 8,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        14,
+        32
+      ],
+      "one_gpu_hourly_cny": null,
+      "price_error": "RetCode 230: Params [ChargeType] not available"
+    },
+    {
+      "zone": "cn-sh2-01",
+      "zone_name": "上海二A",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 7,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        14,
+        48
+      ],
+      "one_gpu_hourly_cny": 3.84
+    },
+    {
+      "zone": "cn-sh2-01",
+      "zone_name": "上海二A",
+      "gpu": "5090",
+      "vram_gib": 32,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 7,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        14,
+        48
+      ],
+      "one_gpu_hourly_cny": null,
+      "price_error": "RetCode 230: Params [ChargeType] not available"
+    },
+    {
+      "zone": "cn-sh2-03",
+      "zone_name": "上海二C",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Postpay",
+      "image": "vLLM v0.25.1",
+      "specs_total": 7,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        20,
+        64
+      ],
+      "one_gpu_hourly_cny": 3.78
+    },
+    {
+      "zone": "cn-sh2-03",
+      "zone_name": "上海二C",
+      "gpu": "4090_48G",
+      "vram_gib": 48,
+      "charge": "Spot",
+      "image": "vLLM v0.25.1",
+      "specs_total": 7,
+      "in_stock": [],
+      "one_gpu_spec": [
+        1,
+        20,
+        64
+      ],
+      "one_gpu_hourly_cny": null,
+      "price_error": "RetCode 230: Params [ChargeType] not available"
+    }
+  ],
+  "ssh": [
+    {
+      "host": "gitee.com",
+      "ip": "180.76.199.13",
+      "error": "TimeoutError: timed out",
+      "handshake_ok": false
+    },
+    {
+      "host": "codeup.aliyun.com",
+      "ip": "118.31.165.50",
+      "tcp_connect_ms": [
+        224.8,
+        229.8,
+        262.9,
+        185.8,
+        220.3
+      ],
+      "tcp_connect_median_ms": 224.8,
+      "banner": "SSH-2.0-Go",
+      "keyscan_seconds": 1.267,
+      "host_keys": [
+        "ssh-rsa"
+      ],
+      "handshake_ok": true
+    },
+    {
+      "host": "git.code.tencent.com",
+      "ip": "106.52.160.162",
+      "tcp_connect_ms": [
+        468.5,
+        471.5,
+        464.4,
+        510.6,
+        418.9
+      ],
+      "tcp_connect_median_ms": 468.5,
+      "banner": "SSH-2.0-Tencent Code",
+      "keyscan_seconds": 1.256,
+      "host_keys": [
+        "ssh-rsa"
+      ],
+      "handshake_ok": true
+    }
+  ],
+  "api_compshare_tcp443_ms": 68.1,
+  "docs": {
+    "pages": {
+      "https://www.compshare.cn/docs/operation/charge/billdescribe": {
+        "file": "docs/operation_charge_billdescribe.txt",
+        "chars": 4597
+      },
+      "https://www.compshare.cn/docs/uaccount/bill/charge": {
+        "file": "docs/uaccount_bill_charge.txt",
+        "chars": 3630
+      },
+      "https://www.compshare.cn/docs/gpus/instance/createcompshareinstance": {
+        "file": "docs/gpus_instance_createcompshareinstance.txt",
+        "chars": 10237
+      },
+      "https://www.compshare.cn/docs/gpus/instance/startcompshareinstance": {
+        "file": "docs/gpus_instance_startcompshareinstance.txt",
+        "chars": 6725
+      },
+      "https://www.compshare.cn/docs/agent/billing/billing": {
+        "file": "docs/agent_billing_billing.txt",
+        "chars": 3817
+      },
+      "https://www.compshare.cn/docs/agent/billing/expiry": {
+        "file": "docs/agent_billing_expiry.txt",
+        "chars": 3908
+      },
+      "https://www.compshare.cn/docs/agent/intro/quickstart": {
+        "file": "docs/agent_intro_quickstart.txt",
+        "chars": 4671
+      },
+      "https://www.compshare.cn/docs/mcp-guide/cli": {
+        "file": "docs/mcp_guide_cli.txt",
+        "chars": 4622
+      },
+      "https://www.compshare.cn/docs/minimax-h3/billing": {
+        "file": "docs/minimax_h3_billing.txt",
+        "chars": 4331
+      },
+      "https://www.compshare.cn/docs/modelverse/codingfaq": {
+        "file": "docs/modelverse_codingfaq.txt",
+        "chars": 8943
+      },
+      "https://www.compshare.cn/docs/modelverse/models/quick-start": {
+        "file": "docs/modelverse_models_quick_start.txt",
+        "chars": 8070
+      },
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-StartEnd2Video": {
+        "file": "docs/modelverse_models_video_api_vidu_Vidu_StartEnd2Video.txt",
+        "chars": 7201
+      },
+      "https://www.compshare.cn/docs/operation/bestpractices/createVNC": {
+        "file": "docs/operation_bestpractices_createVNC.txt",
+        "chars": 6486
+      },
+      "https://www.compshare.cn/docs/operation/charge/Renewal": {
+        "file": "docs/operation_charge_Renewal.txt",
+        "chars": 4033
+      },
+      "https://www.compshare.cn/docs/operation/charge/bill": {
+        "file": "docs/operation_charge_bill.txt",
+        "chars": 5668
+      },
+      "https://www.compshare.cn/docs/operation/charge/expirydate": {
+        "file": "docs/operation_charge_expirydate.txt",
+        "chars": 3770
+      },
+      "https://www.compshare.cn/docs/operation/charge/recycle": {
+        "file": "docs/operation_charge_recycle.txt",
+        "chars": 6030
+      },
+      "https://www.compshare.cn/docs/operation/charge/sharebandwidth": {
+        "file": "docs/operation_charge_sharebandwidth.txt",
+        "chars": 4394
+      },
+      "https://www.compshare.cn/docs/operation/gpu/createresources": {
+        "file": "docs/operation_gpu_createresources.txt",
+        "chars": 4198
+      },
+      "https://www.compshare.cn/docs/operation/gpu/quickstart": {
+        "file": "docs/operation_gpu_quickstart.txt",
+        "chars": 16102
+      },
+      "https://www.compshare.cn/docs/operation/gpu/selfstart": {
+        "file": "docs/operation_gpu_selfstart.txt",
+        "chars": 4275
+      },
+      "https://www.compshare.cn/docs/operation/gpufaq": {
+        "file": "docs/operation_gpufaq.txt",
+        "chars": 8404
+      },
+      "https://www.compshare.cn/docs/overview/member/membership": {
+        "file": "docs/overview_member_membership.txt",
+        "chars": 3982
+      },
+      "https://www.compshare.cn/docs/overview/member/userrecommendations": {
+        "file": "docs/overview_member_userrecommendations.txt",
+        "chars": 4559
+      },
+      "https://www.compshare.cn/docs/uaccount/bill/checkbill": {
+        "file": "docs/uaccount_bill_checkbill.txt",
+        "chars": 3415
+      },
+      "https://www.compshare.cn/docs/uaccount/bill/invoice": {
+        "file": "docs/uaccount_bill_invoice.txt",
+        "chars": 7916
+      },
+      "https://www.compshare.cn/docs/uaccount/bill/withdrawalrules": {
+        "file": "docs/uaccount_bill_withdrawalrules.txt",
+        "chars": 4246
+      },
+      "https://www.compshare.cn/docs/uaccount/team/teammember": {
+        "file": "docs/uaccount_team_teammember.txt",
+        "chars": 4233
+      }
+    },
+    "sitemap_url_count": 911,
+    "sitemap_sample": [
+      "https://www.compshare.cn/",
+      "https://www.compshare.cn/image-community",
+      "https://www.compshare.cn/video-studio",
+      "https://www.compshare.cn/image-studio",
+      "https://www.compshare.cn/audio-studio",
+      "https://www.compshare.cn/price-list",
+      "https://www.compshare.cn/agent-community",
+      "https://www.compshare.cn/model-api",
+      "https://www.compshare.cn/coding-plan",
+      "https://www.compshare.cn/client",
+      "https://www.compshare.cn/promotion",
+      "https://www.compshare.cn/collection/minimax-h3",
+      "https://www.compshare.cn/collection/ai4s",
+      "https://www.compshare.cn/collection/avatar",
+      "https://www.compshare.cn/collection/tts",
+      "https://www.compshare.cn/collection/wan",
+      "https://www.compshare.cn/collection/vsr",
+      "https://www.compshare.cn/images/pAioLea62rig",
+      "https://www.compshare.cn/images/Zi6IW47eUHLc",
+      "https://www.compshare.cn/images/uomNa9PFVeZ3"
+    ],
+    "sitemap_docs_urls": [],
+    "nav_docs_urls": [
+      "https://www.compshare.cn/docs/agent/billing/billing",
+      "https://www.compshare.cn/docs/agent/billing/expiry",
+      "https://www.compshare.cn/docs/agent/intro/overview",
+      "https://www.compshare.cn/docs/agent/intro/quickstart",
+      "https://www.compshare.cn/docs/agent/setup/channels",
+      "https://www.compshare.cn/docs/agent/setup/models",
+      "https://www.compshare.cn/docs/agent/setup/persona",
+      "https://www.compshare.cn/docs/agent/setup/skills",
+      "https://www.compshare.cn/docs/agent/usage/agents",
+      "https://www.compshare.cn/docs/agent/usage/conversation",
+      "https://www.compshare.cn/docs/agent/usage/files",
+      "https://www.compshare.cn/docs/agent/usage/instance",
+      "https://www.compshare.cn/docs/agent/usage/tasks",
+      "https://www.compshare.cn/docs/gpus/compshareerrorcode",
+      "https://www.compshare.cn/docs/gpus/data/attachcompsharedisk",
+      "https://www.compshare.cn/docs/gpus/data/attachus3",
+      "https://www.compshare.cn/docs/gpus/data/cfs",
+      "https://www.compshare.cn/docs/gpus/data/cfs/attachus3",
+      "https://www.compshare.cn/docs/gpus/data/cfs/createcfs",
+      "https://www.compshare.cn/docs/gpus/data/cfs/deletecfs",
+      "https://www.compshare.cn/docs/gpus/data/cfs/describecfs",
+      "https://www.compshare.cn/docs/gpus/data/cfs/detachcfs",
+      "https://www.compshare.cn/docs/gpus/data/cfs/getcompsharecfsprice",
+      "https://www.compshare.cn/docs/gpus/data/cfs/getcompsharecfsrefundprice",
+      "https://www.compshare.cn/docs/gpus/data/cfs/getcompsharecfsupgradeprice",
+      "https://www.compshare.cn/docs/gpus/data/cfs/resizecfs",
+      "https://www.compshare.cn/docs/gpus/data/createandattachcompsharedisk",
+      "https://www.compshare.cn/docs/gpus/data/deletecompsharedisk",
+      "https://www.compshare.cn/docs/gpus/data/detachcompsharedisk",
+      "https://www.compshare.cn/docs/gpus/data/getcompshareattacheddiskupgradeprice",
+      "https://www.compshare.cn/docs/gpus/data/resizecompsharedisk",
+      "https://www.compshare.cn/docs/gpus/data/us3fileoperation",
+      "https://www.compshare.cn/docs/gpus/image/addfavoriteimage",
+      "https://www.compshare.cn/docs/gpus/image/createcompsharecustomimage",
+      "https://www.compshare.cn/docs/gpus/image/describecommunityimages",
+      "https://www.compshare.cn/docs/gpus/image/describecompsharecustomimages",
+      "https://www.compshare.cn/docs/gpus/image/describecompshareimages",
+      "https://www.compshare.cn/docs/gpus/image/describecompshareimageshareaccounts",
+      "https://www.compshare.cn/docs/gpus/image/describecompshareimagetags",
+      "https://www.compshare.cn/docs/gpus/image/describecompsharesharingimages",
+      "https://www.compshare.cn/docs/gpus/image/describefavoriteimages",
+      "https://www.compshare.cn/docs/gpus/image/describeselfcommunityimages",
+      "https://www.compshare.cn/docs/gpus/image/describeusercommunityimages",
+      "https://www.compshare.cn/docs/gpus/image/getcompshareimagecreateprogress",
+      "https://www.compshare.cn/docs/gpus/image/modifycompshareimageshareaccount",
+      "https://www.compshare.cn/docs/gpus/image/publishcompshareimage",
+      "https://www.compshare.cn/docs/gpus/image/removefavoriteimage",
+      "https://www.compshare.cn/docs/gpus/image/terminatecompsharecustomimage",
+      "https://www.compshare.cn/docs/gpus/image/updatecompshareimage",
+      "https://www.compshare.cn/docs/gpus/instance/checkcompsharenetoptimizer",
+      "https://www.compshare.cn/docs/gpus/instance/checkcompshareresourcecapacity",
+      "https://www.compshare.cn/docs/gpus/instance/createcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/deletecompsharestopscheduler",
+      "https://www.compshare.cn/docs/gpus/instance/describeavailablecompshareinstancetypes",
+      "https://www.compshare.cn/docs/gpus/instance/describecompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/describecompsharemachinetypefamilies",
+      "https://www.compshare.cn/docs/gpus/instance/describecompsharesoftwareport",
+      "https://www.compshare.cn/docs/gpus/instance/describecompsharesupportzone",
+      "https://www.compshare.cn/docs/gpus/instance/describemodelrepositorymodels",
+      "https://www.compshare.cn/docs/gpus/instance/getcompshareinstancemonitor",
+      "https://www.compshare.cn/docs/gpus/instance/getcompshareinstanceprice",
+      "https://www.compshare.cn/docs/gpus/instance/getcompshareinstanceupgradeprice",
+      "https://www.compshare.cn/docs/gpus/instance/getcompshareinstanceuserprice",
+      "https://www.compshare.cn/docs/gpus/instance/getcompsharerefundprice",
+      "https://www.compshare.cn/docs/gpus/instance/getsoftwareurl",
+      "https://www.compshare.cn/docs/gpus/instance/modifycompshareinstancename",
+      "https://www.compshare.cn/docs/gpus/instance/rebootcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/reinstallcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/resetcompshareinstancepassword",
+      "https://www.compshare.cn/docs/gpus/instance/resizecompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/startcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/stopcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/switchchargetype",
+      "https://www.compshare.cn/docs/gpus/instance/switchcompshareeipsharebandwidth",
+      "https://www.compshare.cn/docs/gpus/instance/terminatecompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/updatecompshareinstanceports",
+      "https://www.compshare.cn/docs/gpus/instance/updatecompsharestopscheduler",
+      "https://www.compshare.cn/docs/gpus/operationexample",
+      "https://www.compshare.cn/docs/gpus/team/createcompshareteam",
+      "https://www.compshare.cn/docs/gpus/team/createcompshareteamrelation",
+      "https://www.compshare.cn/docs/gpus/team/deletecompshareteam",
+      "https://www.compshare.cn/docs/gpus/team/describeteammemberorder",
+      "https://www.compshare.cn/docs/gpus/team/describeteammemberordercount",
+      "https://www.compshare.cn/docs/gpus/team/describeteammemberunpaidorder",
+      "https://www.compshare.cn/docs/gpus/team/describeteammemberunpaidordercount",
+      "https://www.compshare.cn/docs/gpus/team/downloadteamorder",
+      "https://www.compshare.cn/docs/gpus/team/getcompshareteaminfo",
+      "https://www.compshare.cn/docs/gpus/team/listcompshareteam",
+      "https://www.compshare.cn/docs/gpus/team/listcompshareteaminvite",
+      "https://www.compshare.cn/docs/gpus/team/listcompshareteamjoined",
+      "https://www.compshare.cn/docs/gpus/team/listcompshareteamoperatelog",
+      "https://www.compshare.cn/docs/gpus/team/listmemberproducttype",
+      "https://www.compshare.cn/docs/gpus/team/setcompshareteamamount",
+      "https://www.compshare.cn/docs/gpus/team/setcompshareteamrelation",
+      "https://www.compshare.cn/docs/gpus/team/updatecompshareteam",
+      "https://www.compshare.cn/docs/mcp-guide/cli",
+      "https://www.compshare.cn/docs/minimax-h3/api/minimax-h3-video-api",
+      "https://www.compshare.cn/docs/minimax-h3/api/qwen-image-api",
+      "https://www.compshare.cn/docs/minimax-h3/api/text-to-speech-api",
+      "https://www.compshare.cn/docs/minimax-h3/audio",
+      "https://www.compshare.cn/docs/minimax-h3/billing",
+      "https://www.compshare.cn/docs/minimax-h3/image",
+      "https://www.compshare.cn/docs/minimax-h3/introduce",
+      "https://www.compshare.cn/docs/minimax-h3/tasks-assets",
+      "https://www.compshare.cn/docs/minimax-h3/workbench",
+      "https://www.compshare.cn/docs/modelverse/best_practice/claudecode",
+      "https://www.compshare.cn/docs/modelverse/best_practice/codex",
+      "https://www.compshare.cn/docs/modelverse/best_practice/codexagent",
+      "https://www.compshare.cn/docs/modelverse/best_practice/comfyui",
+      "https://www.compshare.cn/docs/modelverse/best_practice/mcp/MCPClient",
+      "https://www.compshare.cn/docs/modelverse/best_practice/mcp/MCPServer",
+      "https://www.compshare.cn/docs/modelverse/best_practice/mcp/mcpgeneral",
+      "https://www.compshare.cn/docs/modelverse/best_practice/openclaw",
+      "https://www.compshare.cn/docs/modelverse/best_practice/opencode",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/anythingllm",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/chatbox",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/chathub",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/chatwise",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/cherrystudio",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/dify",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/gpt4all",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/n8n",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/nami",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/obsidian",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/openwebui",
+      "https://www.compshare.cn/docs/modelverse/best_practice/usecases/ragflow",
+      "https://www.compshare.cn/docs/modelverse/codingfaq",
+      "https://www.compshare.cn/docs/modelverse/introduce/modelapi",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/IndexTeam-IndexTTS-extend",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/custom_voice_api",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/minimax-speech",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/qwen-tts",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/suno",
+      "https://www.compshare.cn/docs/modelverse/models/audio_api/ttts",
+      "https://www.compshare.cn/docs/modelverse/models/common/certificate",
+      "https://www.compshare.cn/docs/modelverse/models/common/error-code",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/Qwen-Qwen-Image",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/Qwen-Qwen-Image-Edit",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/doubao-seedream",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/gemini-3-pro-image",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/gemini-3.1-flash-image",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/gpt-image-2",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/qwen-image3.0-generation",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/qwen-image3.0-task",
+      "https://www.compshare.cn/docs/modelverse/models/image_api/stepfun-ai-step1x-edit",
+      "https://www.compshare.cn/docs/modelverse/models/qa",
+      "https://www.compshare.cn/docs/modelverse/models/quick-start",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/api-expand",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/claude_compatible",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/deepseek-ocr",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/embeddings",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/gemini_compatible",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/model-competi",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/models",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/openai_compatible",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/response_api",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/thinking/deepseek",
+      "https://www.compshare.cn/docs/modelverse/models/text_api/thinking/doubao",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/MiniMax-Hailuo-2.3-I2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/MiniMax-Hailuo-2.3-T2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.2-I2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.2-T2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.5-I2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.5-T2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.6-I2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/Wan-AI-Wan2.6-T2V",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/doubao-seedance-1-5-pro-251215",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/doubao-seedance-2-0",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/flash-vsr-video-upscaling-api",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-Extend",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-Img2Video",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-LipSync",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-Reference2Video",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-StartEnd2Video",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-Text2Video",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/volce-asset",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/volce-asset-virtual",
+      "https://www.compshare.cn/docs/modelverse/package_plan/logic",
+      "https://www.compshare.cn/docs/modelverse/package_plan/openclaw",
+      "https://www.compshare.cn/docs/modelverse/package_plan/package",
+      "https://www.compshare.cn/docs/modelverse/package_plan/stats",
+      "https://www.compshare.cn/docs/modelverse/package_plan/usecases",
+      "https://www.compshare.cn/docs/modelverse/price",
+      "https://www.compshare.cn/docs/operation/bestpractices/createVNC",
+      "https://www.compshare.cn/docs/operation/bestpractices/feishu",
+      "https://www.compshare.cn/docs/operation/bestpractices/installcuda",
+      "https://www.compshare.cn/docs/operation/bestpractices/installdify",
+      "https://www.compshare.cn/docs/operation/bestpractices/installdocker",
+      "https://www.compshare.cn/docs/operation/bestpractices/installlangbot",
+      "https://www.compshare.cn/docs/operation/bestpractices/installlinux",
+      "https://www.compshare.cn/docs/operation/bestpractices/isaac",
+      "https://www.compshare.cn/docs/operation/bestpractices/telegram",
+      "https://www.compshare.cn/docs/operation/bestpractices/windows",
+      "https://www.compshare.cn/docs/operation/charge/Renewal",
+      "https://www.compshare.cn/docs/operation/charge/bill",
+      "https://www.compshare.cn/docs/operation/charge/billdescribe",
+      "https://www.compshare.cn/docs/operation/charge/expirydate",
+      "https://www.compshare.cn/docs/operation/charge/recycle",
+      "https://www.compshare.cn/docs/operation/charge/sharebandwidth",
+      "https://www.compshare.cn/docs/operation/gpu/cardlessmode",
+      "https://www.compshare.cn/docs/operation/gpu/community",
+      "https://www.compshare.cn/docs/operation/gpu/createresources",
+      "https://www.compshare.cn/docs/operation/gpu/disk",
+      "https://www.compshare.cn/docs/operation/gpu/filebrowser",
+      "https://www.compshare.cn/docs/operation/gpu/firewall",
+      "https://www.compshare.cn/docs/operation/gpu/logininstance",
+      "https://www.compshare.cn/docs/operation/gpu/networkvolume",
+      "https://www.compshare.cn/docs/operation/gpu/quickstart",
+      "https://www.compshare.cn/docs/operation/gpu/releasecommunity",
+      "https://www.compshare.cn/docs/operation/gpu/resourcemonitoring",
+      "https://www.compshare.cn/docs/operation/gpu/selfstart",
+      "https://www.compshare.cn/docs/operation/gpu/sharebandwidth",
+      "https://www.compshare.cn/docs/operation/gpu/uaaa",
+      "https://www.compshare.cn/docs/operation/gpu/upfsmount",
+      "https://www.compshare.cn/docs/operation/gpu/uploaddata",
+      "https://www.compshare.cn/docs/operation/gpu/usepublicmodel",
+      "https://www.compshare.cn/docs/operation/gpufaq",
+      "https://www.compshare.cn/docs/operation/gpuspot/gpuspot",
+      "https://www.compshare.cn/docs/operation/image/imagecommunity",
+      "https://www.compshare.cn/docs/operation/image/versionmanagement",
+      "https://www.compshare.cn/docs/operation/introduce",
+      "https://www.compshare.cn/docs/operation/introduce/basicconcepts",
+      "https://www.compshare.cn/docs/operation/introduce/gpu",
+      "https://www.compshare.cn/docs/operation/introduce/region",
+      "https://www.compshare.cn/docs/overview/announcement/update-gpu",
+      "https://www.compshare.cn/docs/overview/announcement/update-llm",
+      "https://www.compshare.cn/docs/overview/member/membership",
+      "https://www.compshare.cn/docs/overview/member/userrecommendations",
+      "https://www.compshare.cn/docs/overview/platform/introduce",
+      "https://www.compshare.cn/docs/overview/platform/wechat",
+      "https://www.compshare.cn/docs/overview/serviceagreement/frame",
+      "https://www.compshare.cn/docs/overview/serviceagreement/incentive",
+      "https://www.compshare.cn/docs/overview/serviceagreement/overview",
+      "https://www.compshare.cn/docs/overview/serviceagreement/privacy",
+      "https://www.compshare.cn/docs/overview/serviceagreement/safe",
+      "https://www.compshare.cn/docs/overview/serviceagreement/user",
+      "https://www.compshare.cn/docs/uaccount/account/cancelaccount",
+      "https://www.compshare.cn/docs/uaccount/account/register",
+      "https://www.compshare.cn/docs/uaccount/bill/charge",
+      "https://www.compshare.cn/docs/uaccount/bill/checkbill",
+      "https://www.compshare.cn/docs/uaccount/bill/invoice",
+      "https://www.compshare.cn/docs/uaccount/bill/withdrawalrules",
+      "https://www.compshare.cn/docs/uaccount/identity/authentication",
+      "https://www.compshare.cn/docs/uaccount/identity/company",
+      "https://www.compshare.cn/docs/uaccount/identity/edu",
+      "https://www.compshare.cn/docs/uaccount/identity/personal",
+      "https://www.compshare.cn/docs/uaccount/team/team",
+      "https://www.compshare.cn/docs/uaccount/team/teambulider",
+      "https://www.compshare.cn/docs/uaccount/team/teammember"
+    ],
+    "picked": [
+      "https://www.compshare.cn/docs/operation/charge/billdescribe",
+      "https://www.compshare.cn/docs/uaccount/bill/charge",
+      "https://www.compshare.cn/docs/gpus/instance/createcompshareinstance",
+      "https://www.compshare.cn/docs/gpus/instance/startcompshareinstance",
+      "https://www.compshare.cn/docs/agent/billing/billing",
+      "https://www.compshare.cn/docs/agent/billing/expiry",
+      "https://www.compshare.cn/docs/agent/intro/quickstart",
+      "https://www.compshare.cn/docs/mcp-guide/cli",
+      "https://www.compshare.cn/docs/minimax-h3/billing",
+      "https://www.compshare.cn/docs/modelverse/codingfaq",
+      "https://www.compshare.cn/docs/modelverse/models/quick-start",
+      "https://www.compshare.cn/docs/modelverse/models/video_api/vidu/Vidu-StartEnd2Video",
+      "https://www.compshare.cn/docs/operation/bestpractices/createVNC",
+      "https://www.compshare.cn/docs/operation/charge/Renewal",
+      "https://www.compshare.cn/docs/operation/charge/bill",
+      "https://www.compshare.cn/docs/operation/charge/expirydate",
+      "https://www.compshare.cn/docs/operation/charge/recycle",
+      "https://www.compshare.cn/docs/operation/charge/sharebandwidth",
+      "https://www.compshare.cn/docs/operation/gpu/createresources",
+      "https://www.compshare.cn/docs/operation/gpu/quickstart",
+      "https://www.compshare.cn/docs/operation/gpu/selfstart",
+      "https://www.compshare.cn/docs/operation/gpufaq",
+      "https://www.compshare.cn/docs/overview/member/membership",
+      "https://www.compshare.cn/docs/overview/member/userrecommendations",
+      "https://www.compshare.cn/docs/uaccount/bill/checkbill",
+      "https://www.compshare.cn/docs/uaccount/bill/invoice",
+      "https://www.compshare.cn/docs/uaccount/bill/withdrawalrules",
+      "https://www.compshare.cn/docs/uaccount/team/teammember"
+    ]
+  },
+  "finished_utc": "2026-10-26T06:12:23+00:00"
+}

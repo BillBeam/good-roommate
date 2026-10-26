@@ -1,0 +1,521 @@
+https://www.compshare.cn/docs/operation/bestpractices/createVNC
+
+通过VNC搭建Ubuntu图形界面 · 优云智算文档
+Skip to Content
+CTRL K
+平台介绍
+平台概述
+平台介绍
+加入社群
+用户等级与推荐
+会员等级
+用户推荐
+产品更新公告
+GPU-新功能发布记录
+模型API-新功能发布记录
+服务协议
+协议概览
+优云智算服务框架协议
+优云智算云服务法律声明及隐私政策
+优云智算用户协议
+优云智算云平台安全规则
+优云智算激励活动协议
+GPU 产品指南
+GPU产品介绍
+功能概览
+已上线卡型
+可用区介绍
+GPU操作指南
+【新人必看】入门指南
+镜像选择
+创建实例
+登录实例
+本地数据上传
+文件管理
+制作私有镜像
+调用公共模型库
+防火墙及端口设置
+独享带宽
+配置外网加速
+云硬盘扩容与挂载
+云存储挂载
+模型库挂载
+自启动
+手动安装监控
+无卡模式
+GPU抢占式实例
+GPU抢占式实例
+发布社区镜像
+如何发布社区镜像
+更新已发布的社区镜像
+计费与回收
+计费概览
+计费方式说明
+独享带宽计费
+到期或欠费说明
+续费管理
+回收规则
+GPU最佳实践
+Isaac系列镜像使用教程
+Windows实例远程登录手册
+通过VNC搭建Ubuntu图形界面
+ubuntu如何安装Dify
+ubuntu如何安装Docker
+Windows安装Nvidia驱动和Cuda
+ubuntu安装Nvidia驱动和Cuda
+使用LangBot快速部署QQ、微信、飞书、钉钉机器人
+使用Clawdbot连接Telegram
+使用Clawdbot连接飞书
+GPU常见问题FAQ
+GPU 接口文档
+API接口范例
+常见错误码
+GPU实例
+创建GPU资源
+获取实例资源列表
+切换实例公网带宽归属
+启动实例
+关闭实例
+删除实例
+重启实例
+重装实例
+重置实例密码
+升降配实例
+获取支持的可用区信息列表
+查询网络加速服务状态
+检查指定规格的资源可用性
+获取可用机型列表
+获取机型族列表
+查询软件端口映射列表
+查询模型仓库模型列表
+获取实例监控数据
+变更实例计费方式
+查询创建实例价格
+查询实例升配价格
+查询实例当前计费信息
+查询退费金额
+获取实例上软件的访问地址
+修改实例名称
+更新容器实例端口
+设置/更新定时关机
+取消定时关机
+实例镜像
+获取自制镜像列表
+创建自制镜像
+删除算力平台自制镜像
+获取社区镜像列表
+获取平台镜像列表
+查询镜像已共享的账户列表
+获取镜像标签列表
+查询他人共享给自己的镜像
+查询已收藏的镜像列表
+查询自己发布的社区镜像
+查询指定用户的社区镜像
+查询镜像制作进度
+共享/取消共享镜像
+发布镜像到社区
+收藏镜像
+取消收藏镜像
+更新镜像信息
+磁盘与云存储
+创建并挂载云盘
+删除云盘
+卸载云盘
+扩容云盘
+挂载已有云盘
+查询云盘扩容价格
+云存储Pro
+接口概览与调用流程
+创建云存储Pro
+查询云存储Pro
+挂载云存储Pro
+卸载云存储Pro
+扩容云存储Pro
+删除云存储Pro
+查询购买价格
+查询扩容价格
+查询退费金额
+挂载 US3 对象存储到实例
+云存储文件上传和下载
+团队管理
+创建团队
+邀请成员加入团队
+删除团队
+查询成员订单列表
+查询成员订单数量
+查询成员未支付订单
+查询成员未支付订单数量
+导出团队账单
+获取团队详情
+查询已创建的团队列表
+查询团队邀请记录
+查询已加入的团队列表
+查询团队操作日志
+查询成员产品类型列表
+设置成员额度
+修改成员角色
+更新团队信息
+CLI&Skill
+CLI 快速开始
+MiniMax H3 文档
+产品介绍
+视频生成
+图片生成
+音频生成
+任务与资产管理
+积分与计费
+API 调用
+MiniMax H3 视频任务 API
+Qwen-Image 图片生成 API
+IndexTTS 2.5 语音任务 API
+模型 API 文档
+模型API产品介绍
+模型API服务
+套餐包使用说明
+套餐包快速上手
+套餐计费逻辑
+套餐用量统计
+客户端接入
+OpenClaw 云端服务
+按量计费说明
+按量API调用指南
+快速开始
+通用说明
+认证鉴权
+错误码
+文本生成
+如何获取模型列表
+模型协议支持说明
+API支持与扩展字段说明
+OpenAI-Completions 说明
+OpenAI-Response说明
+Embeddings 向量嵌入
+Gemini 快速开始
+Claude (Anthropic) 兼容说明
+DeepSeek-OCR 模型调用示例
+思考模型配置
+DeepSeek V3.1模型开启关闭思考说明
+Doubao豆包模型思考功能参数说明
+图片生成
+Qwen-Image-Edit
+Qwen-Image
+Nano Banana Pro
+Nano Banana 2
+gpt-image-2
+doubao-seedream
+Qwen-Image-Edit
+Qwen-Image
+stepfun-ai/step1x-edit API
+视频生成
+Flash VSR 视频超分 API
+doubao-seedance-1-5-pro
+doubao-seedance-2-0
+火山方舟素材管理
+火山方舟私域虚拟人像素材管理
+Vidu 系列
+Vidu/文生视频
+Vidu/图生视频
+Vidu/参考图生视频
+Vidu/首尾帧生视频
+Vidu/视频延长
+Vidu/对口型
+Wan-AI/Wan2.2-I2V
+Wan-AI/Wan2.2-T2V
+Wan-AI/Wan2.5-I2V
+Wan-AI/Wan2.5-T2V
+Wan-AI/Wan2.6-I2V
+Wan-AI/Wan2.6-T2V
+MiniMax/Hailuo-2.3-I2V
+MiniMax/Hailuo-2.3-T2V
+音频生成
+IndexTTS
+自定义音色
+IndexTeam/IndexTTS 扩展参数
+suno音乐生成
+MiniMax/speech-hd
+通义千问 Qwen-TTS
+常见问题答疑
+最佳实践
+OpenClaw 接入指南
+Claude Code 接入指南
+Codex 接入指南
+OpenCode 接入指南
+如何在codex中调用优云智算Agent Plan
+ComfyUI插件接入
+常见客户端接入 API
+Dify
+RAGFlow
+AnythingLLM
+纳米AI
+n8n
+GPT4All
+Cherry Studio
+Chatbox
+ChatHub
+ChatWise
+OpenWeb UI
+Obsidian
+MCP 说明
+MCP 简介
+通过 CLINE 接入 MCP 服务
+通过 UCloud API 实现 MCP Client
+API常见问题FAQ
+Agent 托管
+产品介绍
+产品介绍
+快速开始
+Agent 前置配置
+接入模型服务
+安装技能与专家包
+注入人设
+连接消息通道
+Agent 使用与操作
+对话与会话管理
+文件管理
+自动任务
+实例详情
+切换与重装
+计费说明
+计费与升配续费
+到期与数据说明
+账号与账单
+账号注册
+注册流程
+注销账号
+实名认证
+认证概览
+个人认证
+高校认证
+企业认证
+团队管理
+团队功能概览
+管理员账号操作说明
+团队成员账号操作说明
+账单与发票
+账号充值
+提现规则
+查看账单
+开具发票
+GPU产品介绍
+功能概览
+已上线卡型
+可用区介绍
+GPU操作指南
+【新人必看】入门指南
+镜像选择
+创建实例
+登录实例
+本地数据上传
+文件管理
+制作私有镜像
+调用公共模型库
+防火墙及端口设置
+独享带宽
+配置外网加速
+云硬盘扩容与挂载
+云存储挂载
+模型库挂载
+自启动
+手动安装监控
+无卡模式
+GPU抢占式实例
+GPU抢占式实例
+发布社区镜像
+如何发布社区镜像
+更新已发布的社区镜像
+计费与回收
+计费概览
+计费方式说明
+独享带宽计费
+到期或欠费说明
+续费管理
+回收规则
+GPU最佳实践
+Isaac系列镜像使用教程
+Windows实例远程登录手册
+通过VNC搭建Ubuntu图形界面
+ubuntu如何安装Dify
+ubuntu如何安装Docker
+Windows安装Nvidia驱动和Cuda
+ubuntu安装Nvidia驱动和Cuda
+使用LangBot快速部署QQ、微信、飞书、钉钉机器人
+使用Clawdbot连接Telegram
+使用Clawdbot连接飞书
+GPU常见问题FAQ
+GPU 产品指南
+GPU最佳实践
+通过VNC搭建Ubuntu图形界面
+复制页面
+复制页面
+将页面内容复制为 Markdown
+查看 Markdown
+在新窗口查看 Markdown 原文
+在 ChatGPT 中打开
+基于此页面继续提问
+在 Claude 中打开
+基于此页面继续提问
+在 DeepSeek 中打开
+基于此页面继续提问
+在 Perplexity 中打开
+基于此页面继续提问
+复制 MCP Server
+复制当前文档的 MCP Server 地址
+连接到 Cursor
+将文档 MCP Server 安装到 Cursor
+连接到 VS Code
+将文档 MCP Server 安装到 VS Code
+通过VNC搭建Ubuntu图形界面
+本教程通过外网 IP 和外网防火墙访问 VNC，适用于华北二A / 上海二B。其他可用区需在「配置开放端口」中添加 noVNC 端口（如 HTTP 6080），并通过平台分配的域名访问，详见
+防火墙及端口设置
+。
+实例准备
+在优云智算平台进行实例创建
+使用
+ssh
+或者控制台提供的
+JupyterLab
+\
+登录
+功能连接实例(下面安装实例使用
+JupyterLab
+⻚面配置为例)
+软件安装
+更新本地软件包
+apt update
+安装远程图形界面&轻量化桌面
+安装较为耗时，预计5-10min）
+apt  install -y dbus-x11 xorg openbox xfce4 xfce4-goodies tightvncserver
+语言选择
+在安装中，需要选择对应语言
+依赖项配置
+环境变量
+NOTE
+后续容器会默认添加
+-e USER=root
+设置，此步骤可忽略
+export USER=root
+dbus-launch启动
+NOTE
+在 软件安装 中
+dbus-x11
+是启动
+dbus-launch
+依赖包，若出现启动失败，可重新
+apt install dbus-x11
+进
+行安装
+dbus-launch
+VNC配置
+密码设置
+NOTE
+密码为6-8位
+只读模式设置为
+n
+1. 运行 vncserver
+2. 密码设置，使⽤6-8位作为密码，超过会被⾃动截取
+3. 密码确认，输⼊和设置的同⼀个密码即可
+4.在最后进⾏view-only选择时，需要选择【n】并输⼊回⻋
+修改启动文件
+启动文件备份
+cp ~/.vnc/xstartup ~/.vnc/xstartup.bak
+修改文件内容
+echo "startxfce4 &" >> ~/.vnc/xstartup
+chmod +x ~/.vnc/xstartup
+VNC重启
+# 1.关闭在密码设置中启动的VNC进程
+vncserver -kill :1
+# 2.重新启动vncserver
+vncserver -geometry 1920x1080
+# xauth: (argv):1:  bad display name "b9732a281594:1" in "add" command
+# New 'X' desktop is b9732a281594:1
+# Starting applications specified in /root/.vnc/xstartup
+# Log file is /root/.vnc/b9732a281594:1.log
+VNC端口占用说明
+默认使用端口为
+5900+启动编号
+，例如：在执行启动命令
+vncserver -geometry 1920x1080
+后，在log中提示
+New 'X' desktop is b9732a281594:1
+则表示，此进程在
+启动编号:1
+下执行,则此时占用端口号为
+5901
+。若后续需要使用
+VncViewer
+工具进行连接，防火墙必须打开
+5901
+端口号。
+也可通过命令进行检查端口
+(base) root@b9732a281594:/# ss -tuln | grep 590
+tcp    LISTEN 0   5      0.0.0.0:5901      0.0.0.0:*
+VncViewer连接
+IMPORTANT
+容器内VncServer服务对应防⽕墙端⼝必须打开
+官网工具下载
+https://www.realvnc.com/en/connect/download/viewer/
+桌面连接
+File -> New connection
+创建连接配置如下
+VncServer: EIP(外网访问地址):VncServer服务端口号
+Name：自定义名称
+双击选择刚刚创建的connection
+输入在vncserver密码初始化时填入的密码
+登录成功
+Chrome浏览器配置
+浏览器打开报错
+谷歌浏览器安装
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+apt install -y ./google-chrome-stable_current_amd64.deb
+VNC桌面进行浏览器替换
+WARNING
+此步骤须桌面的 Terminal 中进行操作，具体步骤如下
+执行
+xfce4-settings-manager
+会出现如下弹窗选择
+选择
+Default Applications
+在
+Web Browser
+中选择Other选项
+输入：
+/usr/bin/google-chrome --no-sandbox
+保存即可
+打开默认浏览器即可
+使用Web浏览器连接远程桌面
+TIP
+针对于不想安装
+VncViewer
+用户，可以选择使用Web浏览器直接访问远程桌面
+noVNC下载
+在一个你需要的路径下进行项目下载
+# noVnc下载
+git clone https://github.com/novnc/noVNC.git /usr/lib/noVNC
+chmod +x /usr/lib/noVNC/utils/*
+noVNC启动
+# 启动代理服务，并后台运⾏
+/usr/lib/noVNC/utils/novnc_proxy --vnc localhost:5901 &
+# 打印⽇志如下，端⼝号默认监听：6080
+Using installed websockify at /root/miniconda3/bin/websockify
+Starting webserver and WebSockets proxy on port 6080
+WebSocket server settings:
+- Listen on :6080
+- Web server. Web root: /usr/lib/noVNC
+- No SSL/TLS support (no cert file)
+- proxying from :6080 to localhost:5901
+Navigate to this URL:
+http://b9732a281594:6080/vnc.html?host=b9732a281594&port=6080
+Press Ctrl-C to exit
+web⻚面连接使用
+NOTE
+必须保证对应的 6080 端口防火墙打开！！！
+浏览器访问
+http://${外网EIP地址}:6080/vnc.html
+点击⻚面
+连接
+按钮
+输入vncserver设置的密码
+Last updated on
+September 22, 2026
+Windows实例远程登录手册
+ubuntu如何安装Dify
