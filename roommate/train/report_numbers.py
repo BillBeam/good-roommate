@@ -85,8 +85,51 @@ def tijian_subset():
         for r in m2.run_job(c, ("base", "think", s, 0), cache_only=True):
             if r["domain"] != "util":
                 keys.add((s, r["uid"], r["idx"]))
-                recs.append((s, r))
+            recs.append((s, r))
     return keys, recs
+
+
+def tijian_compare(tag="pre"):
+    """起点分数和体检比：只比体检做过的那 78 次会话（种子, 用户, 第几次）。
+    体检在硅基流动上跑，本次在本地 vLLM 上跑；两边都是思考开、温度 0、思考上限 4096、回答上限 8192。"""
+    keys, recs = tijian_subset()
+    hc = []
+    for s in (1, 2, 3):
+        w = world(s)
+        plans = {u["uid"]: u for u in w["users"]}
+        by = defaultdict(list)
+        for s2, r in recs:
+            if s2 == s:
+                by[r["uid"]].append(r)
+        for uid, rs in by.items():
+            info = replay_told(plans[uid], rs, w["config"]["repeat_mode"])
+            sess = {x["idx"]: x for x in plans[uid]["sessions"]}
+            hc += [(s, uid, session_row(r, sess[r["idx"]], info[r["idx"]])) for r in rs
+                   if (s, uid, r["idx"]) in keys]
+    ours = []
+    for s in (1, 2, 3):
+        w = world(s)
+        sess = {(u["uid"], x["idx"]): x for u in w["users"] for x in u["sessions"]}
+        ours += [(s, r["uid"], session_row(r, sess[(r["uid"], r["idx"])]))
+                 for r in jl(os.path.join(M, "eval", tag, "full", f"seed{s}", "sessions.jsonl"))
+                 if (s, r["uid"], r["idx"]) in keys]
+    # 同一批会话的配对差（本次 − 体检），按用户重抽样
+    import random
+    a, b = defaultdict(float), defaultdict(float)
+    n = defaultdict(int)
+    for s, uid, row in hc:
+        a[(s, uid)] += row["score"]
+        n[(s, uid)] += row["pers"]
+    for s, uid, row in ours:
+        b[(s, uid)] += row["score"]
+    users = sorted(n)
+    diff = lambda us: sum(b[u] - a[u] for u in us) / sum(n[u] for u in us)
+    rng = random.Random(0)
+    boots = sorted(diff([rng.choice(users) for _ in users]) for _ in range(N_BOOT))
+    return {"n_keys": len(keys), "tijian_siliconflow": summarize_rows(hc, n_boot=N_BOOT),
+            f"{tag}_local_vllm": summarize_rows(ours, n_boot=N_BOOT),
+            "paired_diff_mean_score": {"point": diff(users), "ci95": [boots[int(0.025 * N_BOOT)], boots[int(0.975 * N_BOOT) - 1]],
+                                       "n_users": len(users)}}
 
 
 def teacher_numbers(teacher_dir=os.path.join(ROOT, "teacher"), seeds=(101, 102, 103, 104)):
@@ -200,6 +243,7 @@ def main():
         if rows:
             short[tag] = summarize_rows(rows, n_boot=N_BOOT)
     out["short"] = short
+    out["tijian"] = tijian_compare("pre")
     out["needs_first"] = {str(s): needs_first_rate(short_world(world(s), [0, 2, 4, 6])) for s in (201, 202)}
     out["needs_first_train_pool"] = {str(s): needs_first_rate(short_world(world(s))) for s in (301, 302)}
     os.makedirs(os.path.join(ROOT, "report"), exist_ok=True)

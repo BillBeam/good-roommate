@@ -100,14 +100,25 @@ def group_ledger_md(g, step=None):
 
 
 def grpo_curves(step_files, path):
-    """GRPO 每一步的曲线（讲解 4）：分数、提问数、捷径①②、思考长度、采样端与训练端 logprob 之差。step_files = {标签: steps.jsonl}。"""
+    """GRPO 每一步的曲线（讲解 4）：分数、提问数、捷径①②、思考长度和超限比例、采样端与训练端 logprob 之差、
+    修正（TIS 截断的 token 比例）。step_files = {标签: steps.jsonl}。
+    续跑演练会让某一步记两次（被杀掉的那次和续跑后重做的那次）；每步只画最后一次，即进了最终权重的那次。"""
     plt = _plt()
-    series = {lab: [json.loads(x) for x in open(f, encoding="utf-8") if x.strip()] for lab, f in step_files.items()
-              if os.path.exists(f)}
+    series = {}
+    for lab, f in step_files.items():
+        if os.path.exists(f):
+            last = {}
+            for x in open(f, encoding="utf-8"):
+                if x.strip():
+                    r = json.loads(x)
+                    last[r["step"]] = r
+            series[lab] = [last[k] for k in sorted(last)]
     panels = [("score", "平均分"), ("questions", "平均提问次数"), ("shortcut1", "捷径①：没提过的偏好不问就选"),
               ("shortcut2", "捷径②：提过的偏好又问"), ("think_tokens_per_turn", "每轮思考 token 数"),
-              ("mismatch_abs_mean", "采样端与训练端 logprob 之差（均值）")]
-    fig, axes = plt.subplots(2, 3, figsize=(13, 6.5))
+              ("think_over_limit", "思考超过上限的轮次比例"),
+              ("mismatch_abs_mean", "采样端与训练端 logprob 之差（均值）"),
+              ("tis_clipped_frac", "修正：TIS 权重被截断的 token 比例")]
+    fig, axes = plt.subplots(2, 4, figsize=(17, 6.5))
     for ax, (key, title) in zip(axes.flat, panels):
         for lab, rows in series.items():
             xs = [r["step"] for r in rows if r.get(key) is not None]
@@ -152,6 +163,12 @@ def main():
         m = json.load(open(mat, encoding="utf-8"))
         if m.get("mask_example"):
             print(mask_png(m["mask_example"], os.path.join(FIG, "selfcheck_mask.png")))
+    sft_log = "runs/m2pilot/machine/sft/train_log.jsonl"
+    if os.path.exists(sft_log):
+        print(sft_loss_png(sft_log, os.path.join(FIG, "sft_loss.png")))
+    steps = {f"种子 {s}": f"runs/m2pilot/machine/grpo_s{s}/steps.jsonl" for s in (1, 2)}
+    if any(os.path.exists(f) for f in steps.values()):
+        print(grpo_curves(steps, os.path.join(FIG, "grpo_curves.png")))
 
 
 if __name__ == "__main__":
