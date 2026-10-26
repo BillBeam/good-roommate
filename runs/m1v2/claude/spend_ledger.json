@@ -1,0 +1,56 @@
+{
+ "total_usd": 1.8455483150000007,
+ "deepseek_cny_total": 0.0,
+ "by_model_role": {
+  "claude-haiku-5-5|agent": {
+   "api_calls": 35,
+   "cache_hits": 0,
+   "prompt_tokens": 75077,
+   "cached_prompt_tokens": 37904,
+   "completion_tokens": 11666,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.010856114999999996,
+   "cache_write_tokens": 37071
+  },
+  "claude-sonnet-5-5|agent": {
+   "api_calls": 35,
+   "cache_hits": 0,
+   "prompt_tokens": 71489,
+   "cached_prompt_tokens": 37336,
+   "completion_tokens": 5254,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.14160510000000004,
+   "cache_write_tokens": 34051
+  },
+  "claude-opus-5-5|agent": {
+   "api_calls": 39,
+   "cache_hits": 0,
+   "prompt_tokens": 84102,
+   "cached_prompt_tokens": 46401,
+   "completion_tokens": 7308,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.3438352000000002,
+   "cache_write_tokens": 37591
+  },
+  "claude-fable-5-1|agent": {
+   "api_calls": 53,
+   "cache_hits": 0,
+   "prompt_tokens": 126829,
+   "cached_prompt_tokens": 81728,
+   "completion_tokens": 10564,
+   "reasoning_tokens": 0,
+   "cost_usd": 1.1120495,
+   "cache_write_tokens": 44963
+  },
+  "claude-opus-5-5|control": {
+   "api_calls": 30,
+   "cache_hits": 0,
+   "prompt_tokens": 63800,
+   "cached_prompt_tokens": 27047,
+   "completion_tokens": 2406,
+   "reasoning_tokens": 0,
+   "cost_usd": 0.2372024,
+   "cache_write_tokens": 36661
+  }
+ }
+}
