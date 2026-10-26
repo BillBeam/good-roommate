@@ -1,5 +1,5 @@
 {
- "at": "2026-10-26T17:21:54+00:00",
+ "at": "2026-10-26T17:25:45+00:00",
  "instance_fields": [
   "AppOnlyAccess",
   "AutoRenew",
@@ -92,12 +92,12 @@
  },
  "targets": [
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:SD-WebUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:ComfyUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
@@ -107,17 +107,17 @@
    "error": "TimeoutError"
   },
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:FileBrowser",
    "tcp_open": false,
    "error": "TimeoutError"
   },
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:SD-WebUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:ComfyUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
@@ -144,10 +144,18 @@
      "jupyter_page": false
     },
     "open_without_auth": false
+   },
+   "app": {
+    "status": 302,
+    "redirect": "same_host",
+    "title": "",
+    "app": null,
+    "login_form": false,
+    "filebrowser_api_unauth": 302
    }
   },
   {
-   "target": "instance_ip:platform_port",
+   "target": "instance_ip:platform_port:FileBrowser",
    "tcp_open": true,
    "jupyter": {
     "/api/status": {
@@ -169,15 +177,23 @@
      "jupyter_page": false
     },
     "open_without_auth": false
+   },
+   "app": {
+    "status": 200,
+    "redirect": null,
+    "title": "File Browser",
+    "app": "filebrowser",
+    "login_form": true,
+    "filebrowser_api_unauth": 401
    }
   },
   {
-   "target": "ssh_host:platform_port",
+   "target": "ssh_host:platform_port:SD-WebUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
   {
-   "target": "ssh_host:platform_port",
+   "target": "ssh_host:platform_port:ComfyUI",
    "tcp_open": false,
    "error": "TimeoutError"
   },
@@ -204,10 +220,18 @@
      "jupyter_page": false
     },
     "open_without_auth": false
+   },
+   "app": {
+    "status": 302,
+    "redirect": "same_host",
+    "title": "",
+    "app": null,
+    "login_form": false,
+    "filebrowser_api_unauth": 302
    }
   },
   {
-   "target": "ssh_host:platform_port",
+   "target": "ssh_host:platform_port:FileBrowser",
    "tcp_open": true,
    "jupyter": {
     "/api/status": {
@@ -229,7 +253,53 @@
      "jupyter_page": false
     },
     "open_without_auth": false
+   },
+   "app": {
+    "status": 200,
+    "redirect": null,
+    "title": "File Browser",
+    "app": "filebrowser",
+    "login_form": true,
+    "filebrowser_api_unauth": 401
    }
+  }
+ ],
+ "software_ports": [
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "ComfyUI"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "JupyterLab"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "SD-WebUI"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "FileBrowser"
+   ]
   }
  ],
  "open_without_auth_anywhere": false
