@@ -78,10 +78,14 @@ NO_RETRY = {"CreateCompShareInstance", "CreateCompShareCustomImage"}   # 重发�
 def call_write(action, params=None, timeout=60):
     if action not in WRITE:
         raise ValueError(f"{action} is not in the write allowlist")
-    return _send(action, params, timeout, tries=1 if action in NO_RETRY else 6)
+    return _send(action, params, timeout, tries=1 if action in NO_RETRY else None)
 
 
-def _send(action, params, timeout, tries=6):
+TRIES = 6   # 默认重试次数；中转可以调低（连不上时要在几分钟内收尾）
+
+
+def _send(action, params, timeout, tries=None):
+    tries = tries or TRIES
     payload = _flatten({**(params or {}), "Action": action})
     payload["PublicKey"] = os.environ["COMPSHARE_PUBLIC_KEY"]
     raw = "".join(k + payload[k] for k in sorted(payload)) + os.environ["COMPSHARE_PRIVATE_KEY"]

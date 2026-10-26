@@ -8,7 +8,13 @@ mkdir -p $W/models/Qwen3.5-4B $OUT
 T0=$(date +%s)
 mark() { echo "{\"step\": \"$1\", \"seconds\": $(( $(date +%s) - T0 ))}" >> $OUT/timing.jsonl; }
 MIRROR=${PIP_MIRROR:-https://pypi.tuna.tsinghua.edu.cn/simple}
-VLLM=${VLLM_VERSION:-vllm}
+# 版本钉在第一台机器（2026-10-26）实际装上的版本，换机器后环境相同
+VLLM=${VLLM_VERSION:-vllm==0.31.0}
+
+# 网络观察（每分钟一行，见 netwatch.sh）和开机时的安全软件、防火墙、sshd 清单
+mkdir -p $W/out/diag
+pgrep -f ops/remote/netwatch.sh >/dev/null || nohup setsid bash $W/repo/ops/remote/netwatch.sh >/dev/null 2>&1 < /dev/null &
+bash $W/repo/ops/remote/diag.sh > $W/out/diag/diag_setup.txt 2>&1 || true
 
 nvidia-smi > $OUT/nvidia-smi.txt
 nvidia-smi --query-gpu=name,driver_version,memory.total,compute_cap --format=csv,noheader > $OUT/gpu.csv
@@ -25,7 +31,8 @@ python -m pip install -q -U pip -i $MIRROR
 mark venv
 python -m pip install -q -i $MIRROR "$VLLM"
 mark vllm
-python -m pip install -q -i $MIRROR peft flash-linear-attention safetensors jinja2 matplotlib
+python -m pip install -q -i $MIRROR transformers==5.17.0 peft==0.21.2 flash-linear-attention==0.6.0 safetensors==0.8.0 \
+  jinja2 matplotlib
 mark extras
 
 # 模型：ModelScope（国内镜像），逐个文件 curl；分片按 index 下载
