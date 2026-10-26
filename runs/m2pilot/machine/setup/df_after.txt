@@ -1,2 +1,2 @@
 Filesystem      Size  Used Avail Use% Mounted on
-overlay         100G   24G   77G  24% /
+overlay          79G   22G   54G  29% /

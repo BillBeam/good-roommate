@@ -11,3 +11,18 @@ Failing command: /root/work/venv/bin/python3
 
 debconf: delaying package configuration, since apt-utils is not installed
 curl: (22) The requested URL returned error: 404
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+{
+ "python": "3.10.12",
+ "torch": "2.13.0+cu130",
+ "cuda": "13.0",
+ "gpus": [
+  "NVIDIA A800-SXM4-80GB"
+ ],
+ "bf16": true,
+ "vllm": "0.31.0",
+ "transformers": "5.17.0",
+ "peft": "0.21.2",
+ "fla": "0.6.0",
+ "safetensors": "0.8.0"
+}
