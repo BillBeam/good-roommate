@@ -219,6 +219,27 @@ jobs:
             git archive FETCH_HEAD runs/m2pilot/teacher 2>/dev/null | tar xf - || true
           fi
 
+      - name: DeepSeek balance check (booleans only; stops below 60 CNY)
+        id: dscheck
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request
+          key = os.environ.get("DEEPSEEK_API_KEY", "")
+          res = {"deepseek_key_present": bool(key)}
+          if key:
+              d = json.load(urllib.request.urlopen(urllib.request.Request(
+                  "https://api.deepseek.com/user/balance", headers={"Authorization": f"Bearer {key}"}), timeout=30))
+              cny = sum(float(b.get("total_balance") or 0) for b in d.get("balance_infos") or [] if b.get("currency") == "CNY")
+              res["deepseek_available"] = bool(d.get("is_available"))
+              res["deepseek_balance_ge_60_cny"] = cny >= 60
+          os.makedirs("runs/m2pilot/teacher", exist_ok=True)
+          json.dump(res, open("/tmp/dscheck.json", "w"))
+          print(json.dumps(res))
+          sys.exit(0 if res.get("deepseek_balance_ge_60_cny") else 1)
+          PY
+
       - name: Teacher trajectories (DeepSeek V4 Pro)
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -239,6 +260,8 @@ jobs:
         run: |
           {
             echo "teacher run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+            echo
+            echo "DeepSeek check: $(cat /tmp/dscheck.json 2>/dev/null || echo 'not run')"
             echo
             echo '```json'
             python3 - <<'PY'
