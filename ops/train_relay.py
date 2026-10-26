@@ -164,12 +164,13 @@ def data_append(rel, line):
 # ---------------- machine ----------------
 
 def machines():
-    out = []
+    """账号下全部实例。接口不按 Region 过滤（每个地域都返回同一批），按实例 ID 去重，地域取自可用区。"""
+    out = {}
     for region in REGIONS:
         r, _ = api.call("DescribeCompShareInstance", {"Region": region, "Limit": 100})
         for h in r.get("UHostSet") or []:
-            out.append(dict(h, _region=region))
-    return out
+            out.setdefault(h["UHostId"], dict(h, _region=str(h.get("Zone") or region).rsplit("-", 1)[0]))
+    return list(out.values())
 
 
 def our_machine():
