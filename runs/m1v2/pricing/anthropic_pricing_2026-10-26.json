@@ -1,0 +1,57 @@
+{
+ "source": "GET https://platform.claude.com/docs/en/about-claude/pricing.md（Anthropic 官方价目页，美元 / 百万 tokens；Claude API 第一方、全球路由、标准速度、非批处理）",
+ "fetched_at": "2026-10-26T10:13:30+00:00",
+ "raw_sha256": "f71573e3b8280316d567a310cdc9a469c6c56a3a0c13d9156446e4af340be39e",
+ "raw_rows": [
+  "",
+  "| Model | Base input tokens | 5m cache writes | 1h cache writes | Cache hits and refreshes | Output tokens |",
+  "| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------- | :-------------- | :-------------- | :----------------------- | :--------------------- |",
+  "| Claude Fable 5.1 | $10 / MTok | $12.50 / MTok | $20 / MTok | $0.25 / MTok<sup>1</sup> | $50 / MTok |",
+  "| Claude Opus 5.5 | $4 / MTok | $5 / MTok | $8 / MTok | $0.20 / MTok<sup>2</sup> | $20 / MTok |",
+  "| Claude Sonnet 5.5 | $2 / MTok | $2.50 / MTok | $4 / MTok | $0.10 / MTok<sup>2</sup> | $10 / MTok |",
+  "| Claude Haiku 5.5 (for prompts up to 100,000 tokens) | $0.10 / MTok | $0.125 / MTok | $0.20 / MTok | $0.01 / MTok | $0.50 / MTok |",
+  "| Claude Haiku 5.5 (for prompts over 100,000 tokens) | $0.50 / MTok | $0.625 / MTok | $1 / MTok | $0.05 / MTok | $2.50 / MTok |"
+ ],
+ "raw_notes": [
+  "*<sup>1 Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price.</sup>*",
+  "*<sup>2 Cache hits and refreshes on Claude Opus 5.5 and Claude Sonnet 5.5 are priced at 0.05x the base input price.</sup>*"
+ ],
+ "prices": {
+  "claude-fable-5-1": {
+   "input": 10,
+   "cache_write_5m": 12.5,
+   "cache_write_1h": 20,
+   "cache_read": 0.25,
+   "output": 50
+  },
+  "claude-opus-5-5": {
+   "input": 4,
+   "cache_write_5m": 5,
+   "cache_write_1h": 8,
+   "cache_read": 0.2,
+   "output": 20
+  },
+  "claude-sonnet-5-5": {
+   "input": 2,
+   "cache_write_5m": 2.5,
+   "cache_write_1h": 4,
+   "cache_read": 0.1,
+   "output": 10
+  },
+  "claude-haiku-5-5": {
+   "input": 0.1,
+   "cache_write_5m": 0.125,
+   "cache_write_1h": 0.2,
+   "cache_read": 0.01,
+   "output": 0.5,
+   "long": {
+    "over_prompt_tokens": 100000,
+    "input": 0.5,
+    "cache_write_5m": 0.625,
+    "cache_write_1h": 1,
+    "cache_read": 0.05,
+    "output": 2.5
+   }
+  }
+ }
+}

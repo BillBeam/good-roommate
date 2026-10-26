@@ -23,7 +23,9 @@ NM_CN = {
     "hyp_event": "多一个没发生的事件", "hyp_temp": "多一个没发生的临时情况",
     "hyp_prior_event": "像是某事件之前的状态（假想）", "hyp_prior_temp": "像是某临时情况之前的状态（假想）",
 }
-MODEL_CN = {"deepseek-flash": "DeepSeek Flash（V4.1）", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7"}
+MODEL_CN = {"deepseek-flash": "DeepSeek Flash（V4.1）", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7",
+            "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5",
+            "claude-opus-5-5": "Claude Opus 5.5", "claude-fable-5-1": "Claude Fable 5.1"}
 
 
 def _load(p):
@@ -73,7 +75,8 @@ def write(out, report_path):
     lines = []
     w = lines.append
     pol = g["policies"]
-    llm_models = [m for m in cfg["models"] if f"llm_{m}" in pol]
+    llm_models = [m for m in cfg["models"] + cfg.get("claude_models", []) if f"llm_{m}" in pol]
+    claude_on = any(m.startswith("claude-") for m in llm_models) or any(k.startswith("llm_claude-") for k in g.get("partial_runs", {}))
 
     # ---------- 标题与一句话结果 ----------
     w("# M1 第二版：修模拟用户、修选项泄题、让记忆成为必需，按四道闸门重测")
@@ -298,13 +301,17 @@ def write(out, report_path):
               f"{L.n(v['near_miss_error_rate'], gp, 'pct')} | {L.n(hs.get('headroom_share'), gp, 'pct')} | {L.ci(hs.get('headroom_share_ci95'), gp, 'pct')} |")
         w("")
         w(f"剩余空间比例 = (模型分 − 最简单策略里的最高分 {L.n(g4['best_trivial_score'], gp)}) / (理想记忆策略 {L.n(g4['ideal'], gp)} − 最简单策略里的最高分)。"
-          "闸门④按要求只看 DeepSeek V4 Pro。")
+          "闸门④按要求只看 DeepSeek V4 Pro。" + (
+              "Claude 系列（Haiku 5.5、Sonnet 5.5、Opus 5.5、Fable 5.1）的设置、和 DeepSeek 对不齐的地方、花费与失分分析见 "
+              f"[Claude 基线报告]({L.rel(os.path.join(os.path.dirname(report_path), 'm1v2-claude-baseline.md'))})。" if claude_on else ""))
         w("")
         pr = g.get("partial_runs", {})
         if pr:
             w("**没有跑全的结果**（照实列出，不补跑；不进闸门，也不算置信区间）：grok-4.7 的 xAI 余额在种子 3 中途耗尽，"
               "之后第二版不再向 xAI 发任何请求，这里的 grok-4.7 记录全部从缓存重建（缺缓存的用户从第一次缺的会话起截断）；"
-              "对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。")
+              "对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。"
+              + ("Claude 的对照组只给 Opus 5.5 跑种子 1。" if claude_on else "")
+              + ("Claude Fable 5.1 按预算优先级只跑了部分世界（见 Claude 基线报告）。" if "llm_claude-fable-5-1" in pr else ""))
             w("")
             w("| 记录 | 平均每次会话得分 | 偏好会话数 | 各世界（会话数 / 应有数：得分） | 成功率 | 平均每次提问 |")
             w("|---|---|---|---|---|---|")

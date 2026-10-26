@@ -20,6 +20,7 @@ import urllib.request
 from collections import Counter
 
 from . import checks, cuecheck, llm, probes, report, stats
+from .agent_claude import ClaudeAgent
 from .agent_llm import LLMAgent
 from .env import Env
 from .grading import satisfies, summarize
@@ -45,9 +46,13 @@ DEEPSEEK_CNY_BUDGET = 40.0                                     # 第二版剩余
 MODEL_EXTRA = {}          # 各模型额外的请求参数（如思考模式），在 config.json 里记录
 # DeepSeek V4 默认开思考；工具调用循环里要把 reasoning_content 原样带回
 ECHO_REASONING = {"deepseek-flash": True, "deepseek-v4-pro": True}
+# Claude 基线由 roommate/claude_run.py 单独跑（自己的账本和上限，见那里）；记录放在同样的 policies/ 目录下，统计和报告一起算
+CLAUDE_MODELS = ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-1"]
 
 
 def agent(client, m, seed, ctrl=False, cache_only=False):
+    if m.startswith("claude-"):
+        return ClaudeAgent(client, m, seed=seed, inject_true_memory=ctrl, truncate_on_cache_miss=cache_only)
     return LLMAgent(client, m, extra=MODEL_EXTRA.get(m), seed=seed, inject_true_memory=ctrl,
                     echo_reasoning=ECHO_REASONING.get(m, False), truncate_on_cache_miss=cache_only)
 V1_MODE_POLICIES = ["ask_all", "remember_all_reask", "ideal"]
@@ -395,7 +400,7 @@ def write_config(args):
         "written_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "world_config": DEFAULT_CONFIG, "gate_seeds": GATE_SEEDS, "compare_seed": COMPARE_SEED,
         "classifier_train_seeds": [CLASSIFIER_TRAIN_SEEDS[0], CLASSIFIER_TRAIN_SEEDS[-1]],
-        "models": MODELS, "control_runs": CONTROL_RUNS, "compare_models": COMPARE_MODELS,
+        "models": MODELS, "claude_models": CLAUDE_MODELS, "control_runs": CONTROL_RUNS, "compare_models": COMPARE_MODELS,
         "cached_only": CACHED_ONLY, "blocked_providers": sorted(BLOCKED_PROVIDERS),
         "deepseek_cny_budget": DEEPSEEK_CNY_BUDGET,
         "cue_judges": CUE_JUDGES, "model_extra": MODEL_EXTRA, "echo_reasoning": ECHO_REASONING,

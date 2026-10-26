@@ -5,3 +5,5 @@ __pycache__/
 *.tmp
 # M2 的请求缓存运行中先写未压缩的 .jsonl，compact 阶段并入 .jsonl.gz；仓库里只放压缩后的
 runs/m2/llm_cache/*.jsonl
+# Claude 的请求缓存同样先写 .jsonl，claude_run 的 compact 阶段并入 .jsonl.gz
+runs/m1v2/llm_cache/claude-*.jsonl
