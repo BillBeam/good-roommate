@@ -27,13 +27,20 @@ PY = [sys.executable, "-m"]
 
 
 def cost_so_far():
+    """显卡费估算：当前机器（开机到现在）+ 释放过的机器（开机到释放），都按开机时的单价。"""
     try:
+        import datetime as dt
+        ts = lambda x: dt.datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp()
         m = load("runs/m2pilot/relay/machine.json") if os.path.exists("runs/m2pilot/relay/machine.json") else None
         if not m:
             return None
-        import datetime as dt
-        t0 = dt.datetime.fromisoformat(m["created"]).timestamp()
-        return (time.time() - t0) / 3600 * float(m["hourly"])
+        cost = (time.time() - ts(m["created"])) / 3600 * float(m["hourly"])
+        past = "runs/m2pilot/relay/machines_past.jsonl"
+        if os.path.exists(past):
+            for line in open(past, encoding="utf-8"):
+                p = json.loads(line)
+                cost += (ts(p["released"]) - ts(p["created"])) / 3600 * float(p["hourly"])
+        return cost
     except Exception:
         return None
 

@@ -69,7 +69,7 @@ IMAGE_PREFERENCE = ("cuda132_torch", "cuda130_torch", "cuda128_torch", "cuda132_
 CODE_PATHS = ["roommate", "ops", "tests", "runs/m1v2/seed1/world.json", "runs/m1v2/seed2/world.json",
               "runs/m1v2/seed3/world.json", "runs/m2/siliconflow_probe", "runs/m2prep", "runs/m2/interim",
               "runs/m2pilot/config"]
-DATA_PATHS = ["runs/m2pilot/teacher", "runs/m2pilot/relay/machine.json"]
+DATA_PATHS = ["runs/m2pilot/teacher", "runs/m2pilot/relay/machine.json", "runs/m2pilot/relay/machines_past.jsonl"]
 os.makedirs(OUT, exist_ok=True)
 T0 = time.time()
 summary = {"run_id": RUN_ID, "actions": []}
@@ -680,6 +680,11 @@ def do_destroy(a):
             return False
         summary["release_evidence"] = {"machine": h["UHostId"], "health": rec, "confirm": a["confirm_nothing_unsynced"]}
         data_write("relay/released_unreachable.json", {"at": now_iso(), **summary["release_evidence"]})
+    if h:     # 释放过的机器另记一份（开机时间、释放时间、单价），流水线估算花费时把它们也算进去
+        m = data_json("relay/machine.json", {})
+        data_append("relay/machines_past.jsonl", {"name": h.get("Name"), "uhost": h["UHostId"], "gpu": m.get("gpu"),
+                                                 "created": m.get("created"), "released": now_iso(),
+                                                 "hourly": m.get("hourly")})
     t0 = time.time()
     while h and time.time() - t0 < 900:
         state = h.get("State")
