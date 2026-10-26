@@ -1,5 +1,5 @@
 {
- "at": "2026-10-26T19:37:57+00:00",
+ "at": "2026-10-26T21:00:23+00:00",
  "state": "Running",
  "monitor_messages": {
   "CpuUsageRate": "",
@@ -7,16 +7,6 @@
   "GpuInfo": null
  },
  "monitor_param_forms": [
-  {
-   "form": "json_body_sig_flat",
-   "RetCode": 171,
-   "Message": "Signature VerifyAC Error"
-  },
-  {
-   "form": "json_body_sig_json",
-   "RetCode": 171,
-   "Message": "Signature VerifyAC Error"
-  },
   {
    "form": "json_body_sig_join",
    "RetCode": 0,
@@ -35,27 +25,27 @@
   "uhost_cpu_used": {
    "points": 2,
    "last": [
-    1793043478,
+    1793048424,
+    7.0
+   ],
+   "max": 7.0,
+   "min": 7.0,
+   "span_s": 60
+  },
+  "cloudwatch_memory_usage": {
+   "points": 2,
+   "last": [
+    1793048424,
     5.0
    ],
    "max": 5.0,
    "min": 5.0,
    "span_s": 60
   },
-  "cloudwatch_memory_usage": {
-   "points": 2,
-   "last": [
-    1793043478,
-    6.0
-   ],
-   "max": 6.0,
-   "min": 6.0,
-   "span_s": 60
-  },
   "cloudwatch_sys_disk_used_per": {
    "points": 2,
    "last": [
-    1793043478,
+    1793048424,
     23.0
    ],
    "max": 23.0,
@@ -65,27 +55,27 @@
   "cloudwatch_data_disk_used_per": {
    "points": 6,
    "last": [
-    1793043478,
-    28.0
+    1793048424,
+    29.0
    ],
-   "max": 28.0,
+   "max": 29.0,
    "min": 0.0,
    "span_s": 60
   },
   "cloudwatch_gpu_memory_usage": {
    "points": 2,
    "last": [
-    1793043478,
-    86.0
+    1793048424,
+    17.0
    ],
-   "max": 86.0,
-   "min": 86.0,
+   "max": 17.0,
+   "min": 17.0,
    "span_s": 60
   },
   "cloudwatch_gpu_util": {
    "points": 2,
    "last": [
-    1793043478,
+    1793048424,
     100.0
    ],
    "max": 100.0,
@@ -95,9 +85,10 @@
  },
  "gpu_metric": "cloudwatch_gpu_util",
  "gpu_util_max": 100.0,
- "gpu_window_s": 60,
+ "gpu_samples": 1,
+ "gpu_window_s": 0,
  "verdict": [
   "working",
-  "GPU utilisation up to 100% in the last 1 min"
+  "GPU utilisation up to 100% in the last 0 min"
  ]
 }
