@@ -117,8 +117,62 @@ def teacher_numbers(teacher_dir=os.path.join(ROOT, "teacher"), seeds=(101, 102, 
     return out
 
 
+def _ts(x):
+    from datetime import datetime
+    return datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp()
+
+
+def outage_numbers(relay=os.path.join(ROOT, "relay")):
+    """这次断连：几点断的、断了多久、这段时间旧机器的费用、重启前后的检查结果、释放与换机。
+    只读中转的记录：relay_runs.jsonl（每轮摘要）、logs/<轮次>.jsonl（逐条日志）、machines_past.jsonl（释放过的机器）。"""
+    runs_p, logs_d = os.path.join(relay, "relay_runs.jsonl"), os.path.join(relay, "logs")
+    if not (os.path.exists(runs_p) and os.path.isdir(logs_d)):
+        return None
+    runs = jl(runs_p)
+    events = []
+    for f in sorted(glob.glob(os.path.join(logs_d, "*.jsonl"))):
+        rid = os.path.basename(f)[:-6]
+        events += [dict(e, run=rid) for e in jl(f)]
+    events.sort(key=lambda e: e["t"])
+    ssh_fail = [e for e in events if e.get("rc") == 255 or e.get("msg") in ("job_status_empty", "unreachable")]
+    if not ssh_fail:
+        return None
+    first_fail = ssh_fail[0]
+    # 断之前最后一轮全部动作成功、且结束于第一次失败之前的中转
+    ok_runs = [r for r in runs if r.get("actions") and all(a["ok"] for a in r["actions"]) and not r.get("error")
+               and _ts(r["finished"]) < _ts(first_fail["t"])]
+    last_ok = max(ok_runs, key=lambda r: _ts(r["finished"]))
+    # 这一轮里失败的动作是从哪一刻开始做的（失败行之前最近的一条 action 行）
+    started = max((e for e in events if e["run"] == first_fail["run"] and e.get("msg") == "action"
+                   and e["t"] <= first_fail["t"]), key=lambda e: e["t"])
+    reboot = next((e for e in events if e.get("msg") == "reboot"), None)
+    after = next((e for e in events if e.get("msg") == "rebooted"), None)
+    after_fail = next((e for e in events if reboot and e["t"] > reboot["t"] and e.get("rc") == 255), None)
+    past = [p for p in jl(os.path.join(relay, "machines_past.jsonl"))] if os.path.exists(
+        os.path.join(relay, "machines_past.jsonl")) else []
+    old = past[0] if past else None
+    out = {"last_ok_round": {"run": last_ok["run_id"], "finished": last_ok["finished"]},
+           "first_failed_action": {"run": first_fail["run"], "action_started": started["t"], "failed_at": first_fail["t"],
+                                   "what": started.get("do")},
+           "ssh_failures_logged": len(ssh_fail),
+           "reboot": reboot and {"at": reboot["t"], "ssh_after": after and after.get("out", "").split("\n")[0],
+                                 "ssh_after_at": after and after["t"],
+                                 "next_failure_at": after_fail and after_fail["t"]}}
+    if old:
+        lo, hi = _ts(last_ok["finished"]), _ts(started["t"])      # 断开发生在这两个时刻之间
+        rel = _ts(old["released"])
+        out["old_machine"] = {"name": old["name"], "gpu": old["gpu"], "hourly": old["hourly"], "released": old["released"],
+                              "outage_hours_max": round((rel - lo) / 3600, 2), "outage_hours_min": round((rel - hi) / 3600, 2),
+                              "outage_cost_max": round((rel - lo) / 3600 * old["hourly"], 2),
+                              "outage_cost_min": round((rel - hi) / 3600 * old["hourly"], 2),
+                              "total_hours": round((rel - _ts(old["created"])) / 3600, 2),
+                              "total_cost": round((rel - _ts(old["created"])) / 3600 * old["hourly"], 2)}
+    return out
+
+
 def main():
     out = {}
+    out["outage"] = outage_numbers()
     out["teacher"] = teacher_numbers()
     # 联合基线表
     joint = {}
