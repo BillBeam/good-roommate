@@ -1,0 +1,563 @@
+{
+ "queried_at_utc": "2026-10-25T14:09:55Z",
+ "endpoint": "https://api.compshare.cn/",
+ "unit": "元/小时（ChargeType=Dynamic，按量）",
+ "image": "compshareImage-1t1vuerl80np (cuda132_torch2130_py312)",
+ "zone": "cn-wlcb-01 (华北二A, ZoneId 10027)",
+ "price_GetCompShareInstancePrice": {
+  "4090_48Gx1|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.61,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx1|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.61,
+    "Disks": 0.23,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx8|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 30.87,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx8|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 30.87,
+    "Disks": 0.23,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "A800x1|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 6.99,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "A800x1|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 6.99,
+    "Disks": 0.23,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "A800x8|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 54.67,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "A800x8|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 54.67,
+    "Disks": 0.23,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  }
+ },
+ "price_GetCompShareInstanceUserPrice": {
+  "4090_48Gx1|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx1|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 3.8,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx8|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "4090_48Gx8|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 32.5,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "A800x1|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "A800x1|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 7.36,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  },
+  "A800x8|boot100|data0": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0,
+    "SystemDisks": 0
+   }
+  },
+  "A800x8|boot100|data500": {
+   "now": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "original": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   },
+   "list": {
+    "ChargeType": "Dynamic",
+    "Instance": 57.54,
+    "Disks": 0.25,
+    "SystemDisks": 0
+   }
+  }
+ },
+ "system_disk_price_4090_48Gx1": {
+  "100GB": 0,
+  "200GB": 0.05,
+  "500GB": 0.2,
+  "1000GB": 0.45
+ },
+ "inventory": {
+  "UpdateTime": 1792937374,
+  "GpuInventory": {
+   "Exclusive": {
+    "10027": {
+     "2080": 0,
+     "3080Ti": 0,
+     "3090": 0,
+     "4090": 0,
+     "4090_48G": 0,
+     "5090": 0,
+     "A100": 2,
+     "A800": 0,
+     "H20": 0,
+     "P40": 0,
+     "V100S": 6
+    },
+    "5001": {
+     "4090": 0
+    },
+    "8100": {
+     "5090": 0
+    },
+    "8200": {
+     "2080Ti": 0,
+     "3080Ti": 0,
+     "4090": 0,
+     "4090_48G": 0,
+     "5090": 0
+    },
+    "8300": {}
+   },
+   "Spot": {
+    "10027": {
+     "2080": 0,
+     "3080Ti": 0,
+     "3090": 0,
+     "4090": 0,
+     "4090_48G": 0,
+     "5090": 0,
+     "A100": 0,
+     "A800": 0,
+     "H20": 0,
+     "P40": 0,
+     "V100S": 0
+    },
+    "5001": {
+     "4090": 0
+    },
+    "8100": {
+     "5090": 0
+    },
+    "8200": {
+     "2080Ti": 0,
+     "3080Ti": 0,
+     "4090": 0,
+     "4090_48G": 0,
+     "5090": 0
+    },
+    "8300": {}
+   }
+  },
+  "SpotUnsupportedGpuTypes": [
+   "4090_48G",
+   "H20",
+   "P40",
+   "2080"
+  ]
+ },
+ "balance": {
+  "Amount": "0.00",
+  "AmountAvailable": "0.00",
+  "AmountCredit": "0.00"
+ },
+ "readonly_probe": {
+  "DescribeCompShareSupportZone": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "ZoneInfo"
+   ]
+  },
+  "DescribeCompShareGpuInventory": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "GpuInventory",
+    "UpdateTime",
+    "SpotUnsupportedGpuTypes"
+   ]
+  },
+  "DescribeCompShareMachineTypeFamilies": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "MachineTypes",
+    "MachineTypesMap"
+   ]
+  },
+  "DescribeCompShareImages": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "ImageSet",
+    "TotalCount"
+   ]
+  },
+  "DescribeCommunityImages": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "CompshareImageGroup",
+    "TotalCount",
+    "AvailableTotalCount"
+   ]
+  },
+  "DescribeCompShareCustomImages": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "ImageSet",
+    "TotalCount"
+   ]
+  },
+  "DescribeCompShareInstance": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "UHostSet",
+    "TotalCount"
+   ]
+  },
+  "DescribeULHostBundles": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "Bundles"
+   ]
+  },
+  "DescribeULHostInstance": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "ULHostInstanceSets",
+    "TotalCount"
+   ]
+  },
+  "GetCompShareTeamInfo": {
+   "RetCode": 230,
+   "Message": "Params [TeamId or VirtualCompanyId] not available",
+   "keys": []
+  },
+  "ListCompShareTeam": {
+   "RetCode": 240,
+   "Message": "Permission error: team display no permission",
+   "keys": []
+  },
+  "ListCompShareTeamJoined": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "JoinedTeams"
+   ]
+  },
+  "DescribeTeamMemberOrderCount": {
+   "RetCode": 230,
+   "Message": "Params [VirtualCompanyId] not available",
+   "keys": []
+  },
+  "DescribeCompShareImageTags": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "Tags",
+    "TagsMap",
+    "TagIndex"
+   ]
+  },
+  "DescribeModelRepositoryModels": {
+   "RetCode": 230,
+   "Message": "Params [Region] not available",
+   "keys": []
+  },
+  "GetOpenClawModelList": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "Models"
+   ]
+  },
+  "DescribeCompShareSoftwarePort": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "SoftwarePort"
+   ]
+  },
+  "CheckULHostResourceCapacity": {
+   "RetCode": 210,
+   "Message": "Missing params [ImageId]",
+   "keys": []
+  },
+  "GetBalance": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "AccountInfo"
+   ]
+  },
+  "GetProjectList": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "ProjectCount",
+    "ProjectSet"
+   ]
+  },
+  "GetUserInfo": {
+   "RetCode": 0,
+   "Message": null,
+   "keys": [
+    "DataSet"
+   ]
+  }
+ },
+ "not_called": "Create*/Start*/Stop*/Terminate*/Resize*/Reinstall* 等会开机或扣费的接口一律未调用（客户端只放行 Describe/Get/Check/List）"
+}
