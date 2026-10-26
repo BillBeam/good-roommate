@@ -1,0 +1,288 @@
+{
+ "steps": {
+  "python": {
+   "candidates": {
+    "/usr/bin/python3": "3.10.12 []"
+   },
+   "chosen": "python3",
+   "ensurepip": {
+    "rc": 0,
+    "seconds": 0.04,
+    "stdout": "/usr/bin/python3: No module named ensurepip\n",
+    "stderr": ""
+   },
+   "apt_pip": {
+    "rc": 0,
+    "seconds": 45.59,
+    "stdout": "/sbin/ldconfig.real: File /lib/x86_64-linux-gnu/libnvidia-pkcs11-openssl3.so.570.153.02 is empty, not checked.\n/sbin/ldconfig.real: File /lib/x86_64-linux-gnu/libnvidia-pkcs11.so.570.153.02 is empty, not checked.\n/sbin/ldconfig.real: File /lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.570.153.02 is empty, not checked.\n",
+    "stderr": ""
+   },
+   "wall_seconds": 45.76
+  },
+  "gpu": {
+   "nvidia_smi": {
+    "rc": 0,
+    "seconds": 0.13,
+    "stdout": "Mon Oct 26 09:17:17 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.80                 Driver Version: 595.80         CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:00:03.0 Off |                  Off |\n|  0%   29C    P8              3W /  450W |       1MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+\n",
+    "stderr": ""
+   },
+   "query": {
+    "rc": 0,
+    "seconds": 0.03,
+    "stdout": "NVIDIA GeForce RTX 4090, 595.80, 24564 MiB, 8.9\n",
+    "stderr": ""
+   },
+   "nvcc": {
+    "rc": 0,
+    "seconds": 0.01,
+    "stdout": "cuda\ncuda-12\ncuda-12.8\ncuda-13.0\ncuda-13.2\n",
+    "stderr": "/bin/sh: 1: nvcc: not found\n"
+   },
+   "os": {
+    "rc": 0,
+    "seconds": 0.03,
+    "stdout": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\n5.15.0-113-generic\n16\n               total        used        free      shared  buff/cache   available\nMem:              62           2          58           0           1          59\n",
+    "stderr": ""
+   },
+   "driver_version": "595.80",
+   "cuda_version": "13.2",
+   "torch": {
+    "rc": 1,
+    "seconds": 0.03,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'torch'\n"
+   },
+   "wall_seconds": 0.22
+  },
+  "disk": {
+   "df": {
+    "rc": 0,
+    "seconds": 0.01,
+    "stdout": "Filesystem              Size  Used Avail Use% Mounted on\noverlay                  79G  202M   76G   1% /\ntmpfs                    32G     0   32G   0% /dev/shm\nUPFS:upfs-13n5o97wrrr4   40T   27T   13T  68% /model\n/dev/vda1                20G  4.4G   15G  23% /entrypoint.sh\n/dev/vda10              5.4M   24K  4.7M   1% /cloud\n/dev/vda2                79G  202M   76G   1% /etc/hosts\ntmpfs                    32G   12K   32G   1% /proc/driver/nvidia\ntmpfs                    32G  4.0K   32G   1% /etc/nvidia/nvidia-application-profiles-rc.d\ntmpfs                    32G     0   32G   0% /proc/acpi\ntmpfs                    32G     0   32G   0% /sys/firmware\ntmpfs                    32G     0   32G   0% /sys/devices/virtual/powercap\ntmpfs                    32G     0   32G   0% /proc/scsi\n",
+    "stderr": ""
+   },
+   "df_root_bytes": {
+    "total": 84415418368,
+    "used": 210915328,
+    "free": 80645824512
+   },
+   "workdir": "/root/gr",
+   "df_workdir_bytes": {
+    "total": 84415418368,
+    "used": 210915328,
+    "free": 80645824512
+   },
+   "wall_seconds": 0.01
+  },
+  "pydeps": {
+   "before": {
+    "rc": 0,
+    "seconds": 0.03,
+    "stdout": "{'modelscope': False, 'jinja2': False, 'tokenizers': False, 'transformers': False, 'huggingface_hub': False, 'torch': False}\n",
+    "stderr": ""
+   },
+   "pip_install": {
+    "rc": 0,
+    "seconds": 276.09,
+    "stdout": "DEPRECATION: The HTML index page being used (https://mirrors.aliyun.com/pypi/simple/truststore/) is not a proper HTML 5 document. This is in violation of PEP 503 which requires these pages to be well-formed HTML 5 documents. Please reach out to the owners of this index page, and ask them to update this index page to a valid HTML 5 document. pip 22.2 will enforce this behaviour change. Discussion can be found at https://github.com/pypa/pip/issues/10825\nDEPRECATION: The HTML index page being used (https://mirrors.aliyun.com/pypi/simple/h11/) is not a proper HTML 5 document. This is in violation of PEP 503 which requires these pages to be well-formed HTML 5 documents. Please reach out to the owners of this index page, and ask them to update this index page to a valid HTML 5 document. pip 22.2 will enforce this behaviour change. Discussion can be found at https://github.com/pypa/pip/issues/10825\nDEPRECATION: The HTML index page being used (https://mirrors.aliyun.com/pypi/simple/exceptiongroup/) is not a proper HTML 5 document. This is in violation of PEP 503 which requires these pages to be well-formed HTML 5 documents. Please reach out to the owners of this index page, and ask them to update this index page to a valid HTML 5 document. pip 22.2 will enforce this behaviour change. Discussion can be found at https://github.com/pypa/pip/issues/10825\nDEPRECATION: The HTML index page being used (https://mirrors.aliyun.com/pypi/simple/pycparser/) is not a proper HTML 5 document. This is in violation of PEP 503 which requires these pages to be well-formed HTML 5 documents. Please reach out to the owners of this index page, and ask them to update this index page to a valid HTML 5 document. pip 22.2 will enforce this behaviour change. Discussion can be found at https://github.com/pypa/pip/issues/10825\nWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv\n",
+    "stderr": ""
+   },
+   "pip_config": {
+    "rc": 1,
+    "seconds": 0.39,
+    "stdout": "global.index-url='https://pypi.tuna.tsinghua.edu.cn/simple'\n[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\n\n",
+    "stderr": ""
+   },
+   "wall_seconds": 276.51
+  },
+  "tokenizer_download": {
+   "cpu_reference_chat_template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+   "modelscope_curl": {
+    "tokenizer.json": {
+     "rc": 0,
+     "seconds": 1.11,
+     "stdout": "200 12807982 1.076136",
+     "stderr": "",
+     "try": 1,
+     "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42"
+    },
+    "tokenizer_config.json": {
+     "rc": 0,
+     "seconds": 0.33,
+     "stdout": "200 16710 0.312890",
+     "stderr": "",
+     "try": 1,
+     "sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8"
+    },
+    "chat_template.jinja": {
+     "rc": 0,
+     "seconds": 0.28,
+     "stdout": "200 7756 0.261721",
+     "stderr": "",
+     "try": 1,
+     "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+    },
+    "vocab.json": {
+     "rc": 0,
+     "seconds": 0.89,
+     "stdout": "200 6722759 0.873692",
+     "stderr": "",
+     "try": 1,
+     "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+    },
+    "merges.txt": {
+     "rc": 0,
+     "seconds": 0.78,
+     "stdout": "200 3353259 0.757718",
+     "stderr": "",
+     "try": 1,
+     "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d"
+    },
+    "config.json": {
+     "rc": 0,
+     "seconds": 0.29,
+     "stdout": "200 3161 0.268436",
+     "stderr": "",
+     "try": 1,
+     "sha256": "ddc63e1c717afa86c865bb5e01313d89d72bb53b97ad4a8a03ba8510c0621670"
+    },
+    "generation_config.json": {
+     "rc": 22,
+     "seconds": 0.3,
+     "stdout": "404 0 0.278521",
+     "stderr": "curl: (22) The requested URL returned error: 404\n",
+     "try": 1,
+     "sha256": null
+    }
+   },
+   "modelscope_curl_seconds": 4.01,
+   "hf_mirror_pinned": {
+    "tokenizer.json": {
+     "rc": 0,
+     "seconds": 5.85,
+     "stdout": "200 12807982 5.805531",
+     "stderr": "",
+     "try": 3,
+     "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42"
+    },
+    "chat_template.jinja": {
+     "rc": 0,
+     "seconds": 6.1,
+     "stdout": "200 7756 6.068483",
+     "stderr": "",
+     "try": 1,
+     "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+    },
+    "tokenizer_config.json": {
+     "rc": 0,
+     "seconds": 0.93,
+     "stdout": "200 16710 0.895116",
+     "stderr": "",
+     "try": 1,
+     "sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8"
+    }
+   },
+   "hf_mirror_seconds": 44.04,
+   "modelscope_sdk": {
+    "rc": 0,
+    "seconds": 2.15,
+    "stdout": "{\"path\": \"/root/gr/ms_sdk\", \"seconds\": 1.83}\n",
+    "stderr": "2026-10-26 09:22:43,300 | INFO    | modelscope_hub.download | Downloading 6 files from Qwen/Qwen3.5-4B@master\n\nDownloading:   0%|          | 0/6 [00:00<?, ?file/s]\n\nchat_template.jinja:   0%|          | 0.00/7.76k [00:00<?, ?B/s]\u001b[A\n\n                                                                \u001b[A\nDownloading:  17%|█▋        | 1/6 [00:00<00:01,  2.99file/s]\n\ntokenizer_config.json:   0%|          | 0.00/16.7k [00:00<?, ?B/s]\u001b[A\n\n                                                                  \u001b[A\nDownloading:  33%|███▎      | 2/6 [00:00<00:00,  4.45file/s]\n\nconfig.json:   0%|          | 0.00/3.16k [00:00<?, ?B/s]\u001b[A\n\n                                                        \u001b[A\n\nmerges.txt:   0%|          | 0.00/3.35M [00:00<?, ?B/s]\u001b[A\n\n\nvocab.json:   0%|          | 0.00/6.72M [00:00<?, ?B/s]\u001b[A\u001b[A\n\n\n\ntokenizer.json:   0%|          | 0.00/12.8M [00:00<?, ?B/s]\u001b[A\u001b[A\u001b[A\n\nmerges.txt:  53%|█████▎    | 1.78M/3.35M [00:00<00:00, 17.2MB/s]\u001b[A\n\n                                                                \u001b[A\nDownloading:  67%|██████▋   | 4/6 [00:00<00:00,  6.19file/s]\n\n\nvocab.json:  12%|█▏        | 802k/6.72M [00:00<00:00, 7.95MB/s]\u001b[A\u001b[A\n\n\n\ntokenizer.json:   5%|▌         | 703k/12.8M [00:00<00:01, 6.99MB/s]\u001b[A\u001b[A\u001b[A\n\n\nvocab.json:  38%|███▊      | 2.59M/6.72M [00:00<00:00, 13.7MB/s]\u001b[A\u001b[A\n\n\n\ntokenizer.json:  21%|██        | 2.69M/12.8M [00:00<00:00, 14.1MB/s]\u001b[A\u001b[A\u001b[A\n\n\nvocab.json:  62%|██████▏   | 4.16M/6.72M [00:00<00:00, 14.6MB/s]\u001b[A\u001b[A\n\n\n\ntokenizer.json:  37%|███▋      | 4.78M/12.8M [00:00<00:00, 17.2MB/s]\u001b[A\u001b[A\u001b[A\n\n\nvocab.json:  88%|████████▊ | 5.90M/6.72M [00:00<00:00, 15.5MB/s]\u001b[A\u001b[A\n\n\n\ntokenizer.json:  52%|█████▏    | 6.70M/12.8M [00:00<00:00, 17.9MB/s]\u001b[A\u001b[A\u001b[A\n\n\n                                                                \u001b[A\u001b[A\nDownloading:  83%|████████▎ | 5/6 [00:01<00:00,  4.47file/s]\n\n\n\ntokenizer.json:  68%|██████▊   | 8.73M/12.8M [00:00<00:00, 18.3MB/s]\u001b[A\u001b[A\u001b[A\n\n\n\ntokenizer.json:  85%|████████▍ | 10.8M/12.8M [00:00<00:00, 19.2MB/s]\u001b[A\u001b[A\u001b[A\n\n\n\ntokenizer.json: 100%|█████████▉| 12.8M/12.8M [00:00<00:00, 19.0MB/s]\u001b[A\u001b[A\u001b[A\n\n\n\n                                                                    \u001b[A\u001b[A\u001b[A\nDownloading: 100%|██████████| 6/6 [00:01<00:00,  4.03file/s]\nDownloading: 100%|██████████| 6/6 [00:01<00:00,  4.29file/s]\n"
+   },
+   "wall_seconds": 50.5
+  },
+  "template_check": {
+   "modelscope": {
+    "rc": 0,
+    "seconds": 0.77,
+    "stdout": "[\n {\n  \"probe\": \"p02_temp0_nothink_run1\",\n  \"api_prompt_tokens\": 23,\n  \"official_template\": 23\n },\n {\n  \"probe\": \"p04_temp0_nothink_run2_retry\",\n  \"api_prompt_tokens\": 23,\n  \"official_template\": 23\n }",
+    "stderr": "",
+    "identical_to_cpu_result": true,
+    "rows": 13,
+    "mismatches": []
+   },
+   "hf_mirror_pinned": {
+    "rc": 0,
+    "seconds": 0.78,
+    "stdout": "[\n {\n  \"probe\": \"p02_temp0_nothink_run1\",\n  \"api_prompt_tokens\": 23,\n  \"official_template\": 23\n },\n {\n  \"probe\": \"p04_temp0_nothink_run2_retry\",\n  \"api_prompt_tokens\": 23,\n  \"official_template\": 23\n }",
+    "stderr": "",
+    "identical_to_cpu_result": true,
+    "rows": 13,
+    "mismatches": []
+   },
+   "wall_seconds": 1.55
+  },
+  "weights_download": {
+   "budget_seconds": 1495,
+   "files": {
+    "model.safetensors-00001-of-00002.safetensors": {
+     "rc": 0,
+     "seconds": 317.79,
+     "stdout": "200 5329398688 317.752492",
+     "stderr": "",
+     "try": 1,
+     "sha256": "26a93f066e1916adb13453dae5a0c707c0fbc71299ed98779571a907b8e74c61"
+    },
+    "model.safetensors-00002-of-00002.safetensors": {
+     "rc": 0,
+     "seconds": 235.47,
+     "stdout": "200 3990429408 235.438548",
+     "stderr": "",
+     "try": 1,
+     "sha256": "cb544bd9bfae93dc59b0f22b292f5933573854a7f9b97835c67060d7d910e188"
+    }
+   },
+   "index": {
+    "rc": 0,
+    "seconds": 0.32,
+    "stdout": "200 76196 0.291980",
+    "stderr": "",
+    "try": 1,
+    "sha256": "cf3f798ee02ba45f9622aa8892a47369ab667d0afbf154ee7c2212de42e6302d"
+   },
+   "index_total_size": 9319737856,
+   "seconds": 560.15,
+   "bytes": 9319828096,
+   "all_shards_ok": true,
+   "mb_per_s": 16.6,
+   "wall_seconds": 560.47
+  },
+  "model_library": {
+   "ls": {
+    "rc": 0,
+    "seconds": 0.02,
+    "stdout": "HuggingFace\nModelScope\ncomfyui\noffline\nollama\nother\nstable-diffusion-webui\n",
+    "stderr": ""
+   },
+   "find": {
+    "rc": 0,
+    "seconds": 1.67,
+    "stdout": "/model/ModelScope/cyankiwi/Qwen3.5-35B-A3B-AWQ-4bit\n/model/comfyui/models/text_encoders/qwen3.5_4b_bf16.safetensors\n",
+    "stderr": ""
+   },
+   "wall_seconds": 1.69
+  },
+  "disk_after": {
+   "df": {
+    "rc": 0,
+    "seconds": 0.01,
+    "stdout": "Filesystem              Size  Used Avail Use% Mounted on\noverlay                  79G  9.1G   67G  13% /\ntmpfs                    32G     0   32G   0% /dev/shm\nUPFS:upfs-13n5o97wrrr4   40T   27T   13T  68% /model\n/dev/vda1                20G  4.4G   15G  23% /entrypoint.sh\n/dev/vda10              5.4M   24K  4.7M   1% /cloud\n/dev/vda2                79G  9.1G   67G  13% /etc/hosts\ntmpfs                    32G   12K   32G   1% /proc/driver/nvidia\ntmpfs                    32G  4.0K   32G   1% /etc/nvidia/nvidia-application-profiles-rc.d\ntmpfs                    32G     0   32G   0% /proc/acpi\ntmpfs                    32G     0   32G   0% /sys/firmware\ntmpfs                    32G     0   32G   0% /sys/devices/virtual/powercap\ntmpfs                    32G     0   32G   0% /proc/scsi\n",
+    "stderr": ""
+   },
+   "df_root_bytes": {
+    "total": 84415418368,
+    "used": 9740226560,
+    "free": 71116513280
+   },
+   "workdir": "/root/gr",
+   "df_workdir_bytes": {
+    "total": 84415418368,
+    "used": 9740226560,
+    "free": 71116513280
+   },
+   "wall_seconds": 0.01
+  }
+ },
+ "started_unix": 1793006191.7875175,
+ "finished_unix": 1793007128.8815734
+}
