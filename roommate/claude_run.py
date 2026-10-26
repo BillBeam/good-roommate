@@ -325,9 +325,9 @@ def _merge_cache(m, remove_raw):
                         seen.add(d["key"])
                         rows.append(line.rstrip("\n"))
     tmp = gz + ".tmp"
-    with gzip.open(tmp, "wt", encoding="utf-8") as f:
-        for line in rows:
-            f.write(line + "\n")
+    # mtime=0：内容不变时压缩出来的字节也不变，checkpoint 不会因为文件头里的时间戳多出空提交
+    with gzip.GzipFile(tmp, "wb", mtime=0) as f:
+        f.write("".join(line + "\n" for line in rows).encode("utf-8"))
     os.replace(tmp, gz)
     if remove_raw:
         os.remove(raw)

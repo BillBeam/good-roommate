@@ -185,7 +185,9 @@ class CheckpointTest(unittest.TestCase):
         c = llm.LLMClient("runs/m1v2/llm_cache", Ledger(None, 0), offline=True)
         self.assertEqual(c.alts["a"], [{"x": 1}])
         self.assertNotIn("c", c.cache)
-        # 没有新内容时不提交
+        # 没有新内容时不提交（隔一秒，确认不会因为 .gz 文件头里的时间戳多出提交）
+        import time
+        time.sleep(1.1)
         head = self.git("rev-parse", "HEAD").stdout
         self.cr.stage_checkpoint(["claude-fable-5-1"], "again")
         self.assertEqual(head, self.git("rev-parse", "HEAD").stdout)
