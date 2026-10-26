@@ -1,5 +1,5 @@
 {
- "at": "2026-10-26T19:35:19+00:00",
+ "at": "2026-10-26T19:36:50+00:00",
  "state": "Running",
  "monitor_messages": {
   "CpuUsageRate": "",
@@ -8,14 +8,9 @@
  },
  "monitor_param_forms": [
   {
-   "form": "string",
-   "RetCode": 230,
-   "Message": "Params [api.GetCompShareInstanceMonitorRequest.UHostIds] not available"
-  },
-  {
-   "form": "json_array",
-   "RetCode": 230,
-   "Message": "Params [api.GetCompShareInstanceMonitorRequest.UHostIds] not available"
+   "form": "json_body",
+   "RetCode": 171,
+   "Message": "Signature VerifyAC Error"
   },
   {
    "form": "indexed",
