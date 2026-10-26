@@ -127,3 +127,65 @@ class ClaudeTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckpointTest(unittest.TestCase):
+    """中途推到分支：缓存快照不删正在写的 .jsonl、跳过半行；读缓存时 .jsonl 与 .jsonl.gz 重复的响应只算一个；
+    提交并推到远端分支；被打断后留下的半行不影响接着跑。"""
+
+    def setUp(self):
+        import subprocess
+        from roommate import claude_run, run
+        self.td = tempfile.TemporaryDirectory()
+        td = self.td.name
+        self.cr, self.run = claude_run, run
+        self.saved = (run.OUT, claude_run.OUT, claude_run.CDIR, os.getcwd())
+        git = lambda *a, cwd=None: subprocess.run(["git", *a], cwd=cwd or os.path.join(td, "repo"),
+                                                  capture_output=True, text=True, check=True)
+        subprocess.run(["git", "init", "-q", "--bare", os.path.join(td, "remote.git")], check=True)
+        subprocess.run(["git", "clone", "-q", os.path.join(td, "remote.git"), os.path.join(td, "repo")],
+                       check=True, capture_output=True)
+        git("config", "user.email", "t@example.com")
+        git("config", "user.name", "t")
+        git("checkout", "-q", "-b", "work")
+        open(os.path.join(td, "repo", "README"), "w").close()
+        git("add", "README")
+        git("commit", "-q", "-m", "init")
+        git("push", "-q", "origin", "work")
+        self.git = git
+        os.chdir(os.path.join(td, "repo"))
+        out = "runs/m1v2"
+        run.OUT = claude_run.OUT = out
+        claude_run.CDIR = os.path.join(out, "claude")
+        os.makedirs(os.path.join(out, "llm_cache"))
+        os.makedirs(claude_run.CDIR)
+
+    def tearDown(self):
+        self.run.OUT, self.cr.OUT, self.cr.CDIR, cwd = self.saved
+        os.chdir(cwd)
+        self.td.cleanup()
+
+    def test_checkpoint_keeps_raw_skips_partial_and_pushes(self):
+        import gzip
+        raw = os.path.join("runs/m1v2/llm_cache", "claude-fable-5-1.jsonl")
+        with open(raw, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"key": "a", "response": {"x": 1}}) + "\n")
+            f.write(json.dumps({"key": "b", "response": {"x": 2}}) + "\n")
+            f.write('{"key": "c", "resp')          # 别的进程正在写的半行
+        n = self.cr.stage_checkpoint(["claude-fable-5-1"], "claude-fable-5-1@1")
+        self.assertEqual(n, {"claude-fable-5-1": 2})
+        self.assertTrue(os.path.exists(raw))
+        with gzip.open(raw + ".gz", "rt", encoding="utf-8") as f:
+            self.assertEqual([json.loads(x)["key"] for x in f], ["a", "b"])
+        self.git("fetch", "-q", "origin")
+        files = self.git("ls-tree", "-r", "--name-only", "origin/work").stdout.split()
+        self.assertIn("runs/m1v2/llm_cache/claude-fable-5-1.jsonl.gz", files)
+        self.assertNotIn("runs/m1v2/llm_cache/claude-fable-5-1.jsonl", files)   # .gitignore 之外也只加 .gz
+        # 接着跑：.jsonl 与 .jsonl.gz 都在、末尾有半行，读缓存不出错，重复的响应只算一个
+        c = llm.LLMClient("runs/m1v2/llm_cache", Ledger(None, 0), offline=True)
+        self.assertEqual(c.alts["a"], [{"x": 1}])
+        self.assertNotIn("c", c.cache)
+        # 没有新内容时不提交
+        head = self.git("rev-parse", "HEAD").stdout
+        self.cr.stage_checkpoint(["claude-fable-5-1"], "again")
+        self.assertEqual(head, self.git("rev-parse", "HEAD").stdout)

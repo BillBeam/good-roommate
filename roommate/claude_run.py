@@ -11,7 +11,13 @@
   优先级：Haiku、Sonnet、Opus 的种子 1、2、3 和 Opus 对照组（种子 1）必跑；Fable 5.1 先跑种子 1，钱够再跑种子 2、3；
   估算连种子 1 都放不下时，Fable 只跑种子 1 里放得下的前若干个用户。
 - full：按 plan.json 的顺序跑。每次跑之前按已花的钱和这一组的估算再核一遍，放不下的跳过并记下原因。
-- compact：把 Claude 的请求缓存压缩成 .jsonl.gz（仓库里只放压缩后的）。
+- full 每跑完一个模型的一个种子，就做一次 checkpoint：把这个模型的缓存并入 .jsonl.gz（不删正在写的 .jsonl）、
+  连同逐次会话记录、账本、逐次调用和全量运行记录一起提交并推到当前分支（--no-push 关掉）。中途被打断，已经花钱拿到的回复不会丢。
+- checkpoint：手动做一次上面的推送（所有模型）。
+- compact：把 Claude 的请求缓存压缩成 .jsonl.gz 并删掉 .jsonl（仓库里只放压缩后的）。只在没有进程还在写缓存时跑。
+
+中断后接着跑：同一个容器里直接重跑同一条命令；换了容器就先拉分支（缓存的 .jsonl.gz 都在上面）再重跑。
+已经拿到的回复全部命中缓存、不再花钱，账本从推上去的那一份接着累计，只有中断时还没拿到回复的请求会重新发。
 - repro：只用缓存重跑全部 Claude 记录，检查与保存的记录逐字一致。
 - stats / report：统计写进 runs/m1v2/claude/claude_stats.json；M1 第二版的 gates.json 与基线报告一起重算（DeepSeek 与 Claude 同表）；
   再写 reports/m1v2-claude-baseline.md。
@@ -177,7 +183,7 @@ def stage_estimate():
 
 # ---------- full ----------
 
-def stage_full(client):
+def stage_full(client, push=True):
     est = load(os.path.join(CDIR, "estimate.json"))
     only = os.environ.get("ROOMMATE_CLAUDE_ONLY")   # 分批 / 并行进程：如 "claude-haiku-5-5@1,claude-opus-5-5@1@ctrl"
     log = []
@@ -203,10 +209,70 @@ def stage_full(client):
         led = client.ledger._load()
         log.append({"run": tag, "status": "done", "mean_score": s["mean_score"], "cum_usd": led["total_usd"]})
         print(f"种子 {e['seed']} {k:36s} 平均分 {s['mean_score']:.3f}  累计 {led['total_usd']:.2f} 美元")
+        _append_full_log(log[-1], client)
+        if push:   # 每跑完一个模型的一个种子，就把这个模型的缓存、记录和账本推到分支
+            stage_checkpoint([e["model"]], tag)
+    for x in log:
+        if x["status"] != "done":
+            _append_full_log(x, client)
+
+
+def _append_full_log(entry, client):
+    """全量运行记录逐组追加（中途被打断也留得下）；多个进程同时跑时加文件锁。"""
+    import fcntl
     p = os.path.join(CDIR, "full_log.json")
-    old = load(p) if os.path.exists(p) else []
-    dump(p, old + [{"t": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "runs": log,
-                    "retries": dict(client.retries)}])
+    with open(p + ".lock", "w") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        old = load(p) if os.path.exists(p) else []
+        dump(p, old + [dict(entry, t=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+                            pid=os.getpid(), retries=dict(client.retries))])
+
+
+# ---------- checkpoint：中途推到分支 ----------
+
+def stage_checkpoint_cache(models):
+    """把这些模型的未压缩缓存（.jsonl）并入 .jsonl.gz，**不删** .jsonl：别的进程可能还在往里追加。
+    只收完整的行（以换行结尾、能解析），正在写的半行留到下一次。返回写进 .gz 的条数。"""
+    return {m: _merge_cache(m, remove_raw=False) for m in models}
+
+
+def stage_checkpoint(models=None, tag="manual"):
+    """缓存快照 + 记录 + 账本 + 日志 → 提交并推到当前分支。多个进程同时跑时用文件锁排队；推送失败退避重试 4 次。
+    推不上去不影响实验本身（已经拿到的回复都在本地缓存里），只打印原因。"""
+    import fcntl
+    import subprocess
+    import time
+    models = models or MODELS
+    with open(os.path.join(CDIR, ".git_checkpoint.lock"), "w") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        n = stage_checkpoint_cache(models)
+        paths = [os.path.join(OUT, "llm_cache", f"{m}.jsonl.gz") for m in models
+                 if os.path.exists(os.path.join(OUT, "llm_cache", f"{m}.jsonl.gz"))]
+        paths += [os.path.join(OUT, f"seed{s}", "policies", d) for s in run.GATE_SEEDS
+                  for d in (os.listdir(os.path.join(OUT, f"seed{s}", "policies"))
+                            if os.path.isdir(os.path.join(OUT, f"seed{s}", "policies")) else [])
+                  if d.startswith("llm_claude-")]
+        paths.append(CDIR)
+        git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True)
+        git("add", "--", *paths)
+        if git("diff", "--cached", "--quiet").returncode == 0:
+            print(f"checkpoint {tag}：没有新内容")
+            return n
+        r = git("commit", "-q", "-m", f"Claude baseline checkpoint: {tag}\n\n缓存条数（.gz）：{n}")
+        if r.returncode:
+            print("checkpoint 提交失败：", r.stderr[-300:])
+            return n
+        branch = git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        for i in range(5):
+            pull = git("pull", "-q", "--rebase", "--autostash", "origin", branch)
+            push = git("push", "-q", "origin", f"HEAD:{branch}") if pull.returncode == 0 else pull
+            if push.returncode == 0:
+                print(f"checkpoint {tag}：已推到 {branch}（{git('rev-parse', '--short', 'HEAD').stdout.strip()}）")
+                return n
+            if i < 4:
+                time.sleep(2 ** (i + 1))
+        print(f"checkpoint {tag}：推送失败，已在本地提交：", (push.stderr or pull.stderr)[-300:])
+        return n
 
 
 # ---------- repro ----------
@@ -232,30 +298,41 @@ def stage_repro():
 
 
 def stage_compact():
-    """Claude 的请求缓存先写未压缩的 .jsonl，这里并入同名的 .jsonl.gz（按键去重、保留先写的），仓库里只放压缩后的。"""
+    """Claude 的请求缓存先写未压缩的 .jsonl，这里并入同名的 .jsonl.gz（按键去重、保留先写的）并删掉 .jsonl，
+    仓库里只放压缩后的。只在没有别的进程还在写缓存时跑；运行中途要推到分支用 checkpoint（不删 .jsonl）。"""
+    for m in MODELS:
+        _merge_cache(m, remove_raw=True)
+
+
+def _merge_cache(m, remove_raw):
     import gzip
     cd = os.path.join(OUT, "llm_cache")
-    for m in MODELS:
-        raw, gz = os.path.join(cd, f"{m}.jsonl"), os.path.join(cd, f"{m}.jsonl.gz")
-        if not os.path.exists(raw):
-            continue
-        rows, seen = [], set()
-        for p, op in ((gz, gzip.open), (raw, open)):
-            if os.path.exists(p):
-                with op(p, "rt", encoding="utf-8") as f:
-                    for line in f:
-                        if line.strip():
-                            d = json.loads(line)
-                            if d["key"] not in seen:
-                                seen.add(d["key"])
-                                rows.append(line.rstrip("\n"))
-        tmp = gz + ".tmp"
-        with gzip.open(tmp, "wt", encoding="utf-8") as f:
-            for line in rows:
-                f.write(line + "\n")
-        os.replace(tmp, gz)
+    raw, gz = os.path.join(cd, f"{m}.jsonl"), os.path.join(cd, f"{m}.jsonl.gz")
+    if not os.path.exists(raw):
+        return None
+    rows, seen = [], set()
+    for p, op in ((gz, gzip.open), (raw, open)):
+        if os.path.exists(p):
+            with op(p, "rt", encoding="utf-8") as f:
+                for line in f:
+                    if not line.endswith("\n") or not line.strip():
+                        continue   # 别的进程正在写的半行：留到下一次
+                    try:
+                        d = json.loads(line)
+                    except ValueError:
+                        continue
+                    if d["key"] not in seen:
+                        seen.add(d["key"])
+                        rows.append(line.rstrip("\n"))
+    tmp = gz + ".tmp"
+    with gzip.open(tmp, "wt", encoding="utf-8") as f:
+        for line in rows:
+            f.write(line + "\n")
+    os.replace(tmp, gz)
+    if remove_raw:
         os.remove(raw)
-        print(f"缓存 {m}：{len(rows)} 条 → {gz}")
+    print(f"缓存 {m}：{len(rows)} 条 → {gz}" + ("" if remove_raw else "（.jsonl 保留）"))
+    return len(rows)
 
 
 def write_config(args):
@@ -270,13 +347,14 @@ def write_config(args):
         "stages": args.stages, "offline": args.offline})
 
 
-ALL_STAGES = ["pilot", "estimate", "full", "compact", "repro", "stats", "report"]
+ALL_STAGES = ["pilot", "estimate", "full", "compact", "repro", "stats", "report"]   # checkpoint 只在点名时跑
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--stages", default=",".join(ALL_STAGES))
     ap.add_argument("--offline", action="store_true")
+    ap.add_argument("--no-push", action="store_true", help="全量运行时不在每组跑完后推到分支")
     args = ap.parse_args(argv)
     stages = args.stages.split(",")
     os.makedirs(CDIR, exist_ok=True)
@@ -291,7 +369,9 @@ def main(argv=None):
     if "estimate" in stages:
         stage_estimate()
     if "full" in stages:
-        stage_full(client)
+        stage_full(client, push=not (args.no_push or args.offline))
+    if "checkpoint" in stages:
+        stage_checkpoint()
     if "compact" in stages:
         stage_compact()
     if "repro" in stages:

@@ -343,7 +343,7 @@ def write_report(path):
             w("全量运行记录（[full_log.json](" + L.rel(os.path.join(CDIR, "full_log.json")) + ")）：")
             w("")
             for batch in fl:
-                for r in batch["runs"]:
+                for r in (batch["runs"] if "runs" in batch else [batch]):
                     w(f"- {r['run']}：{ {'done': '跑完', 'skipped': '跳过', 'stopped': '停止'}[r['status']] }"
                       + (f"，{r['reason']}" if r.get("reason") else "")
                       + (f"，累计 {r['cum_usd']:.2f} 美元" if r.get("cum_usd") is not None else ""))
@@ -504,8 +504,31 @@ def write_report(path):
           f"{v['completion_tokens']} | {L.n(v['cost_usd'], dlp, 'usd')} | {v['cost_usd'] / v['n_sessions']:.4f}（{v['n_sessions']} 次） |")
     w("")
 
+    # ---------- 中断后接着跑 ----------
+    w("## 9. 中途被打断怎么办")
+    w("")
+    w("全量运行每跑完一个模型的一个种子，就做一次 checkpoint（"
+      + code_link("roommate/claude_run.py", "def stage_checkpoint(", 1, "claude_run.stage_checkpoint") +
+      "）：把这个模型的请求缓存并入 `runs/m1v2/llm_cache/<模型>.jsonl.gz`（不删还在写的 .jsonl，只收完整的行），"
+      "连同逐次会话记录、账本、逐次调用和全量运行记录（`runs/m1v2/claude/full_log.json`，逐组追加）一起提交并推到分支。"
+      "所以中途被打断，最多丢掉正在跑的那一组里还没拿到回复的请求；已经花钱拿到的回复都在分支上。接着跑：")
+    w("")
+    w("1. 同一个容器还在：直接重跑同一条命令，例如 `ROOMMATE_CLAUDE_ONLY=claude-fable-5-1@2,claude-fable-5-1@3 python -m roommate.claude_run --stages full`。")
+    w("2. 换了容器：先 `git pull` 拿到分支上的 .jsonl.gz、账本和记录，`pip install anthropic==2.3.0`，环境变量里要有 CLAUDE_EVAL_API_KEY，再重跑同一条命令。")
+    w("3. 重跑时已经拿到的回复全部命中缓存、不再花钱（缓存键是请求内容加\"种子|用户|会话\"，和第一次完全一样）；"
+      "账本从分支上那一份接着累计，150 美元的上限照样有效；被打断时写了一半的缓存行会被跳过，那次请求重新发。")
+    w("4. 都跑完、没有进程再写缓存之后，跑 `python -m roommate.claude_run --stages compact,repro` 把 .jsonl 并进 .jsonl.gz 并检查只用缓存能逐字复现；"
+      "想在任何时候手动推一次，跑 `--stages checkpoint`。")
+    w("")
+    rp_ = os.path.join(CDIR, "full_log.json")
+    if S.get("full_log"):
+        pushed = [e for e in S["full_log"] if isinstance(e, dict) and "run" in e]
+        if pushed:
+            w(f"这次全量逐组的记录见 [full_log.json]({L.rel(rp_)})（每组一条，带完成时间、进程号和累计花费）。")
+            w("")
+
     # ---------- 复现、局限 ----------
-    w("## 9. 复现、数据用途与局限")
+    w("## 10. 复现、数据用途与局限")
     w("")
     rp = S.get("repro_check")
     if rp:

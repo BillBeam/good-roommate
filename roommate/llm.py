@@ -223,9 +223,12 @@ class LLMClient:
                 opener = gzip.open if fn.endswith(".gz") else open
                 with opener(os.path.join(cache_dir, fn), "rt", encoding="utf-8") as f:
                     for line in f:
-                        if line.strip():
+                        # 中途被打断的进程可能留下没写完的最后一行（没有换行）：跳过，那次请求重跑时会重新发
+                        if line.strip() and line.endswith("\n"):
                             d = json.loads(line)
-                            self.alts.setdefault(d["key"], []).append(d["response"])
+                            alts = self.alts.setdefault(d["key"], [])
+                            if d["response"] not in alts:   # 同一个响应在 .jsonl 和 .jsonl.gz 里各存了一份时只算一个
+                                alts.append(d["response"])
                             self.cache.setdefault(d["key"], d["response"])
 
     # 从缓存重建时，同一个键有多个响应：由调用方（Episode）指定这次用第几个，并记下这次会话碰到了哪些这样的键
