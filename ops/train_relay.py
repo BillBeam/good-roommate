@@ -808,6 +808,15 @@ def main():
                                               "finished": now_iso(), **{k: v for k, v in summary.items()
                                                                         if k not in ("grab",)},
                                               "grab": summary.get("grab")})
+        try:     # 本轮的逐条日志（已打码）也进数据分支：报告里的时间线由它复算
+            src = os.path.join(OUT, "relay_log.jsonl")
+            if os.path.exists(src):
+                dst = os.path.join(data_checkout(), DATA_PREFIX, "relay", "logs", f"{RUN_ID}.jsonl")
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                with open(src) as f, open(dst, "w") as g:
+                    g.write(f.read())
+        except Exception as e:
+            summary["log_copy_error"] = redact(e)[:200]
         data_push(f"relay {RUN_ID}: {','.join(a['do'] for a in REQ.get('actions', []))}")
         head = ""
         if summary.get("unreachable"):
