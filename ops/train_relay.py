@@ -826,13 +826,15 @@ def do_exposure(a):
     return True
 
 
-TOKEN_CMD = r"""C=/etc/supervisor/conf.d/jupyterlab.conf; JP=$(pgrep -o -f "[j]upyter-lab --")
+TOKEN_CMD = r"""C=/etc/supervisor/conf.d/jupyterlab.conf
+JP=""; for p in $(pgrep -f "[j]upyter-lab"); do [ "$(cat /proc/$p/comm)" != "bash" ] && JP=$p; done
 form=$(grep -oE 'ServerApp\.token=[^ ]+' $C | head -1 | cut -d= -f2- | sed -E 's/^(\$\{?[A-Za-z_]+\}?).*/ENVREF:\1/; t; s/.*/LITERAL/')
-run=$(tr '\0' '\n' < /proc/$JP/cmdline | grep -oE 'ServerApp\.token=.*' | head -1 | cut -d= -f2-)
+run=$(tr '\0' '\n' < /proc/$JP/cmdline | grep -E '^--ServerApp\.token=' | head -1 | cut -d= -f2-)
 env=$(tr '\0' '\n' < /proc/$JP/environ | grep -E '^JUPYTER_TOKEN=' | cut -d= -f2-)
-lit=$(grep -oE 'ServerApp\.token=[^ ]+' $C | head -1 | cut -d= -f2-)
+pid1=$(tr '\0' '\n' < /proc/1/environ | grep -E '^JUPYTER_TOKEN=' | cut -d= -f2-)
 h() { printf %s "$1" | sha256sum | cut -c1-8; }
-echo "form=$form run_len=${#run} run_sha8=$(h "$run") env_len=${#env} env_sha8=$(h "$env") conf_value_sha8=$(h "$lit")" """
+cls=$(printf %s "$run" | sed -E 's/[A-Za-z0-9]//g' | head -c 20 | wc -c)
+echo "pid_comm=$(cat /proc/$JP/comm) form=$form run_len=${#run} run_sha8=$(h "$run") run_nonalnum=$cls env_len=${#env} env_sha8=$(h "$env") pid1_len=${#pid1} pid1_sha8=$(h "$pid1")" """
 
 
 def do_token_check(a):
@@ -856,9 +858,10 @@ def do_token_check(a):
         except Exception:
             pass
         match[field] = any(x and sha8(x) == kv.get("run_sha8") for x in cands)
-    res = {"config_form": kv.get("form"), "running_token_len": kv.get("run_len"),
+    res = {"process": kv.get("pid_comm"), "config_form": kv.get("form"), "running_token_len": kv.get("run_len"),
+           "running_token_nonalnum_chars": kv.get("run_nonalnum"),
            "running_equals_env_JUPYTER_TOKEN": kv.get("run_sha8") == kv.get("env_sha8") and kv.get("env_len") != "0",
-           "running_equals_config_text": kv.get("run_sha8") == kv.get("conf_value_sha8"),
+           "container_env_has_same_token": kv.get("run_sha8") == kv.get("pid1_sha8") and kv.get("pid1_len") != "0",
            "running_equals_instance_field": match, "running_sha8": kv.get("run_sha8")}
     summary["token_check"] = res
     data_write("relay/token_check.json", {"at": now_iso(), **res})

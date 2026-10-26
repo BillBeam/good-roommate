@@ -178,10 +178,34 @@ def main():
             eff_t = statistics.mean(abs(t_lora[t - 1] - t_base[t - 1]) for t in pos)
             agree = stats([t_lora[t - 1] - v_lora[t] for t in pos])
             agree_base = stats([t_base[t - 1] - v_base[t] for t in pos])
-            record(1, "LoRA 真的生效", eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05,
+            # LoRA 带来的变化逐 token 对比：(采样端 带 − 不带) 对 (训练端 带 − 不带)。两端原有的数值差在这里相减抵掉，
+            # 直接回答"两端加的是不是同一个 LoRA"
+            dv = [v_lora[t] - v_base[t] for t in pos]
+            dt = [t_lora[t - 1] - t_base[t - 1] for t in pos]
+            dd = stats([a - b for a, b in zip(dv, dt)])
+            corr = statistics.correlation(dv, dt) if len(pos) > 2 else None
+            gset = set(gen_pos)
+            gp = [i for i, t in enumerate(pos) if t in gset]
+            gen = {"tokens": len(gp), "lora_effect_sampler": statistics.mean(abs(dv[i]) for i in gp) if gp else None,
+                   "trainer_vs_sampler_without_lora": stats([t_base[pos[i] - 1] - v_base[pos[i]] for i in gp]),
+                   "trainer_vs_sampler_with_lora": stats([t_lora[pos[i] - 1] - v_lora[pos[i]] for i in gp]),
+                   "lora_change_diff": stats([dv[i] - dt[i] for i in gp])}
+            eff = (eff_v + eff_t) / 2
+            original = eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05
+            ok = (eff_v > 2 * agree_base["mean"] and eff_t > 2 * agree_base["mean"] and dd["mean"] < 0.25 * eff
+                  and agree["mean"] - agree_base["mean"] < 0.01 and agree["mean"] < 0.05)
+            record(1, "LoRA 真的生效", ok,
                    lora_effect_sampler=eff_v, lora_effect_trainer=eff_t, trainer_vs_sampler_with_lora=agree,
-                   trainer_vs_sampler_without_lora=agree_base, tokens=len(pos),
-                   lora_b_std=float(os.environ.get("M2P_LORA_STD", "0.002")))
+                   trainer_vs_sampler_without_lora=agree_base, lora_change_diff=dd, lora_change_corr=corr,
+                   generated_tokens_only=gen, tokens=len(pos),
+                   lora_b_std=float(os.environ.get("M2P_LORA_STD", "0.002")),
+                   criterion="两端的 LoRA 效应都大于不带 LoRA 时两端差的 2 倍；逐 token 的 LoRA 变化两端之差 < 效应的 25%；"
+                             "加上 LoRA 后两端差只多 < 0.01；带 LoRA 时两端差均值 < 0.05",
+                   original_rule="两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
+                   original_rule_pass=original,
+                   criterion_change="原规则拿效应和带 LoRA 时两端的总差比，总差里大部分是不带 LoRA 时就有的数值差"
+                                    "（提示部分低概率 token 的 BF16 误差），结果取决于 LoRA 初值的大小（std 0.002）；"
+                                    "改为逐 token 比两端的 LoRA 变化（原有差相减抵掉），并要求加 LoRA 不增加两端差")
             show = gen_pos[:40]
             MATERIAL["lora_compare"] = [{"token": chat.decode([probe["ids"][t]]), "sampler_without_lora": v_base[t],
                                          "sampler_with_lora": v_lora[t], "trainer_with_lora": t_lora[t - 1],
