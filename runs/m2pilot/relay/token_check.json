@@ -1,12 +1,14 @@
 {
- "at": "2026-10-26T17:39:14+00:00",
+ "at": "2026-10-26T17:44:15+00:00",
+ "process": "jupyter-lab",
  "config_form": "ENVREF:${JUPYTER_TOKEN}",
- "running_token_len": "137",
- "running_equals_env_JUPYTER_TOKEN": false,
- "running_equals_config_text": false,
+ "running_token_len": "49",
+ "running_token_nonalnum_chars": "2",
+ "running_equals_env_JUPYTER_TOKEN": true,
+ "container_env_has_same_token": true,
  "running_equals_instance_field": {
   "Password": false,
-  "FileBrowserPassword": false
+  "FileBrowserPassword": true
  },
- "running_sha8": "aff0b580"
+ "running_sha8": "2acbbf24"
 }
