@@ -1,0 +1,17 @@
+{
+ "total_usd": 2.011524152000003,
+ "deepseek_cny_total": 13.714937399999997,
+ "by_model_role": {
+  "deepseek-v4-pro|agent": {
+   "api_calls": 1462,
+   "cache_hits": 0,
+   "prompt_tokens": 2775872,
+   "cached_prompt_tokens": 2422016,
+   "completion_tokens": 871058,
+   "reasoning_tokens": 782902,
+   "cost_usd": 2.011524152000003,
+   "cost_cny": 13.714937399999997
+  }
+ },
+ "deepseek_cny_limit": 40.0
+}
