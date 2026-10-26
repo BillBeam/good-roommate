@@ -37,7 +37,8 @@ def run_case(actions, ssh_ok_until=None, health=None, extra_data=None, gpu=None)
     data = {"relay/machine_health.json": health or {}, **(extra_data or {})}
     tr.data_json = lambda rel, d: json.loads(json.dumps(data.get(rel, d)))
     tr.data_write = lambda rel, obj: data.__setitem__(rel, json.loads(json.dumps(obj)))
-    tr.data_append = lambda rel, line: None
+    tr.data_append = lambda rel, line: data.setdefault(rel, []).append(line) if rel.endswith(".jsonl") else None
+    tr.jl_data = lambda rel: list(data.get(rel, []))
     tr.data_push = lambda m: None
     tr.data_checkout = lambda: tmp
     tr.status_json = lambda: None
@@ -185,10 +186,13 @@ assert not s.get("unreachable") and n_kill == 1 and s["actions"][1]["ok"]
 # 13) 故障处理表第 1 行
 for label, kw, want in (("mainline before end, no GPU signal", {"extra_data": {"relay/mainline.json": {
         "job": "pipeline", "expected_end": "x", "expected_end_ts": CLOCK[0] + 10 ** 7}}}, 120),
-                        ("GPU busy", {"gpu": (80.0, 1200)}, 120), ("GPU idle 20 min", {"gpu": (0.0, 1200)}, 30)):
+                        ("GPU busy", {"gpu": (80.0, 60)}, 120), ("GPU idle 20 min", {"gpu": (0.0, 60)}, 30)):
     CLOCK[0] += 10000
     if "extra_data" in kw:
         kw["extra_data"]["relay/mainline.json"]["expected_end_ts"] = CLOCK[0] + 10 ** 6
+    if label == "GPU idle 20 min":     # 接口每次只给 1 分钟：20 分钟的历史样本来自之前各轮
+        kw["extra_data"] = {"relay/gpu_samples.jsonl": [{"t": int(CLOCK[0]) - 1200 + 300 * i, "gpu_util": 0.0,
+                                                         "machine": "uhost-1"} for i in range(4)]}
     s, c, took, hb, data = run_case([{"do": "upload"}], **kw)
     v = s["unreachable"]["verdict"]["verdict"]
     print("case13", label, "-> verdict", v, "| heartbeat min", hb[-1], "| minutes %.1f" % took)

@@ -180,6 +180,14 @@ def data_json(rel, default):
     return default
 
 
+def jl_data(rel):
+    p = os.path.join(data_checkout(), DATA_PREFIX, rel)
+    if not os.path.exists(p):
+        return []
+    with open(p) as f:
+        return [json.loads(x) for x in f if x.strip()]
+
+
 def data_write(rel, obj):
     p = os.path.join(data_checkout(), DATA_PREFIX, rel)
     os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -661,6 +669,10 @@ def do_wait(a):
                 h = our_machine()
                 if h and h.get("State") == "Running":   # 兜底关机始终晚于本轮预计结束
                     heartbeat(h)
+                    try:
+                        health_signals(h)               # 顺手记一个 GPU 利用率样本（"闲了多久"按历史算）
+                    except Exception:
+                        pass
                     if time.time() + HEARTBEAT <= end:
                         log("heartbeat_before_round_end", stop_at=summary["stop_at"], expected_end=now_iso(end))
             if done:
@@ -946,8 +958,8 @@ def health_signals(h, minutes=20):
         # SDK 里这个接口只有 UHostIds 一个参数（多传时间范围会报 210）。按 DescribeCompShareInstance 的写法（UHostIds.0）
         # 平台回 "Missing params [UHostIds]"，所以依次试几种写法，记下哪种被接受；返回的时间序列按 minutes 截取最近一段
         tried = []
-        for form, val, jb in (("json_body_sig_flat", [h["UHostId"]], True), ("json_body_sig_json", [h["UHostId"]], "json_compact"),
-                              ("json_body_sig_join", [h["UHostId"]], "join")):
+        # 平台只认 JSON 请求体、签名里数组按逗号连接（2026-10-26 试出来的；表单写法和另两种签名都被拒）
+        for form, val, jb in (("json_body_sig_join", [h["UHostId"]], "join"),):
             r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": val}, json_body=jb)
             tried.append({"form": form, "RetCode": r.get("RetCode"), "Message": redact(r.get("Message"))[:80]})
             if r.get("RetCode") == 0:
@@ -970,8 +982,15 @@ def health_signals(h, minutes=20):
               and "mem" not in k.lower()]
         if gk and any(metrics[k]["points"] for k in gk):
             sig["gpu_metric"] = gk[0]
-            sig["gpu_util_max"] = max(metrics[k]["max"] for k in gk if metrics[k]["points"])
-            sig["gpu_window_s"] = max(metrics[k]["span_s"] for k in gk)
+            # 接口每次只给最近约 1 分钟：每次查到的都记进数据分支，"闲了多久"按记下的历史算
+            data_append("relay/gpu_samples.jsonl", {"t": metrics[gk[0]]["last"][0], "gpu_util": metrics[gk[0]]["last"][1],
+                                                    "machine": h["UHostId"]})
+            hist = [x for x in jl_data("relay/gpu_samples.jsonl") if x.get("machine") == h["UHostId"]
+                    and x["t"] >= now - minutes * 60]
+            vals = [x["gpu_util"] for x in hist] + [metrics[k]["max"] for k in gk if metrics[k]["points"]]
+            sig["gpu_util_max"] = max(vals)
+            sig["gpu_samples"] = len(hist)
+            sig["gpu_window_s"] = (max(x["t"] for x in hist) - min(x["t"] for x in hist)) if hist else 0
     except Exception as e:
         sig["monitor_error"] = redact(f"{type(e).__name__}: {e}")[:200]
     return sig
