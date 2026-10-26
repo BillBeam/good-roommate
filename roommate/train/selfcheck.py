@@ -217,14 +217,15 @@ def main():
                 for n, p in tr.model.named_parameters():
                     if n in saved:
                         p.data.copy_(saved[n])
-                opt = torch.optim.SGD(tr.params, lr=1e-3)
+                opt = torch.optim.Adam(tr.params, lr=1e-3)   # 新的 Adam：第一步每个参数大约移动 lr，方向是梯度的符号
                 before = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
                 tr.opt, keep = opt, tr.opt
                 tr.train_step([{"ids": seg["ids"], "mask": seg["mask"], "lp": seg["lp"], "adv": adv}], "grpo",
                               max_grad_norm=1e9)
                 tr.opt = keep
                 after = float(tr.logprobs(seg["ids"], seg["mask"]).mean())
-                res5[f"adv{adv:+.0f}"] = {"before": before, "after": after, "delta": after - before}
+                res5[f"adv{adv:+.0f}"] = {"before": before, "after": after, "delta": after - before,
+                                      "lora_dtype": str(tr.params[0].dtype)}
             for n, p in tr.model.named_parameters():
                 if n in saved:
                     p.data.copy_(saved[n])

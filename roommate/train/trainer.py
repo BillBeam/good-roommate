@@ -104,6 +104,7 @@ class Trainer:
         """ids、mask：同长的列表。返回 mask = 1 的各位置 t 上 logp(ids[t] | ids[:t])（float32 张量）。"""
         pos = [t for t, m in enumerate(mask) if m and t > 0]
         x = torch.tensor([ids], device=self.device)
+        self.model.train(grad)     # 梯度检查点只在训练模式下生效（没有 dropout，两种模式算出的数相同）
         ctx = torch.enable_grad() if grad else torch.no_grad()
         with ctx:
             h = self._hidden(x)[0]
@@ -220,7 +221,8 @@ class Trainer:
 
     def _ckpt_name(self, rel):
         rel = rel.replace(".base_layer", "")
-        hits = [k for k in self._checkpoint_names() if k.endswith("." + rel + ".weight") and "visual" not in k]
+        hits = [k for k in self._checkpoint_names() if k.endswith("." + rel + ".weight") and "visual" not in k
+                and not k.startswith("mtp.")]          # 检查点里还有多 token 预测层 mtp.layers.*，名字的后缀相同
         assert len(hits) == 1, (rel, hits[:3])
         return hits[0]
 

@@ -98,6 +98,7 @@ def drill(c, log):
 
 
 def main(argv=None):
+    os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
     ap = argparse.ArgumentParser()
     ap.add_argument("--until")
     ap.add_argument("--only")
