@@ -2,3 +2,5 @@
 {"step": "vllm", "seconds": 893}
 {"step": "extras", "seconds": 903}
 {"step": "model_small_files", "seconds": 908}
+{"step": "model_weights", "seconds": 1569}
+{"step": "done", "seconds": 1578}
