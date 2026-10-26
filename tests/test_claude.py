@@ -191,3 +191,38 @@ class CheckpointTest(unittest.TestCase):
         head = self.git("rev-parse", "HEAD").stdout
         self.cr.stage_checkpoint(["claude-fable-5-1"], "again")
         self.assertEqual(head, self.git("rev-parse", "HEAD").stdout)
+
+    def test_checkpoint_never_touches_live_files_and_keeps_remote_changes(self):
+        """运行中推送：别人先推了新提交（远端前进了），本地有一份正在写的账本（已跟踪、有改动）。
+        推上去的提交要同时有别人的改动和这次的快照；本地的账本文件一字不动；别人改过、本地没动过的文件更新到新版本。"""
+        import subprocess
+        td = self.td.name
+        ledger = "runs/m1v2/claude/spend_ledger.json"
+        with open(ledger, "w") as f:
+            f.write('{"total_usd": 1.0}')
+        self.cr.stage_checkpoint(["claude-fable-5-1"], "first")
+        # 另一个克隆推了一个改动
+        other = os.path.join(td, "other")
+        subprocess.run(["git", "clone", "-q", "-b", "work", os.path.join(td, "remote.git"), other],
+                       check=True, capture_output=True)
+        self.git("config", "user.email", "o@example.com", cwd=other)
+        self.git("config", "user.name", "o", cwd=other)
+        with open(os.path.join(other, "README"), "w") as f:
+            f.write("from other\n")
+        self.git("commit", "-q", "-am", "other", cwd=other)
+        self.git("push", "-q", "origin", "work", cwd=other)
+        # 本地的账本正在被写（已跟踪、有改动）
+        with open(ledger, "w") as f:
+            f.write('{"total_usd": 2.5}')
+        mtime = os.stat(ledger).st_mtime_ns
+        self.cr.stage_checkpoint(["claude-fable-5-1"], "second")
+        with open(ledger) as f:
+            self.assertEqual(f.read(), '{"total_usd": 2.5}')
+        self.assertEqual(os.stat(ledger).st_mtime_ns, mtime)
+        self.git("fetch", "-q", "origin")
+        self.assertEqual(self.git("show", f"origin/work:{ledger}").stdout, '{"total_usd": 2.5}')
+        self.assertEqual(self.git("show", "origin/work:README").stdout, "from other\n")
+        with open("README") as f:
+            self.assertEqual(f.read(), "from other\n")
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout, self.git("rev-parse", "origin/work").stdout)
+        self.assertNotIn("claude_checkpoint_index", self.git("ls-tree", "-r", "--name-only", "origin/work").stdout)

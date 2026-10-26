@@ -237,11 +237,9 @@ def stage_checkpoint_cache(models):
 
 
 def stage_checkpoint(models=None, tag="manual"):
-    """缓存快照 + 记录 + 账本 + 日志 → 提交并推到当前分支。多个进程同时跑时用文件锁排队；推送失败退避重试 4 次。
-    推不上去不影响实验本身（已经拿到的回复都在本地缓存里），只打印原因。"""
+    """缓存快照 + 记录 + 账本 + 日志 → 提交并推到当前分支（_push_snapshot，不碰工作区，运行中也能用）。
+    多个进程同时跑时用文件锁排队；推送失败退避重试 4 次。推不上去不影响实验本身（已经拿到的回复都在本地缓存里），只打印原因。"""
     import fcntl
-    import subprocess
-    import time
     models = models or MODELS
     with open(os.path.join(CDIR, ".git_checkpoint.lock"), "w") as lk:
         fcntl.flock(lk, fcntl.LOCK_EX)
@@ -253,26 +251,63 @@ def stage_checkpoint(models=None, tag="manual"):
                             if os.path.isdir(os.path.join(OUT, f"seed{s}", "policies")) else [])
                   if d.startswith("llm_claude-")]
         paths.append(CDIR)
-        git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True)
-        git("add", "--", *paths)
-        if git("diff", "--cached", "--quiet").returncode == 0:
-            print(f"checkpoint {tag}：没有新内容")
-            return n
-        r = git("commit", "-q", "-m", f"Claude baseline checkpoint: {tag}\n\n缓存条数（.gz）：{n}")
-        if r.returncode:
-            print("checkpoint 提交失败：", r.stderr[-300:])
-            return n
-        branch = git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
-        for i in range(5):
-            pull = git("pull", "-q", "--rebase", "--autostash", "origin", branch)
-            push = git("push", "-q", "origin", f"HEAD:{branch}") if pull.returncode == 0 else pull
-            if push.returncode == 0:
-                print(f"checkpoint {tag}：已推到 {branch}（{git('rev-parse', '--short', 'HEAD').stdout.strip()}）")
-                return n
-            if i < 4:
-                time.sleep(2 ** (i + 1))
-        print(f"checkpoint {tag}：推送失败，已在本地提交：", (push.stderr or pull.stderr)[-300:])
+        sha = _push_snapshot(paths, f"Claude baseline checkpoint: {tag}\n\n缓存条数（.gz）：{n}")
+        print(f"checkpoint {tag}：" + (f"已推到分支（{sha[:7]}）" if sha else "没有新内容或推送失败（见上），已经拿到的回复都还在本地缓存里"))
         return n
+
+
+def _push_snapshot(paths, message):
+    """把 paths 的当前内容提交到远端分支，**不碰工作区**：不 stash、不 reset、不改正在写的文件。
+    做法：fetch 远端分支 → 用临时 index 读入远端的树、加进 paths → write-tree / commit-tree（父提交是远端头）→ push。
+    别人同时推了就重试。推上去之后把本地分支指到这个提交，只重置 index（mixed，不动工作区文件），
+    别人改过、而本地没动过的文件（代码、报告）再从新提交里取出来，免得以后的提交把它们改回去；
+    正在写的文件（paths 之内的）一律不碰。返回推上去的提交，没有新内容或推不上去返回 None。"""
+    import subprocess
+    import time
+    git = lambda *a, e=None: subprocess.run(["git", *a], capture_output=True, text=True, env=e)
+    gitdir = os.path.abspath(git("rev-parse", "--git-dir").stdout.strip())
+    env = dict(os.environ, GIT_INDEX_FILE=os.path.join(gitdir, "claude_checkpoint_index"))   # 放在 .git 里，不会被提交
+    branch = git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+    last = ""
+    for i in range(5):
+        f = git("fetch", "-q", "origin", branch)
+        if f.returncode:
+            last = f.stderr
+        else:
+            base = git("rev-parse", "FETCH_HEAD").stdout.strip()
+            git("read-tree", base, e=env)
+            a = git("add", "--", *paths, e=env)
+            tree = git("write-tree", e=env).stdout.strip()
+            if a.returncode or not tree:
+                print("checkpoint 加文件失败：", (a.stderr or "")[-300:])
+                return None
+            if tree == git("rev-parse", f"{base}^{{tree}}").stdout.strip():
+                return None
+            commit = git("commit-tree", tree, "-p", base, "-m", message).stdout.strip()
+            push = git("push", "-q", "origin", f"{commit}:refs/heads/{branch}")
+            if push.returncode == 0:
+                _sync_local(git, branch, commit, paths)
+                return commit
+            last = push.stderr
+        if i < 4:
+            time.sleep(2 ** (i + 1))
+    print("checkpoint 推送失败：", last[-300:])
+    return None
+
+
+def _sync_local(git, branch, commit, live_paths):
+    old = git("rev-parse", "HEAD").stdout.strip()
+    git("update-ref", f"refs/heads/{branch}", commit, old)
+    git("reset", "-q")   # 只把 index 对齐到新的 HEAD，工作区文件不动
+    live = [os.path.normpath(p) for p in live_paths]
+    for f in git("diff", "--name-only", old, commit).stdout.split():
+        nf = os.path.normpath(f)
+        if any(nf == p or nf.startswith(p + os.sep) for p in live):
+            continue
+        # 本地没动过（工作区 = 旧 HEAD，或文件旧 HEAD 里没有、本地也没有）才取新版本
+        unchanged = git("diff", "--quiet", old, "--", f).returncode == 0
+        if unchanged:
+            git("checkout", commit, "--", f)
 
 
 # ---------- repro ----------
