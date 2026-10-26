@@ -46,3 +46,5 @@ Traceback (most recent call last):
   File "/root/work/repo/roommate/train/serve.py", line 42, in start
     raise RuntimeError(f"vLLM exited with {proc.returncode}; see {log_path}")
 RuntimeError: vLLM exited with 1; see /root/work/out/logs/vllm_selfcheck.log
+
+=== 2026-10-26T19:23:20Z /root/work/venv/bin/python -m roommate.train.selfcheck

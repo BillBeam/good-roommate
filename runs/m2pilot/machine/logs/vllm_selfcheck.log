@@ -849,3 +849,23 @@ Traceback (most recent call last):
   File "/root/work/venv/lib/python3.10/site-packages/vllm/config/device.py", line 55, in __post_init__
     raise RuntimeError(
 RuntimeError: Failed to infer device type, please set the environment variable `VLLM_LOGGING_LEVEL=DEBUG` to turn on verbose logging to help debug the issue.
+
+=== start 2026-10-26T19:23:24Z: /root/work/venv/bin/python -m vllm.entrypoints.openai.api_server --model /root/work/models/Qwen3.5-4B --served-model-name policy --host 127.0.0.1 --port 8000 --dtype bfloat16 --max-model-len 32768 --gpu-memory-utilization 0.4 --enable-prefix-caching --generation-config vllm --seed 0 --max-num-seqs 128 --worker-extension-cls roommate.train.vllm_ext.WeightSyncExtension --limit-mm-per-prompt {"image": 0, "video": 0}
+/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py:24: DeprecationWarning: `vllm.entrypoints.openai.api_server` is deprecated and will likely beunsupported in a future version. Use the corresponding function from `vllm.entrypoints.launchers` instead.
+  warnings.warn(
+/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py:51: DeprecationWarning: The `python -m vllm.entrypoints.openai.api_server` command is deprecated and may be removed in a future release. Please use `vllm server` instead.
+  warnings.warn(
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347] 
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347]        █     █     █▄   ▄█
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.31.0
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347]   █▄█▀ █     █     █     █  model   /root/work/models/Qwen3.5-4B
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:347] 
+(APIServer pid=946) INFO 10-26 19:23:30 [api_utils.py:286] non-default args: {'host': '127.0.0.1', 'model': '/root/work/models/Qwen3.5-4B', 'dtype': 'bfloat16', 'max_model_len': 32768, 'served_model_name': ['policy'], 'generation_config': 'vllm', 'worker_extension_cls': 'roommate.train.vllm_ext.WeightSyncExtension', 'gpu_memory_utilization': 0.4, 'enable_prefix_caching': True, 'limit_mm_per_prompt': {'image': 0, 'video': 0}, 'max_num_seqs': 128}
+(APIServer pid=946) INFO 10-26 19:23:30 [model.py:699] Resolved architecture: Qwen3_5ForConditionalGeneration
+(APIServer pid=946) INFO 10-26 19:23:30 [model.py:2109] Using max model len 32768
+(APIServer pid=946) INFO 10-26 19:23:31 [model.py:917] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(APIServer pid=946) INFO 10-26 19:23:31 [model.py:974] Disabled mm_prefix attention mode because multimodal inputs are configuration-disabled. Attention backends without mm_prefix support may now be selected.
+(APIServer pid=946) INFO 10-26 19:23:31 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(APIServer pid=946) INFO 10-26 19:23:31 [config.py:643] Mamba cache mode is set to 'align' for Qwen3_5ForConditionalGeneration by default when prefix caching is enabled
+(APIServer pid=946) INFO 10-26 19:23:31 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])
