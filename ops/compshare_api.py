@@ -1,7 +1,8 @@
 """Minimal read-only client for the Compshare (UCloud) OpenAPI.
 
-Keys come only from COMPSHARE_PUBLIC_KEY / COMPSHARE_PRIVATE_KEY. Only actions in
-READ_ONLY can be called, so this module cannot create, start or bill anything.
+Keys come only from COMPSHARE_PUBLIC_KEY / COMPSHARE_PRIVATE_KEY. call() only runs
+actions in READ_ONLY. call_write() runs the few lifecycle actions in WRITE and is
+used only by gpu_grab.py, which creates at most one instance and always destroys it.
 Signing follows ucloud-sdk-python3 (sorted flattened params + private key, sha1).
 """
 import hashlib
@@ -22,6 +23,12 @@ READ_ONLY = frozenset({
     "DescribeCompShareInstance",
     "CheckCompShareResourceCapacity",
     "GetCompShareInstancePrice",
+})
+WRITE = frozenset({
+    "CreateCompShareInstance",
+    "UpdateCompShareStopScheduler",
+    "StopCompShareInstance",
+    "TerminateCompShareInstance",
 })
 
 
@@ -55,6 +62,16 @@ def call(action, params=None, timeout=30):
     """Return (response_json, elapsed_seconds). Never returns or logs the request."""
     if action not in READ_ONLY:
         raise ValueError(f"{action} is not in the read-only allowlist")
+    return _send(action, params, timeout)
+
+
+def call_write(action, params=None, timeout=60):
+    if action not in WRITE:
+        raise ValueError(f"{action} is not in the write allowlist")
+    return _send(action, params, timeout)
+
+
+def _send(action, params, timeout):
     payload = _flatten({**(params or {}), "Action": action})
     payload["PublicKey"] = os.environ["COMPSHARE_PUBLIC_KEY"]
     raw = "".join(k + payload[k] for k in sorted(payload)) + os.environ["COMPSHARE_PRIVATE_KEY"]

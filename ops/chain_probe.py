@@ -50,6 +50,8 @@ def compshare(out):
             return {}
 
     bal = run("balance", "GetBalance")
+    # account figures never leave the runner: keep only whether an hour of this config is covered
+    res["calls"]["balance"].pop("response", None)
     run("zones", "DescribeCompShareSupportZone")
     types = run("instance_types", "DescribeAvailableCompShareInstanceTypes",
                 {**loc, "InstanceType": "uhost", "MachineTypes": [cfg["GpuType"]]})
@@ -95,7 +97,8 @@ def compshare(out):
         "image_available": bool(img) and img[0].get("Status") == "Available",
         "price_retcode": price.get("RetCode"),
         "hourly_cny": round(hourly, 4),
-        "balance": (bal.get("AccountInfo") or {}),
+        "balance": ("余额够" if float((bal.get("AccountInfo") or {}).get("AmountAvailable") or 0) >= hourly > 0
+                    else "余额不够"),
     }
 
 

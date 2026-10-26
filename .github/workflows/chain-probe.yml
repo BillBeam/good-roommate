@@ -1,10 +1,13 @@
-# Zero-cost probe of the session -> Actions -> Compshare chain. Triggers: manual,
-# or a push to the dedicated chain-request branch (and only that branch).
-# Never pull_request / issue_comment or other events outsiders can cause.
-# Read-only Compshare calls; results go to the chain-results branch and, if a PR
-# number is given, a short comment on that PR.
-# Push runs take their inputs from ops/probe_request.json in the
-# triggering commit (the session's GitHub token cannot dispatch workflows).
+# Relay between the cloud session and Compshare. Triggers: manual, or a push to the
+# dedicated chain-request branch (and only that branch). Never pull_request /
+# issue_comment or other events outsiders can cause.
+# Push runs take their inputs from ops/probe_request.json in the triggering commit
+# (the session's GitHub token cannot dispatch workflows):
+#   mode "probe" (default): read-only checks, results to chain-results.
+#   mode "grab": wait for a suitable GPU, run ops/gpu_remote_check.py on it, destroy it.
+#   mode "stop": no-op; a running grab notices it and ends its window early.
+# Results go to the chain-results branch and, if a PR number is given, a PR comment.
+# Balance and charges are never written to either.
 name: chain-probe
 
 on:
@@ -25,17 +28,16 @@ permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: chain-probe
-  cancel-in-progress: false
-
 jobs:
-  probe:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    outputs:
+      mode: ${{ steps.req.outputs.mode }}
+      dispatched_at: ${{ steps.req.outputs.dispatched_at }}
+      pr_number: ${{ steps.req.outputs.pr_number }}
+      window_minutes: ${{ steps.req.outputs.window_minutes }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Resolve inputs
         id: req
         env:
@@ -43,42 +45,53 @@ jobs:
           IN_PR: ${{ inputs.pr_number }}
         run: |
           if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] && [ -f ops/probe_request.json ]; then
-            python3 -c "import json;d=json.load(open('ops/probe_request.json'));print('dispatched_at='+d.get('requested_at',''));print('pr_number='+str(d.get('pr_number','')))" >> "$GITHUB_OUTPUT"
+            python3 - >> "$GITHUB_OUTPUT" <<'PY'
+          import json
+          d = json.load(open("ops/probe_request.json"))
+          mode = d.get("mode", "probe")
+          assert mode in ("probe", "grab", "stop"), mode
+          print("mode=" + mode)
+          print("dispatched_at=" + d.get("requested_at", ""))
+          print("pr_number=" + (str(int(d["pr_number"])) if d.get("pr_number") else ""))
+          print("window_minutes=" + str(min(300, int(d.get("window_minutes", 300)))))
+          PY
           else
+            echo "mode=probe" >> "$GITHUB_OUTPUT"
             echo "dispatched_at=$IN_DISPATCHED_AT" >> "$GITHUB_OUTPUT"
             echo "pr_number=$IN_PR" >> "$GITHUB_OUTPUT"
+            echo "window_minutes=0" >> "$GITHUB_OUTPUT"
           fi
+
+  probe:
+    needs: plan
+    if: needs.plan.outputs.mode == 'probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: chain-probe
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Probe (read-only)
         env:
           COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
           COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
-          DISPATCHED_AT: ${{ steps.req.outputs.dispatched_at }}
+          DISPATCHED_AT: ${{ needs.plan.outputs.dispatched_at }}
         run: python3 ops/chain_probe.py "$RUNNER_TEMP/out"
 
       - name: Push results to chain-results branch
         env:
           OUT: ${{ runner.temp }}/out
-        run: |
-          dest="runs/chain/${GITHUB_RUN_ID}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git fetch --depth=1 origin chain-results; then
-            git switch -c chain-results FETCH_HEAD
-          else
-            git switch --orphan chain-results
-          fi
-          mkdir -p "$dest" && cp -r "$OUT"/. "$dest"/
-          git add "$dest"
-          git commit -q -m "chain-probe results for run ${GITHUB_RUN_ID}"
-          git push origin chain-results
+          DEST: runs/chain
+        run: bash ops/push_results.sh
 
       - name: Comment on PR
-        if: steps.req.outputs.pr_number != ''
+        if: needs.plan.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ github.token }}
           OUT: ${{ runner.temp }}/out
-          PR: ${{ steps.req.outputs.pr_number }}
+          PR: ${{ needs.plan.outputs.pr_number }}
         run: |
           {
             echo "chain-probe run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
@@ -86,7 +99,69 @@ jobs:
             echo "Results: \`runs/chain/${GITHUB_RUN_ID}/result.json\` on branch \`chain-results\`."
             echo
             echo '```json'
-            python3 -c "import json;d=json.load(open('$OUT/result.json'));print(json.dumps({'checks':d.get('compshare',{}).get('checks'),'ssh':[{k:r.get(k) for k in ('host','handshake_ok','tcp_connect_median_ms')} for r in d.get('ssh',[])]},ensure_ascii=False,indent=1))"
+            python3 -c "import json;d=json.load(open('$OUT/result.json'));print(json.dumps({'checks':{k:v for k,v in (d.get('compshare',{}).get('checks') or {}).items() if k!='balance'},'ssh':[{k:r.get(k) for k in ('host','handshake_ok','tcp_connect_median_ms')} for r in d.get('ssh',[])]},ensure_ascii=False,indent=1))"
             echo '```'
           } > comment.md
           gh pr comment "$PR" --body-file comment.md
+
+  grab:
+    needs: plan
+    if: needs.plan.outputs.mode == 'grab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    concurrency:
+      group: gpu-grab
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get install -y -qq sshpass >/dev/null
+
+      - name: Grab, test, destroy
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+          GRAB_WINDOW_MINUTES: ${{ needs.plan.outputs.window_minutes }}
+          GRAB_REQUEST_SHA: ${{ github.sha }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ops/gpu_grab.py "$RUNNER_TEMP/out"
+
+      - name: Push results to chain-results branch
+        if: always()
+        env:
+          OUT: ${{ runner.temp }}/out
+          DEST: runs/grab
+        run: rm -rf "$OUT/_bundle" "$OUT/_bundle.tgz"; bash ops/push_results.sh
+
+      - name: Comment on PR
+        if: always() && needs.plan.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ runner.temp }}/out
+          PR: ${{ needs.plan.outputs.pr_number }}
+        run: |
+          {
+            echo "gpu-grab run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+            echo
+            echo "Results: \`runs/grab/${GITHUB_RUN_ID}/\` on branch \`chain-results\`."
+            echo
+            echo '```json'
+            python3 -c "import json;d=json.load(open('$OUT/result.json'));print(json.dumps({k:d.get(k) for k in ('outcome','machine','balance','remote_tests_ran','create_to_running_seconds','create_to_login_seconds','instance_lifetime_minutes','sweeps')},ensure_ascii=False,indent=1))" || echo '{"outcome": "no result.json"}'
+            echo '```'
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md
+
+  cleanup:
+    needs: [plan, grab]
+    if: always() && needs.plan.outputs.mode == 'grab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Destroy any leftover gr-probe-* instance
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+        run: python3 ops/gpu_cleanup.py
