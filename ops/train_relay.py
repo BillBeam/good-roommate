@@ -682,7 +682,18 @@ def do_kill(a):
 
 
 def do_image(a):
+    """自定义镜像。做镜像时实例进入 ImageMaking，SSH 不通（2026-10-26 实测），机器上正在跑的任务会被打断：
+    所以有后台任务在跑时不做（除非 force）。"""
     h = our_machine()
+    if not a.get("force") and h and h.get("State") == "Running":
+        c = conn()
+        q = ssh(c, f"cd {REMOTE}/out/pids 2>/dev/null && for f in *.pid; do [ -f ${{f%.pid}}.rc ] || "
+                   f"(kill -0 $(cat $f) 2>/dev/null && echo ${{f%.pid}}); done; true", timeout=60)
+        busy = [x for x in (q.stdout or "").split() if x and not x.startswith("netwatch")] if q else []
+        if busy:
+            log("image_refused", reason="jobs running", jobs=busy)
+            summary["image_refused"] = {"jobs_running": busy}
+            return False
     t0 = time.time()
     r, _ = api.call_write("CreateCompShareCustomImage", {"Region": h["_region"], "Zone": h["Zone"],
                                                           "UHostId": h["UHostId"], "Name": a.get("name", "m2pilot-env")})
@@ -991,6 +1002,12 @@ def note_unreachable(e, a):
     log("unreachable", **summary["unreachable"])
     api.TRIES = 2
     try:
+        st = (our_machine() or {}).get("State")
+        if st and st != "Running":      # 不是断网：实例自己不在运行状态（比如在做镜像 ImageMaking）
+            summary["unreachable"]["cause"] = f"instance state {st}"
+    except Exception:
+        pass
+    try:
         h = our_machine()
         summary["machine_state"] = h.get("State") if h else None
         if h:
@@ -1080,7 +1097,8 @@ def main():
         head = ""
         if summary.get("unreachable"):
             u = summary["unreachable"]
-            head = (f"**连不上训练机器（SSH 失败）**：失败的动作是 `{u['failed_action']}`"
+            cause = f"（原因：{u['cause']}，不是断网）" if u.get("cause") else ""
+            head = (f"**连不上训练机器（SSH 失败）**{cause}：失败的动作是 `{u['failed_action']}`"
                     f"{'（' + u['name'] + '）' if u.get('name') else ''}，{u['at']}；"
                     f"本轮提前结束，没做的动作：{', '.join(u['not_done']) or '无'}。实例状态：{summary.get('machine_state')}。\n\n")
         elif summary.get("error"):
