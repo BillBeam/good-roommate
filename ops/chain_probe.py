@@ -22,8 +22,9 @@ import compshare_api  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SSH_HOSTS = ["gitee.com", "codeup.aliyun.com", "git.code.tencent.com"]
-DOC_KEYWORDS = ("charge", "bill", "arrear", "balance", "recharge", "postpay", "createcompshareinstance",
-                "startcompshareinstance", "quota", "level")
+DOC_KEYWORDS = ("charge", "bill", "arrear", "overdue", "expire", "balance", "recharge", "postpay", "recycle",
+                "createcompshareinstance", "startcompshareinstance", "quota", "level", "member", "vip",
+                "faq", "question", "guide", "quick", "newbie", "start", "create", "instance/create")
 
 
 def _redact(obj):
@@ -163,12 +164,13 @@ def docs(out, out_dir):
     except Exception as e:
         d["sitemap_error"] = str(e)
         urls = []
-    picked = [u for u in urls if "/docs/" in u and any(k in u.lower() for k in DOC_KEYWORDS)]
+    d["sitemap_docs_urls"] = [u for u in urls if "/docs/" in u]
+    picked = [u for u in d["sitemap_docs_urls"] if any(k in u.lower() for k in DOC_KEYWORDS)]
     must = ["https://www.compshare.cn/docs/operation/charge/billdescribe",
             "https://www.compshare.cn/docs/uaccount/bill/charge",
             "https://www.compshare.cn/docs/gpus/instance/createcompshareinstance",
             "https://www.compshare.cn/docs/gpus/instance/startcompshareinstance"]
-    picked = list(dict.fromkeys(must + picked))[:40]
+    picked = list(dict.fromkeys(must + picked))[:60]
     d["picked"] = picked
     os.makedirs(os.path.join(out_dir, "docs"), exist_ok=True)
     for u in picked:
