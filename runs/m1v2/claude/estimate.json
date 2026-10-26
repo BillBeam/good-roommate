@@ -1,0 +1,276 @@
+{
+ "written_at": "2026-10-26T10:31:42+00:00",
+ "budget_usd": 150.0,
+ "reserve_usd": 5.0,
+ "pilot_spent_usd": 1.8455483149999998,
+ "cost_per_session": {
+  "llm:claude-haiku-5-5": 0.0006785071875,
+  "llm:claude-sonnet-5-5": 0.00885031875,
+  "llm:claude-opus-5-5": 0.0214897,
+  "llm:claude-fable-5-1": 0.06950309375,
+  "llm:claude-opus-5-5:true_memory": 0.014825149999999999
+ },
+ "cost_per_session_high": {
+  "llm:claude-haiku-5-5": 0.0007838375,
+  "llm:claude-sonnet-5-5": 0.0088607375,
+  "llm:claude-opus-5-5": 0.0237332,
+  "llm:claude-fable-5-1": 0.07123725,
+  "llm:claude-opus-5-5:true_memory": 0.014897474999999999
+ },
+ "rows": [
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 0.119417265,
+   "est_usd_high": 0.1379554
+  },
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 0.13027338,
+   "est_usd_high": 0.1504968
+  },
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 0.13027338,
+   "est_usd_high": 0.1504968
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 1.5576561000000002,
+   "est_usd_high": 1.5594898000000001
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 1.6992612,
+   "est_usd_high": 1.7012616
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 1.6992612,
+   "est_usd_high": 1.7012616
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 3.7821872,
+   "est_usd_high": 4.1770432
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 4.1260224,
+   "est_usd_high": 4.5567744
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 4.1260224,
+   "est_usd_high": 4.5567744
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 12.2325445,
+   "est_usd_high": 12.537756
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 13.344593999999999,
+   "est_usd_high": 13.677552
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 13.344593999999999,
+   "est_usd_high": 13.677552
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": true,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 2.6092264,
+   "est_usd_high": 2.6219555999999997
+  }
+ ],
+ "full_card_usd": 60.74688174,
+ "full_card_usd_high": 63.051917915000004,
+ "over_budget": false,
+ "plan": [
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 0.119417265,
+   "est_usd_high": 0.1379554,
+   "users": null
+  },
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 0.13027338,
+   "est_usd_high": 0.1504968,
+   "users": null
+  },
+  {
+   "model": "claude-haiku-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 0.13027338,
+   "est_usd_high": 0.1504968,
+   "users": null
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 1.5576561000000002,
+   "est_usd_high": 1.5594898000000001,
+   "users": null
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 1.6992612,
+   "est_usd_high": 1.7012616,
+   "users": null
+  },
+  {
+   "model": "claude-sonnet-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 1.6992612,
+   "est_usd_high": 1.7012616,
+   "users": null
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 3.7821872,
+   "est_usd_high": 4.1770432,
+   "users": null
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 4.1260224,
+   "est_usd_high": 4.5567744,
+   "users": null
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 4.1260224,
+   "est_usd_high": 4.5567744,
+   "users": null
+  },
+  {
+   "model": "claude-opus-5-5",
+   "control": true,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 2.6092264,
+   "est_usd_high": 2.6219555999999997,
+   "users": null
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 1,
+   "sessions": 192,
+   "sessions_not_cached": 176,
+   "est_usd": 12.2325445,
+   "est_usd_high": 12.537756,
+   "users": null
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 2,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 13.344593999999999,
+   "est_usd_high": 13.677552,
+   "users": null
+  },
+  {
+   "model": "claude-fable-5-1",
+   "control": false,
+   "seed": 3,
+   "sessions": 192,
+   "sessions_not_cached": 192,
+   "est_usd": 13.344593999999999,
+   "est_usd_high": 13.677552,
+   "users": null
+  }
+ ],
+ "skipped": [],
+ "planned_usd": 60.74688174
+}

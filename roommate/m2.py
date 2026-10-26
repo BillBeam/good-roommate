@@ -6,7 +6,8 @@
     ROOMMATE_M2_ONLY=nothink@1,think@1@ctrl,var@nothink@3 python -m roommate.m2 --stages runs   # 分批跑
 
 考场不变：世界、规则、判分都用第二版（runs/m1v2/seed{1,2,3}/world.json），这里只加接入新渠道和新统计的代码。
-- 评测（stage runs 里的 base、ctrl）：采样温度与 M1 一致（温度 0），思考模式开、关各一组；
+- 评测（stage runs 里的 base、ctrl）：请求里的温度与 M1 相同（温度 0），思考模式开、关各一组；
+  M1 的 DeepSeek 开着思考，温度在思考模式下不生效，所以 M1 的 DeepSeek 实际是默认采样（见 runs/m1v2/docs/deepseek_sampling_2026-10-26.json）；
   "知道真实状态"对照组同样开、关各一组。
 - 组内差异（var）：按将来训练用的采样（温度 1、top_p 1，见 TRAIN_SAMPLING）把种子 VAR_SEED 上每个用户的
   8 次会话重复跑 VAR_REPS 遍；每一遍的请求 seed 不同（agent 的 rep 参数）。

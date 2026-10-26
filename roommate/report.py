@@ -18,12 +18,25 @@ REF_CN = {
     "nothing": "什么都不做",
 }
 REF_ORDER = list(REF_CN)
+# 各模型实际的思考与采样口径。DeepSeek 的请求里带了 temperature 0，但思考模式下温度不生效、也不报错，
+# 实际是默认采样；top_p 按官方文档：V4 Pro 带工具时固定 0.95，Flash 没传 top_p，取默认值 1。出处见 SAMPLING_DOC。
+SAMPLING_DOC = "runs/m1v2/docs/deepseek_sampling_2026-10-26.json"
+SAMPLING_CN = {
+    "deepseek-v4-pro": "思考开（effort 默认 high）；默认采样（温度不生效）；top_p 0.95（带工具时固定）",
+    "deepseek-flash": "思考开（effort 默认 high）；默认采样（温度不生效）；top_p 1.0（没传，取默认值）",
+    "claude-haiku-5-5": "自适应思考（effort high）；默认采样（不收 temperature / top_p）",
+    "claude-sonnet-5-5": "自适应思考（effort high）；默认采样（不收 temperature / top_p）",
+    "claude-opus-5-5": "自适应思考（effort high）；默认采样（不收 temperature / top_p）",
+    "claude-fable-5-1": "自适应思考（effort high）；默认采样（不收 temperature / top_p）",
+}
 NM_CN = {
     "stale": "事件之前的旧状态", "temp_ignored": "忽略本次临时情况", "temp_trap": "把上次的临时情况当长期",
     "hyp_event": "多一个没发生的事件", "hyp_temp": "多一个没发生的临时情况",
     "hyp_prior_event": "像是某事件之前的状态（假想）", "hyp_prior_temp": "像是某临时情况之前的状态（假想）",
 }
-MODEL_CN = {"deepseek-flash": "DeepSeek Flash（V4.1）", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7"}
+MODEL_CN = {"deepseek-flash": "DeepSeek Flash（V4.1）", "deepseek-v4-pro": "DeepSeek V4 Pro", "grok-4.7": "grok-4.7",
+            "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5",
+            "claude-opus-5-5": "Claude Opus 5.5", "claude-fable-5-1": "Claude Fable 5.1"}
 
 
 def _load(p):
@@ -73,10 +86,13 @@ def write(out, report_path):
     lines = []
     w = lines.append
     pol = g["policies"]
-    llm_models = [m for m in cfg["models"] if f"llm_{m}" in pol]
+    llm_models = [m for m in cfg["models"] + cfg.get("claude_models", []) if f"llm_{m}" in pol]
+    claude_on = any(m.startswith("claude-") for m in llm_models) or any(k.startswith("llm_claude-") for k in g.get("partial_runs", {}))
 
     # ---------- 标题与一句话结果 ----------
     w("# M1 第二版：修模拟用户、修选项泄题、让记忆成为必需，按四道闸门重测")
+    w("")
+    w("闸门①②③过，④被做穿。")
     w("")
     w(f"日志目录：[runs/m1v2/]({L.rel(out)})。所有数字都由 `python -m roommate.run` 从日志生成，链接指向生成该数字的文件。"
       "分数只算和偏好有关的会话（无关会话单独报）；置信区间都是按用户重抽样（每个世界内分别重抽）的 95% 区间。")
@@ -97,9 +113,15 @@ def write(out, report_path):
       f"不看用户的规则里最好的选对率是 {L.n(max(G['3']['modal'], G['3']['conservative'], G['3']['position_best'], G['3']['classifier']), P('leak_probes.json'), 'pct')}"
       f"（随机 16.7%，上限 {100 * G['3']['limit']:.1f}%）。")
     if "model" in g4:
-        w(f"最强的现成模型 {MODEL_CN.get(g4['model'], g4['model'])} 得 {L.n(g4['model_score'], gp)} 分，"
+        cl = {m: v for m, v in g4.get("all_models", {}).items() if m.startswith("claude-")}
+        w(f"{'闸门④按约定看的 ' if cl else '最强的现成模型 '}{MODEL_CN.get(g4['model'], g4['model'])} 得 {L.n(g4['model_score'], gp)} 分，"
           f"在\"最简单策略之上、理想记忆策略之下\"的空间里拿到 {L.n(g4['headroom_share'], gp, 'pct')}"
           f"（区间 {L.ci(g4['headroom_share_ci95'], gp, 'pct')}）。")
+        if cl:
+            bm = max(cl, key=lambda m: cl[m]["score"])
+            w(f"后来补跑的 Claude 系列里分最高的 {MODEL_CN.get(bm, bm)} 得 {L.n(cl[bm]['score'], gp)} 分，剩余空间比例 "
+              f"{L.n(cl[bm]['headroom_share'], gp, 'pct')}（区间 {L.ci(cl[bm]['headroom_share_ci95'], gp, 'pct')}），同样被做穿；"
+              "闸门④的定义没有改，详见 [Claude 基线报告](m1v2-claude-baseline.md)。")
     w("")
 
     # ---------- 1. 改了什么 ----------
@@ -288,23 +310,30 @@ def write(out, report_path):
         w("还没有现成模型的结果。")
         w("")
     else:
-        w("| 模型 | 平均每次会话得分 | 区间 | 成功率 | 平均每次提问 | 提问里被答\"说过了\" | 写记忆的会话比例 | 选到近似项 | 剩余空间比例 | 区间 |")
-        w("|---|---|---|---|---|---|---|---|---|---|")
+        w(f"| 模型 | 思考与采样（[出处]({L.rel(SAMPLING_DOC)})） | 平均每次会话得分 | 区间 | 成功率 | 平均每次提问 | 提问里被答\"说过了\" | 写记忆的会话比例 | 选到近似项 | 剩余空间比例 | 区间 |")
+        w("|---|---|---|---|---|---|---|---|---|---|---|")
         for m in llm_models:
             v = pol[f"llm_{m}"]
             hs = g4.get("all_models", {}).get(m, {})
-            w(f"| {MODEL_CN.get(m, m)} | {L.n(v['mean_score'], gp)} | {L.ci(v['ci95'], gp)} | {L.n(v['success_rate'], gp, 'pct')} | "
+            w(f"| {MODEL_CN.get(m, m)} | {SAMPLING_CN.get(m, '—')} | {L.n(v['mean_score'], gp)} | {L.ci(v['ci95'], gp)} | {L.n(v['success_rate'], gp, 'pct')} | "
               f"{L.n(v['avg_questions'], gp, 'f2')} | {L.n(v['told_before_rate'], gp, 'pct')} | {L.n(v['memory_write_session_rate'], gp, 'pct')} | "
               f"{L.n(v['near_miss_error_rate'], gp, 'pct')} | {L.n(hs.get('headroom_share'), gp, 'pct')} | {L.ci(hs.get('headroom_share_ci95'), gp, 'pct')} |")
         w("")
         w(f"剩余空间比例 = (模型分 − 最简单策略里的最高分 {L.n(g4['best_trivial_score'], gp)}) / (理想记忆策略 {L.n(g4['ideal'], gp)} − 最简单策略里的最高分)。"
-          "闸门④按要求只看 DeepSeek V4 Pro。")
+          "闸门④按要求只看 DeepSeek V4 Pro。"
+          f"DeepSeek 两行的请求里带了 temperature 0，但 DeepSeek 官方文档写明思考模式不支持 temperature，设了不报错、也不生效；"
+          f"V4 Pro 的每个请求都带工具，top_p 固定 0.95；Flash 没传 top_p，取默认值 1（[文档原文与核对]({L.rel(SAMPLING_DOC)})）。"
+          "所以这两行实际是默认采样，不是温度 0；数据没有重跑，只改了口径说明。" + (
+              "Claude 系列（Haiku 5.5、Sonnet 5.5、Opus 5.5、Fable 5.1）的设置、和 DeepSeek 对不齐的地方、花费与失分分析见 "
+              f"[Claude 基线报告]({L.rel(os.path.join(os.path.dirname(report_path), 'm1v2-claude-baseline.md'))})。" if claude_on else ""))
         w("")
         pr = g.get("partial_runs", {})
         if pr:
             w("**没有跑全的结果**（照实列出，不补跑；不进闸门，也不算置信区间）：grok-4.7 的 xAI 余额在种子 3 中途耗尽，"
               "之后第二版不再向 xAI 发任何请求，这里的 grok-4.7 记录全部从缓存重建（缺缓存的用户从第一次缺的会话起截断）；"
-              "对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。")
+              "对照组按缩减后的口径只给 V4 Pro 跑种子 1，DeepSeek Flash 与 grok-4.7 的对照组是缩减之前已经跑完或已缓存的。"
+              + ("Claude 的对照组只给 Opus 5.5 跑种子 1。" if claude_on else "")
+              + ("Claude Fable 5.1 按预算优先级只跑了部分世界（见 Claude 基线报告）。" if "llm_claude-fable-5-1" in pr else ""))
             w("")
             w("| 记录 | 平均每次会话得分 | 偏好会话数 | 各世界（会话数 / 应有数：得分） | 成功率 | 平均每次提问 |")
             w("|---|---|---|---|---|---|")
@@ -397,6 +426,10 @@ def write(out, report_path):
     for fn in sorted(os.listdir(pp)) if os.path.isdir(pp) else []:
         d = _load(os.path.join(pp, fn))
         w(f"- [{fn}]({L.rel(os.path.join(pp, fn))})：{d.get('source', '')}，查询时间 {d.get('fetched_at', '')}")
+    if os.path.exists(SAMPLING_DOC):
+        d = _load(SAMPLING_DOC)
+        w(f"- [{os.path.basename(SAMPLING_DOC)}]({L.rel(SAMPLING_DOC)})：DeepSeek 思考模式下的采样口径，{d['source']}，查询时间 {d['fetched_at']}。"
+          f"{d['retrieval']}")
     w("")
     w(f"调试只用 DeepSeek Flash；正式基线跑 {'、'.join(MODEL_CN.get(m, m) for m in cfg['models'])}（三个闸门世界）；"
       f"\"知道真实状态\"对照组只跑 " + "、".join(f"{MODEL_CN.get(m, m)} 种子 {sd}" for m, sd in cfg["control_runs"]) +

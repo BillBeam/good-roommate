@@ -94,5 +94,11 @@
   "ideal"
  ],
  "stages": "stats,report",
- "offline": false
+ "offline": false,
+ "claude_models": [
+  "claude-haiku-5-5",
+  "claude-sonnet-5-5",
+  "claude-opus-5-5",
+  "claude-fable-5-1"
+ ]
 }
