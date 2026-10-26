@@ -1,0 +1,15 @@
+{
+ "at": "2026-10-26T19:20:11+00:00",
+ "state": "Running",
+ "monitor_messages": {
+  "CpuUsageRate": "",
+  "MemUsageRate": "",
+  "GpuInfo": null
+ },
+ "monitor_retcode": 210,
+ "metrics": {},
+ "verdict": [
+  "unknown_after_end",
+  "no usable GPU signal; main line past its expected end or none running"
+ ]
+}
