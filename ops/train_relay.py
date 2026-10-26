@@ -56,6 +56,7 @@ IMAGE_PREFERENCE = ("cuda132_torch", "cuda130_torch", "cuda128_torch", "cuda132_
 CODE_PATHS = ["roommate", "ops", "tests", "runs/m1v2/seed1/world.json", "runs/m1v2/seed2/world.json",
               "runs/m1v2/seed3/world.json", "runs/m2/siliconflow_probe", "runs/m2prep", "runs/m2/interim",
               "runs/m2pilot/config"]
+DATA_PATHS = ["runs/m2pilot/teacher", "runs/m2pilot/relay/machine.json"]
 os.makedirs(OUT, exist_ok=True)
 T0 = time.time()
 summary = {"run_id": RUN_ID, "actions": []}
@@ -409,10 +410,14 @@ def conn():
 def do_upload(a):
     c = conn()
     tar = os.path.join(OUT, "code.tgz")
+    dd = data_checkout()
     with tarfile.open(tar, "w:gz") as t:
         for p in CODE_PATHS:
             if os.path.exists(os.path.join(REPO, p)):
                 t.add(os.path.join(REPO, p), arcname=p, filter=lambda ti: None if "__pycache__" in ti.name else ti)
+        for p in DATA_PATHS:      # 来自数据分支：老师轨迹、机器信息（给流水线估算花费）
+            if os.path.exists(os.path.join(dd, p)):
+                t.add(os.path.join(dd, p), arcname=p)
     with open(tar, "rb") as f:
         p = ssh(c, f"mkdir -p {REMOTE}/repo {REMOTE}/out/logs {REMOTE}/out/pids && tar xzf - -C {REMOTE}/repo && "
                    f"cd {REMOTE}/repo && echo {os.environ.get('GITHUB_SHA', '')} > COMMIT", stdin=f.read(), binary=True)
@@ -451,20 +456,37 @@ def job_status(c, names):
 
 
 def do_sync(a=None):
+    """结果（不含检查点）-> 数据分支；a = {"ckpt": true} 时另把 ckpt_export 里新的或变过的文件取回，存成 artifact。"""
     c = conn()
     local = os.path.join(data_checkout(), DATA_PREFIX, "machine")
     os.makedirs(local, exist_ok=True)
-    p = ssh(c, f"cd {REMOTE}/out && tar czf - --exclude='./ckpt' --exclude='*.safetensors' --exclude='*.pt' "
+    p = ssh(c, f"cd {REMOTE}/out && tar czf - --exclude='./ckpt_export' --exclude='*.safetensors' --exclude='*.pt' "
                f"--exclude='*.bin' --exclude='./tmp' .", timeout=900, binary=True)
     if p is not None and p.returncode == 0:
         subprocess.run(["tar", "xzf", "-", "-C", local], input=p.stdout, check=False)
-    ck = os.path.join(OUT, "ckpt")
-    q = ssh(c, f"cd {REMOTE}/out && [ -d ckpt_export ] && tar cf - ckpt_export || true", timeout=1800, binary=True)
-    if q is not None and q.returncode == 0 and q.stdout:
-        os.makedirs(ck, exist_ok=True)
-        subprocess.run(["tar", "xf", "-", "-C", ck], input=q.stdout, check=False)
+    pulled = 0
+    if a and a.get("ckpt"):
+        man = data_json("relay/ckpt_manifest.json", {})
+        q = ssh(c, f"cd {REMOTE}/out && [ -d ckpt_export ] && find ckpt_export -type f -printf '%p %s %T@\\n' || true",
+                timeout=120)
+        cur = {}
+        for line in (q.stdout if q else "").splitlines():
+            parts = line.split()
+            if len(parts) == 3:
+                cur[parts[0]] = f"{parts[1]}:{parts[2]}"
+        new = [f for f, v in cur.items() if man.get(f, {}).get("v") != v]
+        if new:
+            ck = os.path.join(OUT, "ckpt")
+            os.makedirs(ck, exist_ok=True)
+            r = ssh(c, f"cd {REMOTE}/out && tar cf - " + " ".join(shlex.quote(f) for f in new), timeout=3600, binary=True)
+            if r is not None and r.returncode == 0:
+                subprocess.run(["tar", "xf", "-", "-C", ck], input=r.stdout, check=False)
+                pulled = len(r.stdout)
+                for f in new:
+                    man[f] = {"v": cur[f], "artifact": f"m2pilot-ckpt-{RUN_ID}"}
+                data_write("relay/ckpt_manifest.json", man)
     data_push(f"relay {RUN_ID}: sync from training machine")
-    log("sync", bytes=len(p.stdout) if p else None, ckpt_bytes=len(q.stdout) if q and q.stdout else 0)
+    log("sync", bytes=len(p.stdout) if p else None, ckpt_bytes=pulled)
 
 
 def do_wait(a):
@@ -477,11 +499,13 @@ def do_wait(a):
         st = job_status(c, names) if names else {}
         done = names and all(not v.startswith("running") for v in st.values())
         if done or time.time() - last >= SYNC_EVERY:
-            do_sync()
+            do_sync({"ckpt": bool(done)})
             last = time.time()
         if done:
             break
         time.sleep(60)
+    if not (names and all(not v.startswith("running") for v in st.values())):
+        do_sync({"ckpt": True})    # 等待结束时任务还在跑：取回最新的检查点
     summary["jobs"] = st
     log("wait_end", jobs=st, minutes=round((time.time() - t0) / 60, 1))
 
