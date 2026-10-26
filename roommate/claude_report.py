@@ -14,7 +14,7 @@ import subprocess
 
 from . import stats
 from .policies import TRIVIAL
-from .report import MODEL_CN, NM_CN, REF_CN, Linker
+from .report import MODEL_CN, NM_CN, REF_CN, SAMPLING_CN, Linker
 
 OUT = "runs/m1v2"
 CDIR = os.path.join(OUT, "claude")
@@ -23,6 +23,7 @@ DEEPSEEK = ["deepseek-flash", "deepseek-v4-pro"]
 CLAUDE = ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-1"]
 LLMS = DEEPSEEK + CLAUDE
 REFS = ["ideal", "remember_no_update", "ask_all"]
+_DOC_LINK = "../runs/m1v2/docs/deepseek_sampling_2026-10-26.json"   # 从 reports/ 出发的相对链接
 SHORT = {"claude-haiku-5-5": "Haiku 5.5", "claude-sonnet-5-5": "Sonnet 5.5", "claude-opus-5-5": "Opus 5.5",
          "claude-fable-5-1": "Fable 5.1", "deepseek-v4-pro": "V4 Pro", "deepseek-flash": "Flash"}
 ROLE_CN = {"correct": "选对", "near_miss": "选到近似项（用户自己的状态差一点）", "decoy": "选到别的用户的选项",
@@ -289,6 +290,9 @@ def write_report(path):
       f"把 {code_link('roommate/agent_llm.py', 'def tools(question_cost)', 1, 'agent_llm.tools')} 的名字、说明、参数原样搬过来，"
       f"系统提示直接用 {code_link('roommate/agent_llm.py', 'def system_prompt', 1, 'agent_llm.system_prompt')}）、"
       "同样的 14 轮上限和\"只输出文字时提醒调用工具\"、同一套判分（roommate/grading.py，没有改）、"
+      "同样是随机采样：DeepSeek 的请求里带了 temperature 0，但 DeepSeek 官方文档写明思考模式不支持 temperature，"
+      f"设了不报错、也不生效，所以 DeepSeek 基线实际是默认采样（[文档原文与核对]({_DOC_LINK})）；Claude 这几个模型不收 temperature，也是默认采样。"
+      "温度因此不算两边的差异；两边也都没有 seed，复现都只靠缓存。"
       "每次会话从零开始、跨会话只靠记忆工具。\"知道真实状态\"对照组同样是把真实状态写进记忆，只给最强档（Opus 5.5）跑种子 1，"
       "和 DeepSeek 只给 V4 Pro 跑种子 1 的口径一致。")
     w("")
@@ -533,7 +537,7 @@ def write_report(path):
     rp = S.get("repro_check")
     if rp:
         w(f"- 只用缓存重跑全部 Claude 记录：{L.n(sum(rp['runs'].values()), os.path.join(CDIR, 'repro_check.json'), 'int')} / {len(rp['runs'])} 组与保存的记录逐字一致。"
-          "Claude 不能设温度 0，重新向接口发同样的请求不会得到同样的回答；复现只靠缓存。")
+          "两边都是默认采样，重新向接口发同样的请求不保证得到同样的回答；复现只靠缓存。")
     w(f"- Claude 的输出只用于评测和分析：存放它们的目录都有 DATA_POLICY.json（for_training = false），"
       f"以后读训练数据的代码要先过 {code_link('roommate/data_policy.py', 'def assert_trainable', 1, 'data_policy.assert_trainable')}。")
     w("- 密钥只从环境变量 CLAUDE_EVAL_API_KEY 读取（" + code_link("roommate/llm.py", "key = os.environ.get(ANTHROPIC_KEY_ENV)", 1, "llm.LLMClient._post_anthropic") +
@@ -546,15 +550,15 @@ def write_report(path):
 
 
 def _main_table(w, S, T, n, ci, detail=True):
-    w("| 模型 / 策略 | 每次会话得分 | 区间 | 选对率 | 每次会话提问数 | 剩余空间比例 | 区间 | 离理想记忆还差 |")
-    w("|---|---|---|---|---|---|---|---|")
+    w(f"| 模型 / 策略 | 思考与采样（[出处]({_DOC_LINK})） | 每次会话得分 | 区间 | 选对率 | 每次会话提问数 | 剩余空间比例 | 区间 | 离理想记忆还差 |")
+    w("|---|---|---|---|---|---|---|---|---|")
     for m in T["models"]:
         r = T["rows"][f"llm_{m}"]
-        w(f"| {_name(m)} | {n(r['mean_score'])} | {ci(r['ci95'])} | {n(r['success_rate'], 'pct')} | {n(r['avg_questions'], 'f2')} | {n(r['headroom_share'], 'pct')} | "
+        w(f"| {_name(m)} | {SAMPLING_CN.get(m, '—')} | {n(r['mean_score'])} | {ci(r['ci95'])} | {n(r['success_rate'], 'pct')} | {n(r['avg_questions'], 'f2')} | {n(r['headroom_share'], 'pct')} | "
           f"{ci(r['headroom_share_ci95'], 'pct')} | {n(r['gap_to_ideal'])} |")
     for k in REFS:
         r = T["rows"][k]
-        w(f"| {_name(k)} | {n(r['mean_score'])} | {ci(r['ci95'])} | {n(r['success_rate'], 'pct')} | {n(r['avg_questions'], 'f2')} | "
+        w(f"| {_name(k)} | — | {n(r['mean_score'])} | {ci(r['ci95'])} | {n(r['success_rate'], 'pct')} | {n(r['avg_questions'], 'f2')} | "
           f"{n(r['headroom_share'], 'pct')} | — | {n(r['gap_to_ideal'])} |")
     w("")
 
@@ -611,36 +615,48 @@ def _scaling_sentence(S, n, ci):
 
 
 def _mismatch_rows(S):
+    """Claude 与 DeepSeek 之间真正对不齐的设置。温度不在这里：两边实际都是默认采样（见第 2 节"一致"）。"""
     cfg = S.get("config") or {}
     eff = cfg.get("effort", "high")
+    doc = f"[DeepSeek 文档原文与核对]({_DOC_LINK})"
+    fc = S.get("fable_full_seeds") or []
     return [
-        ["温度与 seed", "请求里带 temperature = 0（DeepSeek 开思考时这个参数不生效，接口不报错）；DeepSeek 不收 seed",
-         "不能设温度 0：Opus 5.5、Fable 5.1 已去掉 temperature / top_p / top_k，Sonnet 5.5、Haiku 5.5 只收默认值，"
-         "而且 2026-10-21 起所有模型带这几个参数都返回 400；只能用接口默认采样，也没有 seed。"
-         f"缓存键另带\"种子|用户|会话\"（{code_link('roommate/llm.py', 'cache_tag（如', 1, 'llm.LLMClient.chat')}），不同用户碰巧相同的请求各自独立采样",
-         "Claude 每次会话是一次随机采样，同一个用户重跑会有出入，区间里含这部分波动；DeepSeek 开思考时实际上也不是温度 0，两边都不是确定性解码。复现都只靠缓存"],
-        ["思考", "V4 默认开思考，工具调用循环里把 reasoning_content 原样带回",
+        ["top_p",
+         f"V4 Pro：思考模式下传的 top_p 被忽略，带工具时固定 0.95，agent 的每个请求都带工具，所以是 0.95。"
+         f"Flash：思考模式下 top_p 生效、下限 0.95，请求没传，取默认值 1（{doc}）",
+         "不能设：这几个模型不收 top_p（发了就 400），用接口默认",
+         "V4 Pro 每一步都截掉概率最低的 5% 尾部，偶然挑到冷门词的机会比 Flash 和 Claude 少一点；"
+         "最关心的 Opus 5.5 对 V4 Pro 正好隔着这一条。两边都是随机采样，这一条影响的是波动大小，不是\"贪心对采样\""],
+        ["思考强度",
+         "思考开（默认）；没传 effort，按 /models 接口取默认的 high（可选 low、high、max）",
          f"四个模型都开自适应思考（{code_link('roommate/agent_claude.py', '\"thinking\": {\"type\": \"adaptive\"', 1, 'agent_claude')}），"
-         f"努力程度统一显式设成 {eff}（Opus 5.5、Haiku 5.5 默认是 medium，Sonnet 5.5、Fable 5.1 默认是 high）；Opus 5.5、Fable 5.1 本来就关不掉思考。思考块（含签名）原样带回",
-         "两边都是\"开思考\"，但思考深度的旋钮不同，不能说是同等的思考量。四个 Claude 用同一个努力程度，档位之间可比；换成默认努力程度，Opus 5.5 和 Haiku 5.5 会想得更少、更便宜"],
-        ["思考内容可见", "reasoning_content 是原文", "只返回摘要（display = summarized），原始思考不对外",
+         f"effort 统一显式设成 {eff}（Opus 5.5、Haiku 5.5 默认是 medium，Sonnet 5.5、Fable 5.1 默认是 high）；Opus 5.5、Fable 5.1 关不掉思考",
+         "两家的 effort 都叫 high，但刻度是各自定的，不能说是同等的思考量；每次会话实际输出多少（含思考）见第 8 节。"
+         "四个 Claude 用同一个 effort，档位之间可比；换成各自的默认值，Opus 5.5 和 Haiku 5.5 会想得更少、更便宜"],
+        ["思考内容可见", "reasoning_content 是原文，工具调用循环里原样带回",
+         "只返回摘要（display = summarized），思考块连签名原样带回",
          "不影响模型行为和花费（思考照常计费）；对话记录里能看到的推理只有摘要，分析失分时证据少一些"],
+        ["缓存键", "按请求内容（加用途）缓存",
+         f"另带\"种子|用户|会话\"（{code_link('roommate/llm.py', 'cache_tag（如', 1, 'llm.LLMClient.chat')}）",
+         "两边都是随机采样时，DeepSeek 那边两个用户的请求要是逐字相同，会共用同一个回答；"
+         "每次的提示里都有这个用户自己的选项，实际几乎碰不上。只影响复现时用哪一个缓存，不影响模型行为"],
         ["请求格式", "OpenAI 兼容的 chat/completions：tool 角色的消息、function 工具",
-         "Messages API：工具结果放在同一条 user 消息的 tool_result 块里，工具定义是 input_schema；内容逐字相同",
+         "Messages API：工具结果放在同一条 user 消息的 tool_result 块里，工具定义是 input_schema；文字逐字相同",
          "模型看到的信息相同；两家各自在服务端把工具定义转成自己的提示，这部分没法对齐"],
         ["最大输出", "没设 max_tokens（用接口默认）", f"max_tokens = {cfg.get('max_tokens', 32000)}，流式取最终消息",
          "截断的轮数见第 7 节；没有截断就没有影响"],
         ["提示缓存", "DeepSeek 自动缓存", "开顶层自动缓存（cache_control，5 分钟）", "只影响花费，不影响模型看到的内容"],
         ["拒答", "没有这一类", "安全分类器可能拒答（stop_reason = refusal）；不开换模型重试（会把别的模型的回答混进来），拒答这次会话按没作答计",
          "拒答次数见第 7 节"],
-        ["对照组", "V4 Pro 种子 1", "Opus 5.5 种子 1", "失分拆解只能在种子 1 的 168 次偏好会话上比，两边同口径"],
-        ["Fable 5.1 的覆盖", "—", "按预算优先级至少跑种子 1（见第 3 节）", "只跑了种子 1 时，和别的模型比要看第 4 节种子 1 的表，不能和三个世界的数直接比"],
+        ["对照组", "V4 Pro 种子 1（Flash 另有种子 1–3）", "Opus 5.5 种子 1", "V4 Pro 和 Opus 5.5 的失分拆解都在种子 1 的 168 次偏好会话上，同口径可比"],
+        ["Fable 5.1 的覆盖", "—", "跑完的世界：" + ("种子 " + "、".join(map(str, fc)) if fc else "没有完整的世界") + "（见第 3 节）",
+         "三个世界都跑完就和别的模型同表比；否则看第 4 节种子 1 的表"],
         ["tokenizer", "DeepSeek 自己的", "Claude 自己的", "token 数不能跨厂商比，花费可以比"],
     ]
 
 
 def _limitations(S):
-    out = ["每个模型只在同一个考场上跑一遍；Claude 不能设温度 0，同一个用户重跑的波动没有单独量（M2 起点体检里的重复采样方法可以照搬，这次没做）。",
+    out = ["每个模型只在同一个考场上跑一遍；两边都是默认采样，同一个用户重跑的波动没有单独量（M2 起点体检里的重复采样方法可以照搬，这次没做）。",
            "失分拆解里的\"没记住或没察觉变化 / 挑店或格式问题\"只有带对照组的模型有（"
            + "、".join(_name(m) for m, v in S["loss_breakdown"].items() if v.get("memory_or_change_loss") is not None)
            + "），其他模型只有按选错选项种类的粗分。",

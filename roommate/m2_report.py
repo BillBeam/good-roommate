@@ -19,8 +19,10 @@ import statistics
 from . import stats
 from .agent_llm import FORMAT_KINDS, MAX_TURNS
 
-REF = [("llm_deepseek-v4-pro", "DeepSeek V4 Pro（温度 0，思考开）"),
-       ("llm_deepseek-flash", "DeepSeek Flash（温度 0，思考开）"),
+# DeepSeek 两行的实际口径：思考开时 temperature 不生效（请求里带的 0 没用上），按接口默认采样；
+# top_p 按官方文档，V4 Pro 带工具时固定 0.95，Flash 没传、取默认值 1。出处见 runs/m1v2/docs/deepseek_sampling_2026-10-26.json
+REF = [("llm_deepseek-v4-pro", "DeepSeek V4 Pro（思考开，默认采样，top_p 0.95）"),
+       ("llm_deepseek-flash", "DeepSeek Flash（思考开，默认采样，top_p 1.0）"),
        ("ideal", "理想记忆策略"),
        ("remember_no_update", "记住但不更新")]
 BEST_TRIVIAL = "remember_no_update"
@@ -414,10 +416,13 @@ def write_report(out, path):
 
     w("# M2 起点：未训练的 Qwen3.5-4B 在第二版考场里的得分，以及训练温度下的组内差异")
     w("")
+    w("起点低于 0.75，小模型还有东西可学。")
+    w("")
     w(f"日志目录：[runs/m2/]({L.rel(out)})。数字由 `python -m roommate.m2 --stages stats,report` 从日志生成，"
       "链接指向生成该数字的文件。考场（世界、规则、判分）是 M1 第二版原样，种子 1、2、3；"
       "分数只算和偏好有关的会话；区间是按用户重抽样（每个世界内分别重抽，5000 次）的 95% 区间。"
-      "Qwen3.5-4B 经硅基流动调用（免费），DeepSeek 两行和两个脚本策略取自 M1 第二版的日志，没有重跑。")
+      "Qwen3.5-4B 经硅基流动调用（免费），DeepSeek 两行和两个脚本策略取自 M1 第二版的日志，没有重跑；"
+      "DeepSeek 两行开着思考，实际是默认采样、不是温度 0（第 10 节）。")
     w("")
 
     _interim(w, L, P)
@@ -745,7 +750,11 @@ def _tail(w, L, st, sp, P, cfg, rows, q, have):
     w("## 10. 没解决的问题")
     w("")
     w("- 硅基流动上的权重和精度只能间接确认；本地 BF16 与硅基流动之间的分数差没有实测。")
-    w("- 评测用温度 0 是为了和 M1 可比，但官方不建议思考模式用贪心解码；思考开这一组可能因此被低估。")
+    w("- 评测用温度 0，请求参数和 M1 相同；但 M1 的 DeepSeek 开着思考，DeepSeek 官方文档写明思考模式下 temperature 不生效、设了也不报错，"
+      "所以 M1 的 DeepSeek 实际是默认采样（V4 Pro 带工具时 top_p 固定 0.95，Flash 没传 top_p、取默认值 1；"
+      f"[文档原文与核对]({L.rel(os.path.join('runs', 'm1v2', 'docs', 'deepseek_sampling_2026-10-26.json'))})）。"
+      "和\"同一批会话上的 V4 Pro\"比时，两边的解码方式并不相同：Qwen 按温度 0 请求，V4 Pro 是默认采样。"
+      "另外官方不建议 Qwen 的思考模式用贪心解码；思考开这一组可能因此被低估。")
     w("- 估算里的显卡吞吐是假设，没有实测。")
     w("")
 

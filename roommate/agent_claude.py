@@ -1,9 +1,12 @@
 """Claude agent：和 agent_llm.LLMAgent 用同一段系统提示、同一组工具（名字、说明、参数原样搬过来）、同样的轮数上限和提醒，
 只是请求走 Anthropic Messages API 的原生格式。
 
-和 DeepSeek 基线对不齐的地方（报告里逐条列出）：
-- 不能设温度 0：这几个 Claude 模型不接受 temperature / top_p / top_k（发了就 400），只能用默认采样；也没有 seed。
-  复现靠缓存；缓存键另带"种子|用户|会话"（cache_tag），不同用户碰巧相同的请求也各自独立采样。
+采样：这几个 Claude 模型不接受 temperature / top_p / top_k（发了就 400），用接口默认采样，也没有 seed。
+DeepSeek 基线的请求里虽然带了 temperature 0，但思考模式下温度不生效，实际也是默认采样，所以温度不算两边的差异；
+top_p 是差异（V4 Pro 带工具时固定 0.95，见 runs/m1v2/docs/deepseek_sampling_2026-10-26.json）。
+复现靠缓存；缓存键另带"种子|用户|会话"（cache_tag），不同用户碰巧相同的请求也各自独立采样。
+
+和 DeepSeek 基线对不齐的其他地方（报告里逐条列出）：
 - 思考：DeepSeek V4 默认开思考；这里四个模型都开自适应思考（thinking.type = adaptive），努力程度统一显式设成 EFFORT。
   Opus 5.5、Fable 5.1 本来就关不掉思考。思考内容只返回摘要（display = summarized），和 DeepSeek 一样，
   工具调用循环里把上一轮的思考块原样带回。

@@ -259,7 +259,7 @@ class LLMClient:
     def chat(self, body, role, cache_tag=None):
         # 新请求的键带上用途（agent / control / …），免得两种运行的第一轮请求完全相同、并发时互相覆盖；
         # 旧的键（不带用途）照样能读到，已有缓存全部有效。
-        # cache_tag（如"种子|用户|会话"）只进缓存键、不发给服务商：不设温度 0 的模型，不同用户碰巧相同的请求也各自独立采样
+        # cache_tag（如"种子|用户|会话"）只进缓存键、不发给服务商：随机采样的模型，不同用户碰巧相同的请求也各自独立采样
         k_old = self.key(body)
         k = self.key(dict(body, __cache_role=role, **({"__cache_tag": cache_tag} if cache_tag else {})))
         if cache_tag:
