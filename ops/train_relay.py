@@ -888,6 +888,31 @@ def do_token_check(a):
     return True
 
 
+def do_image_status(a):
+    """只读：自定义镜像现在的状态和大小（做镜像那一轮被任务超时打断、没记下结果时用）。"""
+    h = our_machine()
+    img = a.get("image_id") or data_json("relay/image.json", {}).get("image_id")
+    L = {"Region": h["_region"], "Zone": h["Zone"]}
+    info = {"image_id": img, "checked_at": now_iso(), "name": a.get("name"), "requested_at": a.get("requested_at")}
+    try:
+        g, _ = api.call("GetCompShareImageCreateProgress", {**L, "CompShareImageId": img})
+        info["progress"] = {k: v for k, v in g.items() if k not in ("request_uuid",)}
+    except Exception as e:
+        info["progress_error"] = redact(f"{type(e).__name__}: {e}")[:200]
+    try:
+        r2, _ = api.call("DescribeCompShareCustomImages", {**L, "Limit": 100, "Offset": 0})
+        for i in r2.get("ImageSet") or r2.get("CustomImageSet") or []:
+            if i.get("CompShareImageId") == img:
+                info["describe"] = {k: v for k, v in i.items() if not isinstance(v, (dict, list))}
+        info["listed"] = "describe" in info
+    except Exception as e:
+        info["describe_error"] = redact(f"{type(e).__name__}: {e}")[:200]
+    data_write("relay/image.json", info)
+    summary["image"] = info
+    log("image_status", **{k: info.get(k) for k in ("image_id", "listed")})
+    return True
+
+
 def do_destroy(a):
     h = our_machine()
     rec = data_json("relay/machine_health.json", {}).get(h["UHostId"], {}) if h else {}
@@ -942,7 +967,7 @@ def do_fetch_tokenizer(a):
 
 
 ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "exposure": do_exposure, "token_check": do_token_check, "upload": do_upload,
-           "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "destroy": do_destroy}
+           "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "image_status": do_image_status, "destroy": do_destroy}
 
 
 NEEDS_SSH = {"upload", "run", "wait", "sync", "kill"}
@@ -1034,7 +1059,8 @@ def main():
             heartbeat(h)
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
-            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check", "image") or
+            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check", "image",
+                                                                      "image_status") or
                                                          (a["do"] == "run" and a.get("background") is False)):
                 log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
                 continue
