@@ -1,0 +1,496 @@
+{
+ "tag": "sft",
+ "setting": {
+  "temperature": 0.0,
+  "think_budget": 4096,
+  "answer_cap": 8192
+ },
+ "sets": {
+  "full": {
+   "all": {
+    "n_sessions_pref": 504,
+    "n_turns": 1776,
+    "n_users": 72,
+    "point": {
+     "mean_score": 0.7181547619047622,
+     "success_rate": 0.8630952380952381,
+     "avg_questions": 0.9662698412698413,
+     "no_choice_rate": 0.025793650793650792,
+     "think_tokens_per_turn": 988.0456081081081,
+     "think_over_limit_rate": 0.16103603603603603,
+     "format_error_rate": 0.16103603603603603,
+     "shortcut1_guess_unmentioned": 0.27672955974842767,
+     "shortcut2_reask_told": 0.06080402010050251
+    },
+    "ci95": {
+     "mean_score": [
+      0.6400793650793657,
+      0.782837301587302
+     ],
+     "success_rate": [
+      0.8253968253968254,
+      0.9007936507936508
+     ],
+     "avg_questions": [
+      0.7400793650793651,
+      1.2599206349206349
+     ],
+     "no_choice_rate": [
+      0.00992063492063492,
+      0.047619047619047616
+     ],
+     "think_tokens_per_turn": [
+      771.421497584541,
+      1230.7829852266939
+     ],
+     "think_over_limit_rate": [
+      0.10216346153846154,
+      0.2282328696548171
+     ],
+     "format_error_rate": [
+      0.10216346153846154,
+      0.2282328696548171
+     ],
+     "shortcut1_guess_unmentioned": [
+      0.20121951219512196,
+      0.3575757575757576
+     ],
+     "shortcut2_reask_told": [
+      0.0371708828084667,
+      0.0885040885040885
+     ]
+    },
+    "format_counts": {
+     "bad_json": 0,
+     "unknown_tool": 0,
+     "truncated": 19,
+     "think_runaway": 286,
+     "tool_text": 0,
+     "no_tool_call": 19,
+     "context_overflow": 0
+    },
+    "n_boot": 2000
+   },
+   "by_seed": {
+    "2": {
+     "n_sessions_pref": 168,
+     "n_turns": 562,
+     "n_users": 24,
+     "point": {
+      "mean_score": 0.7836309523809524,
+      "success_rate": 0.8988095238095238,
+      "avg_questions": 0.7678571428571429,
+      "no_choice_rate": 0.005952380952380952,
+      "think_tokens_per_turn": 804.5213523131673,
+      "think_over_limit_rate": 0.10498220640569395,
+      "format_error_rate": 0.10498220640569395,
+      "shortcut1_guess_unmentioned": 0.25925925925925924,
+      "shortcut2_reask_told": 0.04186046511627907
+     },
+     "ci95": {
+      "mean_score": [
+       0.7169642857142858,
+       0.8386904761904764
+      ],
+      "success_rate": [
+       0.8452380952380952,
+       0.9464285714285714
+      ],
+      "avg_questions": [
+       0.6130952380952381,
+       0.9523809523809523
+      ],
+      "no_choice_rate": [
+       0.0,
+       0.017857142857142856
+      ],
+      "think_tokens_per_turn": [
+       625.6917293233083,
+       981.0332778702164
+      ],
+      "think_over_limit_rate": [
+       0.0583804143126177,
+       0.15187713310580206
+      ],
+      "format_error_rate": [
+       0.0583804143126177,
+       0.15187713310580206
+      ],
+      "shortcut1_guess_unmentioned": [
+       0.13333333333333333,
+       0.3870967741935484
+      ],
+      "shortcut2_reask_told": [
+       0.021311475409836064,
+       0.0664451827242525
+      ]
+     },
+     "format_counts": {
+      "bad_json": 0,
+      "unknown_tool": 0,
+      "truncated": 3,
+      "think_runaway": 59,
+      "tool_text": 0,
+      "no_tool_call": 3,
+      "context_overflow": 0
+     },
+     "n_boot": 500
+    },
+    "1": {
+     "n_sessions_pref": 168,
+     "n_turns": 559,
+     "n_users": 24,
+     "point": {
+      "mean_score": 0.7654761904761904,
+      "success_rate": 0.8869047619047619,
+      "avg_questions": 0.8095238095238095,
+      "no_choice_rate": 0.023809523809523808,
+      "think_tokens_per_turn": 837.350626118068,
+      "think_over_limit_rate": 0.12701252236135957,
+      "format_error_rate": 0.12701252236135957,
+      "shortcut1_guess_unmentioned": 0.24074074074074073,
+      "shortcut2_reask_told": 0.039334341906202726
+     },
+     "ci95": {
+      "mean_score": [
+       0.6755952380952381,
+       0.8360119047619049
+      ],
+      "success_rate": [
+       0.8392857142857143,
+       0.9285714285714286
+      ],
+      "avg_questions": [
+       0.5773809523809523,
+       1.1726190476190477
+      ],
+      "no_choice_rate": [
+       0.005952380952380952,
+       0.047619047619047616
+      ],
+      "think_tokens_per_turn": [
+       565.9886578449906,
+       1173.2472266244058
+      ],
+      "think_over_limit_rate": [
+       0.05511811023622047,
+       0.21746293245469522
+      ],
+      "format_error_rate": [
+       0.05511811023622047,
+       0.21746293245469522
+      ],
+      "shortcut1_guess_unmentioned": [
+       0.1111111111111111,
+       0.36363636363636365
+      ],
+      "shortcut2_reask_told": [
+       0.014285714285714285,
+       0.07291666666666667
+      ]
+     },
+     "format_counts": {
+      "bad_json": 0,
+      "unknown_tool": 0,
+      "truncated": 5,
+      "think_runaway": 71,
+      "tool_text": 0,
+      "no_tool_call": 5,
+      "context_overflow": 0
+     },
+     "n_boot": 500
+    },
+    "3": {
+     "n_sessions_pref": 168,
+     "n_turns": 655,
+     "n_users": 24,
+     "point": {
+      "mean_score": 0.6053571428571428,
+      "success_rate": 0.8035714285714286,
+      "avg_questions": 1.3214285714285714,
+      "no_choice_rate": 0.047619047619047616,
+      "think_tokens_per_turn": 1274.120610687023,
+      "think_over_limit_rate": 0.2381679389312977,
+      "format_error_rate": 0.2381679389312977,
+      "shortcut1_guess_unmentioned": 0.3333333333333333,
+      "shortcut2_reask_told": 0.09941520467836257
+     },
+     "ci95": {
+      "mean_score": [
+       0.39583333333333326,
+       0.7714285714285712
+      ],
+      "success_rate": [
+       0.7083333333333334,
+       0.8809523809523809
+      ],
+      "avg_questions": [
+       0.6845238095238095,
+       2.0892857142857144
+      ],
+      "no_choice_rate": [
+       0.005952380952380952,
+       0.10714285714285714
+      ],
+      "think_tokens_per_turn": [
+       721.7783783783784,
+       1730.193710691824
+      ],
+      "think_over_limit_rate": [
+       0.08759124087591241,
+       0.36086404066073696
+      ],
+      "format_error_rate": [
+       0.08759124087591241,
+       0.36086404066073696
+      ],
+      "shortcut1_guess_unmentioned": [
+       0.19148936170212766,
+       0.4838709677419355
+      ],
+      "shortcut2_reask_told": [
+       0.03468208092485549,
+       0.16597510373443983
+      ]
+     },
+     "format_counts": {
+      "bad_json": 0,
+      "unknown_tool": 0,
+      "truncated": 11,
+      "think_runaway": 156,
+      "tool_text": 0,
+      "no_tool_call": 11,
+      "context_overflow": 0
+     },
+     "n_boot": 500
+    }
+   },
+   "seconds": {
+    "2": 2160.9,
+    "1": 2319.7,
+    "3": 2944.4
+   }
+  },
+  "short": {
+   "all": {
+    "n_sessions_pref": 336,
+    "n_turns": 1346,
+    "n_users": 48,
+    "point": {
+     "mean_score": 0.6880952380952385,
+     "success_rate": 0.8898809523809523,
+     "avg_questions": 1.3452380952380953,
+     "no_choice_rate": 0.008928571428571428,
+     "think_tokens_per_turn": 604.461367013373,
+     "think_over_limit_rate": 0.061664190193164936,
+     "format_error_rate": 0.061664190193164936,
+     "shortcut1_guess_unmentioned": 0.17355371900826447,
+     "shortcut2_reask_told": 0.102803738317757
+    },
+    "ci95": {
+     "mean_score": [
+      0.6444940476190479,
+      0.728571428571429
+     ],
+     "success_rate": [
+      0.8571428571428571,
+      0.9226190476190477
+     ],
+     "avg_questions": [
+      1.2351190476190477,
+      1.4732142857142858
+     ],
+     "no_choice_rate": [
+      0.0,
+      0.020833333333333332
+     ],
+     "think_tokens_per_turn": [
+      507.2229054573405,
+      703.1833333333333
+     ],
+     "think_over_limit_rate": [
+      0.036237471087124135,
+      0.08723864455659697
+     ],
+     "format_error_rate": [
+      0.036237471087124135,
+      0.08723864455659697
+     ],
+     "shortcut1_guess_unmentioned": [
+      0.1214574898785425,
+      0.22672064777327935
+     ],
+     "shortcut2_reask_told": [
+      0.07126436781609195,
+      0.13647058823529412
+     ]
+    },
+    "format_counts": {
+     "bad_json": 0,
+     "unknown_tool": 0,
+     "truncated": 6,
+     "think_runaway": 83,
+     "tool_text": 0,
+     "no_tool_call": 6,
+     "context_overflow": 0
+    },
+    "n_boot": 2000
+   },
+   "by_seed": {
+    "201": {
+     "n_sessions_pref": 168,
+     "n_turns": 659,
+     "n_users": 24,
+     "point": {
+      "mean_score": 0.7089285714285716,
+      "success_rate": 0.8928571428571429,
+      "avg_questions": 1.2261904761904763,
+      "no_choice_rate": 0.0,
+      "think_tokens_per_turn": 512.0667678300455,
+      "think_over_limit_rate": 0.03338391502276176,
+      "format_error_rate": 0.03338391502276176,
+      "shortcut1_guess_unmentioned": 0.16260162601626016,
+      "shortcut2_reask_told": 0.09223300970873786
+     },
+     "ci95": {
+      "mean_score": [
+       0.661904761904762,
+       0.7592261904761907
+      ],
+      "success_rate": [
+       0.8511904761904762,
+       0.9345238095238095
+      ],
+      "avg_questions": [
+       1.1011904761904763,
+       1.3452380952380953
+      ],
+      "no_choice_rate": [
+       0.0,
+       0.0
+      ],
+      "think_tokens_per_turn": [
+       408.7520128824477,
+       632.5306427503737
+      ],
+      "think_over_limit_rate": [
+       0.010416666666666666,
+       0.06559766763848396
+      ],
+      "format_error_rate": [
+       0.010416666666666666,
+       0.06559766763848396
+      ],
+      "shortcut1_guess_unmentioned": [
+       0.0967741935483871,
+       0.2421875
+      ],
+      "shortcut2_reask_told": [
+       0.04608294930875576,
+       0.1457286432160804
+      ]
+     },
+     "format_counts": {
+      "bad_json": 0,
+      "unknown_tool": 0,
+      "truncated": 1,
+      "think_runaway": 22,
+      "tool_text": 0,
+      "no_tool_call": 1,
+      "context_overflow": 0
+     },
+     "n_boot": 500
+    },
+    "202": {
+     "n_sessions_pref": 168,
+     "n_turns": 687,
+     "n_users": 24,
+     "point": {
+      "mean_score": 0.6672619047619048,
+      "success_rate": 0.8869047619047619,
+      "avg_questions": 1.4642857142857142,
+      "no_choice_rate": 0.017857142857142856,
+      "think_tokens_per_turn": 693.0902474526929,
+      "think_over_limit_rate": 0.08879184861717612,
+      "format_error_rate": 0.08879184861717612,
+      "shortcut1_guess_unmentioned": 0.18487394957983194,
+      "shortcut2_reask_told": 0.11261261261261261
+     },
+     "ci95": {
+      "mean_score": [
+       0.5919642857142857,
+       0.7291666666666667
+      ],
+      "success_rate": [
+       0.8392857142857143,
+       0.9345238095238095
+      ],
+      "avg_questions": [
+       1.2619047619047619,
+       1.6785714285714286
+      ],
+      "no_choice_rate": [
+       0.0,
+       0.03571428571428571
+      ],
+      "think_tokens_per_turn": [
+       539.8290076335878,
+       840.6837016574585
+      ],
+      "think_over_limit_rate": [
+       0.047839506172839504,
+       0.12952646239554316
+      ],
+      "format_error_rate": [
+       0.047839506172839504,
+       0.12952646239554316
+      ],
+      "shortcut1_guess_unmentioned": [
+       0.10619469026548672,
+       0.2677165354330709
+      ],
+      "shortcut2_reask_told": [
+       0.07207207207207207,
+       0.15813953488372093
+      ]
+     },
+     "format_counts": {
+      "bad_json": 0,
+      "unknown_tool": 0,
+      "truncated": 5,
+      "think_runaway": 61,
+      "tool_text": 0,
+      "no_tool_call": 5,
+      "context_overflow": 0
+     },
+     "n_boot": 500
+    }
+   },
+   "seconds": {
+    "201": 800.1,
+    "202": 948.0
+   },
+   "needs_first": {
+    "201": {
+     "n": 96,
+     "needs_first": 72,
+     "rate": 0.75
+    },
+    "202": {
+     "n": 96,
+     "needs_first": 72,
+     "rate": 0.75
+    }
+   }
+  }
+ },
+ "adapter": "/root/work/ckpt/sft/final",
+ "vllm_boot_seconds": 48.0,
+ "seconds": 3015.6,
+ "sampler_stats": {
+  "requests": 3468,
+  "prompt_tokens": 14195948,
+  "gen_tokens": 2713356,
+  "seconds": 44510.06399893761
+ }
+}
