@@ -1,7 +1,7 @@
 {
- "t": "2026-10-26T23:18:50Z",
+ "t": "2026-10-26T23:28:31Z",
  "phase": "grpo_s1",
- "step": 14,
+ "step": 16,
  "total": 30,
- "stage": "train"
+ "stage": "rollout"
 }
