@@ -1,0 +1,44 @@
+{
+ "fetched_at": "2026-10-26",
+ "source": "DeepSeek 官方 API 文档 Thinking Mode 一页（https://api-docs.deepseek.com/guides/thinking_mode/，中文版 https://api-docs.deepseek.com/zh-cn/guides/thinking_mode/）",
+ "retrieval": "本环境的出口代理按网络策略拒绝 api-docs.deepseek.com（2026-10-26 直接请求返回 CONNECT 403，网页抓取工具也解析不到这个域名），所以原文取自网页搜索工具对该页的索引（限定域名 api-docs.deepseek.com），没有存下整页快照。2026-10-24 查价时这个域名还能直接访问，见 runs/m1v2/pricing/deepseek_models_pricing_2026-10-24.json。",
+ "quotes": {
+  "thinking_mode_sampling": {
+   "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+   "text": "Thinking mode does not support the temperature, presence_penalty, or frequency_penalty parameters. Please note that, for compatibility with existing software, setting these parameters will not trigger an error but will also have no effect."
+  },
+  "top_p_deepseek_v4_pro": {
+   "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+   "text": "deepseek-v4-pro: ignored in thinking mode (fixed at 0.95 when tools are present, otherwise 1.0); takes effect in non-thinking mode"
+  },
+  "top_p_deepseek_flash": {
+   "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+   "text": "deepseek-flash: takes effect in thinking mode (lower bound 0.95); fixed at 1.0 in non-thinking mode."
+  },
+  "chat_completions_temperature": {
+   "url": "https://api-docs.deepseek.com/api/create-chat-completion/",
+   "text": "temperature: Has no effect in thinking mode."
+  },
+  "chat_completions_top_p_default": {
+   "url": "https://api-docs.deepseek.com/api/create-chat-completion/",
+   "text": "top_p number nullable, Possible values: <= 1, Default value: 1."
+  }
+ },
+ "thinking_default": {
+  "source": "runs/m1v2/pricing/deepseek_models_pricing_2026-10-24.json（GET https://api.deepseek.com/models，2026-10-24）",
+  "text": "两个模型都是 \"effort\": {\"supported_levels\": [\"low\", \"high\", \"max\"], \"default_level\": \"high\"}；价目页：THINKING MODE: Supports both non-thinking and thinking (default) modes"
+ },
+ "what_m1v2_sent": {
+  "code": "roommate/agent_llm.py 的请求体：tool_choice auto、temperature 0、带 5 个工具；DeepSeek 不收 seed（请求前删掉）；没传 top_p、没传思考开关和 effort（MODEL_EXTRA 为空）",
+  "config": "runs/m1v2/config.json：model_extra = {}"
+ },
+ "conclusion": {
+  "deepseek-v4-pro": "思考开（默认，effort 默认 high）；temperature 0 不生效、不报错，按接口默认采样；每个请求都带工具，所以 top_p 固定 0.95。",
+  "deepseek-flash": "思考开（默认，effort 默认 high）；temperature 0 不生效、不报错，按接口默认采样；没传 top_p，取默认值 1（思考模式下 Flash 的 top_p 生效，下限 0.95），所以 top_p 1.0。",
+  "cue_validation_v4_pro": "台词线索校验里的 DeepSeek V4 Pro 请求不带工具：同样是默认采样，按文档 top_p 固定 1.0。"
+ },
+ "thinking_evidence": {
+  "source": "runs/m1v2/llm_cache/deepseek-*.jsonl",
+  "text": "缓存里每个 DeepSeek 响应都带 reasoning_content 字段（思考模式）：V4 Pro 2057 个里 2049 个有思考内容；Flash 2318 个里 1749 个有，另 569 个 reasoning_tokens 为 0（思考模式下这一轮没想）。"
+ }
+}

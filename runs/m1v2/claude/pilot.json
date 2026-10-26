@@ -1,0 +1,91 @@
+{
+ "seed": 1,
+ "n_users": 2,
+ "runs": {
+  "llm:claude-haiku-5-5": {
+   "n_sessions": 16,
+   "cost_total": 0.010856115,
+   "cost_per_session": 0.0006785071875,
+   "cost_per_session_by_user": {
+    "u00": 0.0007838375,
+    "u01": 0.000573176875
+   },
+   "tokens_per_session": {
+    "input": 6.375,
+    "cache_write": 2316.9375,
+    "cache_read": 2369.0,
+    "output": 729.125,
+    "calls": 2.1875
+   },
+   "mean_score_pref": 0.8142857142857143
+  },
+  "llm:claude-sonnet-5-5": {
+   "n_sessions": 16,
+   "cost_total": 0.1416051,
+   "cost_per_session": 0.00885031875,
+   "cost_per_session_by_user": {
+    "u00": 0.008839900000000001,
+    "u01": 0.0088607375
+   },
+   "tokens_per_session": {
+    "input": 6.375,
+    "cache_write": 2128.1875,
+    "cache_read": 2333.5,
+    "output": 328.375,
+    "calls": 2.1875
+   },
+   "mean_score_pref": 0.8642857142857142
+  },
+  "llm:claude-opus-5-5": {
+   "n_sessions": 16,
+   "cost_total": 0.3438352,
+   "cost_per_session": 0.0214897,
+   "cost_per_session_by_user": {
+    "u00": 0.0237332,
+    "u01": 0.019246199999999998
+   },
+   "tokens_per_session": {
+    "input": 6.875,
+    "cache_write": 2349.4375,
+    "cache_read": 2900.0625,
+    "output": 456.75,
+    "calls": 2.4375
+   },
+   "mean_score_pref": 0.9249999999999999
+  },
+  "llm:claude-fable-5-1": {
+   "n_sessions": 16,
+   "cost_total": 1.1120495,
+   "cost_per_session": 0.06950309375,
+   "cost_per_session_by_user": {
+    "u00": 0.07123725,
+    "u01": 0.06776893749999999
+   },
+   "tokens_per_session": {
+    "input": 8.625,
+    "cache_write": 2810.1875,
+    "cache_read": 5108.0,
+    "output": 660.25,
+    "calls": 3.3125
+   },
+   "mean_score_pref": 0.8642857142857142
+  },
+  "llm:claude-opus-5-5:true_memory": {
+   "n_sessions": 16,
+   "cost_total": 0.23720239999999998,
+   "cost_per_session": 0.014825149999999999,
+   "cost_per_session_by_user": {
+    "u00": 0.014752825,
+    "u01": 0.014897474999999999
+   },
+   "tokens_per_session": {
+    "input": 5.75,
+    "cache_write": 2291.3125,
+    "cache_read": 1690.4375,
+    "output": 150.375,
+    "calls": 1.875
+   },
+   "mean_score_pref": 1.0
+  }
+ }
+}

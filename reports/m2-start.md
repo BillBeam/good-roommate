@@ -1,6 +1,8 @@
 # M2 起点：未训练的 Qwen3.5-4B 在第二版考场里的得分，以及训练温度下的组内差异
 
-日志目录：[runs/m2/](../runs/m2)。数字由 `python -m roommate.m2 --stages stats,report` 从日志生成，链接指向生成该数字的文件。考场（世界、规则、判分）是 M1 第二版原样，种子 1、2、3；分数只算和偏好有关的会话；区间是按用户重抽样（每个世界内分别重抽，5000 次）的 95% 区间。Qwen3.5-4B 经硅基流动调用（免费），DeepSeek 两行和两个脚本策略取自 M1 第二版的日志，没有重跑。
+起点低于 0.75，小模型还有东西可学。
+
+日志目录：[runs/m2/](../runs/m2)。数字由 `python -m roommate.m2 --stages stats,report` 从日志生成，链接指向生成该数字的文件。考场（世界、规则、判分）是 M1 第二版原样，种子 1、2、3；分数只算和偏好有关的会话；区间是按用户重抽样（每个世界内分别重抽，5000 次）的 95% 区间。Qwen3.5-4B 经硅基流动调用（免费），DeepSeek 两行和两个脚本策略取自 M1 第二版的日志，没有重跑；DeepSeek 两行开着思考，实际是默认采样、不是温度 0（第 10 节）。
 
 ## 中期结论（只用已跑完的子集）
 
@@ -62,8 +64,8 @@
 
 | 策略 | 偏好会话得分 | 95% 区间 | 种子 1 / 2 / 3 | 选对率 | 每次会话提问数 | 剩余空间比例 | 剩余空间 95% 区间 | 日志 |
 |---|---|---|---|---|---|---|---|---|
-| DeepSeek V4 Pro（温度 0，思考开） | [0.833](../runs/m2/stats.json) | [0.804–0.859](../runs/m2/stats.json) | [0.829](../runs/m2/stats.json) / [0.866](../runs/m2/stats.json) / [0.804](../runs/m2/stats.json) | [90.7%](../runs/m2/stats.json) | [0.49](../runs/m2/stats.json) | [79.4%](../runs/m2/stats.json) | [73.6%–84.6%](../runs/m2/stats.json) | [1](../runs/m1v2/seed1/policies/llm_deepseek-v4-pro/sessions.jsonl) [2](../runs/m1v2/seed2/policies/llm_deepseek-v4-pro/sessions.jsonl) [3](../runs/m1v2/seed3/policies/llm_deepseek-v4-pro/sessions.jsonl) |
-| DeepSeek Flash（温度 0，思考开） | [0.819](../runs/m2/stats.json) | [0.786–0.848](../runs/m2/stats.json) | [0.823](../runs/m2/stats.json) / [0.852](../runs/m2/stats.json) / [0.780](../runs/m2/stats.json) | [89.1%](../runs/m2/stats.json) | [0.48](../runs/m2/stats.json) | [76.5%](../runs/m2/stats.json) | [70.2%–82.4%](../runs/m2/stats.json) | [1](../runs/m1v2/seed1/policies/llm_deepseek-flash/sessions.jsonl) [2](../runs/m1v2/seed2/policies/llm_deepseek-flash/sessions.jsonl) [3](../runs/m1v2/seed3/policies/llm_deepseek-flash/sessions.jsonl) |
+| DeepSeek V4 Pro（思考开，默认采样，top_p 0.95） | [0.833](../runs/m2/stats.json) | [0.804–0.859](../runs/m2/stats.json) | [0.829](../runs/m2/stats.json) / [0.866](../runs/m2/stats.json) / [0.804](../runs/m2/stats.json) | [90.7%](../runs/m2/stats.json) | [0.49](../runs/m2/stats.json) | [79.4%](../runs/m2/stats.json) | [73.6%–84.6%](../runs/m2/stats.json) | [1](../runs/m1v2/seed1/policies/llm_deepseek-v4-pro/sessions.jsonl) [2](../runs/m1v2/seed2/policies/llm_deepseek-v4-pro/sessions.jsonl) [3](../runs/m1v2/seed3/policies/llm_deepseek-v4-pro/sessions.jsonl) |
+| DeepSeek Flash（思考开，默认采样，top_p 1.0） | [0.819](../runs/m2/stats.json) | [0.786–0.848](../runs/m2/stats.json) | [0.823](../runs/m2/stats.json) / [0.852](../runs/m2/stats.json) / [0.780](../runs/m2/stats.json) | [89.1%](../runs/m2/stats.json) | [0.48](../runs/m2/stats.json) | [76.5%](../runs/m2/stats.json) | [70.2%–82.4%](../runs/m2/stats.json) | [1](../runs/m1v2/seed1/policies/llm_deepseek-flash/sessions.jsonl) [2](../runs/m1v2/seed2/policies/llm_deepseek-flash/sessions.jsonl) [3](../runs/m1v2/seed3/policies/llm_deepseek-flash/sessions.jsonl) |
 | 理想记忆策略 | [0.936](../runs/m2/stats.json) | [0.932–0.940](../runs/m2/stats.json) | [0.938](../runs/m2/stats.json) / [0.937](../runs/m2/stats.json) / [0.935](../runs/m2/stats.json) | [100.0%](../runs/m2/stats.json) | [0.42](../runs/m2/stats.json) | —（参照） | — | [1](../runs/m1v2/seed1/policies/ideal/sessions.jsonl) [2](../runs/m1v2/seed2/policies/ideal/sessions.jsonl) [3](../runs/m1v2/seed3/policies/ideal/sessions.jsonl) |
 | 记住但不更新 | [0.435](../runs/m2/stats.json) | [0.405–0.464](../runs/m2/stats.json) | [0.431](../runs/m2/stats.json) / [0.437](../runs/m2/stats.json) / [0.437](../runs/m2/stats.json) | [56.7%](../runs/m2/stats.json) | [0.88](../runs/m2/stats.json) | —（参照） | — | [1](../runs/m1v2/seed1/policies/remember_no_update/sessions.jsonl) [2](../runs/m1v2/seed2/policies/remember_no_update/sessions.jsonl) [3](../runs/m1v2/seed3/policies/remember_no_update/sessions.jsonl) |
 
@@ -157,6 +159,6 @@ GRPO 每步 = 4（试跑）或 8（正式）个用户 × 每组 8 遍 × 8 次�
 ## 10. 没解决的问题
 
 - 硅基流动上的权重和精度只能间接确认；本地 BF16 与硅基流动之间的分数差没有实测。
-- 评测用温度 0 是为了和 M1 可比，但官方不建议思考模式用贪心解码；思考开这一组可能因此被低估。
+- 评测用温度 0，请求参数和 M1 相同；但 M1 的 DeepSeek 开着思考，DeepSeek 官方文档写明思考模式下 temperature 不生效、设了也不报错，所以 M1 的 DeepSeek 实际是默认采样（V4 Pro 带工具时 top_p 固定 0.95，Flash 没传 top_p、取默认值 1；[文档原文与核对](../runs/m1v2/docs/deepseek_sampling_2026-10-26.json)）。和"同一批会话上的 V4 Pro"比时，两边的解码方式并不相同：Qwen 按温度 0 请求，V4 Pro 是默认采样。另外官方不建议 Qwen 的思考模式用贪心解码；思考开这一组可能因此被低估。
 - 估算里的显卡吞吐是假设，没有实测。
 

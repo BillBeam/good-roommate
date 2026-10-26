@@ -1,0 +1,6 @@
+试跑 llm:claude-haiku-5-5                 每次会话 0.0007 美元，729 输出 tokens，平均分 0.814
+试跑 llm:claude-sonnet-5-5                每次会话 0.0089 美元，328 输出 tokens，平均分 0.864
+试跑 llm:claude-opus-5-5                  每次会话 0.0215 美元，457 输出 tokens，平均分 0.925
+试跑 llm:claude-fable-5-1                 每次会话 0.0695 美元，660 输出 tokens，平均分 0.864
+试跑 llm:claude-opus-5-5:true_memory      每次会话 0.0148 美元，150 输出 tokens，平均分 1.000
+全卡估算 60.75 美元（按两个用户里较贵的那个算 63.05）；计划花 60.75 美元；跳过 0 组

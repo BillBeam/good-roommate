@@ -111,6 +111,8 @@ class LLMAgent:
         for turns in range(1, MAX_TURNS + 1):
             body = {"model": self.model, "messages": messages, "tools": tools(cfg["question_cost"]),
                     "tool_choice": "auto", "temperature": 0, "seed": sid, **self.extra}
+            # 注意：DeepSeek V4 默认开思考，思考模式下 temperature 不生效、也不报错，M1 第二版的 DeepSeek 基线实际是默认采样
+            # （V4 Pro 带工具时 top_p 固定 0.95，Flash 没传 top_p、取默认值 1）。见 runs/m1v2/docs/deepseek_sampling_2026-10-26.json
             if self.model.startswith("deepseek"):
                 body.pop("seed")  # DeepSeek 接口没有 seed 参数；复现靠缓存
             resp = self.client.chat(body, role=role)
