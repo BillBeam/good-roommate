@@ -1,16 +1,16 @@
 {
- "total_usd": 3.1702574640000067,
- "deepseek_cny_total": 21.61539179999998,
+ "total_usd": 3.3579915160000082,
+ "deepseek_cny_total": 22.895396699999978,
  "by_model_role": {
   "deepseek-v4-pro|agent": {
-   "api_calls": 1948,
+   "api_calls": 2007,
    "cache_hits": 0,
-   "prompt_tokens": 3627188,
-   "cached_prompt_tokens": 3126912,
-   "completion_tokens": 1399638,
-   "reasoning_tokens": 1287778,
-   "cost_usd": 3.1702574640000067,
-   "cost_cny": 21.61539179999998
+   "prompt_tokens": 3790995,
+   "cached_prompt_tokens": 3261568,
+   "completion_tokens": 1483240,
+   "reasoning_tokens": 1368590,
+   "cost_usd": 3.3579915160000082,
+   "cost_cny": 22.895396699999978
   }
  },
  "deepseek_cny_limit": 40.0
