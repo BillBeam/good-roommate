@@ -7,7 +7,10 @@
 2. 选对了（判分 success）；
 3. 没有格式问题（工具调用都能解析、没有只输出文字的轮次，因而整次会话没有插入提醒，是一整段）；
 4. 没有重问：每个问题都没有被用户答"之前说过了"；
+6. 不是捷径①：做选择时手里的信息（会话开始时用户已提过的 + 本次临时情况 + 本次问到的）仍定不出唯一选项的会话，
+   即使选对了也筛掉（和评测同一套判定：metrics.replay_told + metrics.session_row 的 s1_num = 1）；
 5. 套 Qwen3.5 模板后不超过 MAX_LEN 个 token，并且逐轮前缀一致（见 qwen_chat.assistant_spans）。
+规则按 1、2、3、4、6、5 的顺序判（第 6 条是后加的，编号沿用）。另记留下的数据本身的捷径①、②比例。
 读每个文件之前都过 data_policy.assert_trainable（Claude 的输出不能进训练数据）。
 """
 
@@ -22,6 +25,7 @@ from ..agent_llm import system_prompt
 from ..data_policy import assert_trainable
 from ..world import DEFAULT_CONFIG
 from .common import CKPT, EXPORT, MODEL, OUT, TEACHER_SEEDS, append_jsonl, dump, make_chat, status
+from .metrics import replay_told, session_row, summarize_rows
 from .qwen_chat import assistant_spans
 
 MAX_LEN = 16384
@@ -45,7 +49,8 @@ def teacher_messages(transcript, config):
 
 
 def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
-    stats = {"sessions": 0, "kept": 0, "dropped": {}, "tokens": 0, "by_seed": {}}
+    stats = {"sessions": 0, "kept": 0, "dropped": {}, "tokens": 0, "by_seed": {}, "after_rule4_rows": [],
+             "kept_rows": []}
     data = []
 
     def drop(reason):
@@ -59,6 +64,18 @@ def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
         recs = {(r["uid"], r["idx"]): r for r in map(json.loads, open(sp, encoding="utf-8"))}
         with gzip.open(tp, "rt", encoding="utf-8") as f:
             trans = {(t["uid"], t["idx"]): t["messages"] for t in map(json.loads, f)}
+        wp = os.path.join(teacher_dir, f"seed{seed}", "world.json")
+        assert_trainable(wp)
+        with open(wp, encoding="utf-8") as f:
+            w = json.load(f)
+        plans = {u["uid"]: u for u in w["users"]}
+        info, sessmap = {}, {}
+        for uid, plan in plans.items():
+            rs = sorted((r for (u, _), r in recs.items() if u == uid), key=lambda r: r["idx"])
+            for idx, v in replay_told(plan, rs, w["config"]["repeat_mode"]).items():
+                info[(uid, idx)] = v
+            for x in plan["sessions"]:
+                sessmap[(uid, x["idx"])] = x
         kept = 0
         for key, r in sorted(recs.items()):
             stats["sessions"] += 1
@@ -74,6 +91,12 @@ def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
             if any(st == "told_before" for q in r["questions"] for st in q["status"].values()):
                 drop("4_重问")
                 continue
+            row = session_row(r, sessmap[key], info[key])
+            stats["after_rule4_rows"].append((seed, r["uid"], row))
+            if row["s1_num"] == 1:
+                drop("6_捷径①")
+                stats.setdefault("rule6_examples", []).append([seed, r["uid"], r["idx"], r["week"]])
+                continue
             try:
                 ids, mask = assistant_spans(chat, teacher_messages(trans[key], config))
             except Exception:
@@ -84,11 +107,20 @@ def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
                 continue
             data.append({"seed": seed, "uid": r["uid"], "idx": r["idx"], "domain": r["domain"], "ids": ids,
                          "mask": mask})
+            stats["kept_rows"].append((seed, r["uid"], row))
             stats["tokens"] += len(ids)
             kept += 1
         stats["by_seed"][str(seed)] = kept
     stats["kept"] = len(data)
     stats["loss_tokens"] = sum(sum(x["mask"]) for x in data)
+    # 捷径①、②的比例：前 4 条规则之后（加第 6 条之前）与最终留下的数据
+    for name in ("after_rule4_rows", "kept_rows"):
+        rows = stats.pop(name)
+        p = summarize_rows(rows, n_boot=0)["point"]
+        tot = {k: sum(r[k] for _, _, r in rows) for k in ("s1_num", "s1_den", "s2_num", "s2_den")}
+        stats[name.replace("_rows", "_shortcuts")] = {
+            "sessions": len(rows), "shortcut1_guess_unmentioned": p["shortcut1_guess_unmentioned"],
+            "shortcut2_reask_told": p["shortcut2_reask_told"], **tot}
     return data, stats
 
 
