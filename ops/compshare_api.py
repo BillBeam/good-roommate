@@ -92,7 +92,14 @@ def _send(action, params, timeout, tries=None, json_body=False):
     tries = tries or TRIES
     payload = _flatten({**(params or {}), "Action": action})
     payload["PublicKey"] = os.environ["COMPSHARE_PUBLIC_KEY"]
-    raw = "".join(k + payload[k] for k in sorted(payload)) + os.environ["COMPSHARE_PRIVATE_KEY"]
+    sig_src = payload
+    if json_body in ("json_compact", "join"):    # JSON 请求体时，签名里的数组怎么写（几种约定，按需试）
+        sig_src = {k: v for k, v in payload.items() if not any(k.startswith(a + ".") for a, x in (params or {}).items()
+                                                               if isinstance(x, list))}
+        for a, x in (params or {}).items():
+            if isinstance(x, list):
+                sig_src[a] = json.dumps(x, separators=(",", ":")) if json_body == "json_compact" else ",".join(map(str, x))
+    raw = "".join(k + sig_src[k] for k in sorted(sig_src)) + os.environ["COMPSHARE_PRIVATE_KEY"]
     payload["Signature"] = hashlib.sha1(raw.encode("utf-8")).hexdigest()
     if json_body:   # 签名照旧按展开后的参数算；请求体用 JSON，数组保持数组
         data = json.dumps({**(params or {}), "Action": action, "PublicKey": payload["PublicKey"],
