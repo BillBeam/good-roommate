@@ -943,14 +943,17 @@ def health_signals(h, minutes=20):
         if isinstance(mm, list) else mm
     now = int(time.time())
     try:
-        r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": [h["UHostId"]],
-                                                        "BeginTime": now - minutes * 60, "EndTime": now})
+        # SDK 里这个接口只有 UHostIds 一个参数（多传时间范围会报 210）；返回的时间序列按 minutes 截取最近一段
+        r, _ = api.call("GetCompShareInstanceMonitor", {"Region": h["_region"], "UHostIds": [h["UHostId"]]})
         sig["monitor_retcode"] = r.get("RetCode")
+        sig["monitor_message"] = redact(r.get("Message"))[:120] if r.get("RetCode") else None
+        sig["monitor_fields"] = sorted(r.keys())
         metrics = {}
         for item in ((r.get("Data") or {}).get("List") or []):
             for m in item.get("Metrics") or []:
                 key = m.get("MetricKey") or "?"
-                pts = sorted((int(t), float(v)) for t, v in _series(m.get("Results")) if v is not None)
+                pts = sorted((int(t), float(v)) for t, v in _series(m.get("Results")) if v not in (None, ""))
+                pts = [(t, v) for t, v in pts if t >= now - minutes * 60] or pts[-1:]
                 metrics[key] = {"points": len(pts), "last": pts[-1] if pts else None,
                                 "max": max((v for _, v in pts), default=None), "min": min((v for _, v in pts), default=None),
                                 "span_s": (pts[-1][0] - pts[0][0]) if len(pts) > 1 else 0}
