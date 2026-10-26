@@ -34,6 +34,7 @@ WRITE = frozenset({
     "StopCompShareInstance",
     "TerminateCompShareInstance",
     "StartCompShareInstance",
+    "RebootCompShareInstance",
     "CreateCompShareCustomImage",
 })
 

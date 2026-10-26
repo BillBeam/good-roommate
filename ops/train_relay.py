@@ -401,6 +401,25 @@ def do_start(a):
         log("started", ok=bool(h))
 
 
+def do_reboot(a):
+    """SSH 连不上、而实例在接口里仍是 Running 时：重启（同一台机器、同一张卡，不释放）。"""
+    h = our_machine()
+    if not h or h.get("State") != "Running":
+        log("reboot_skipped", state=h.get("State") if h else None)
+        return False
+    r, _ = api.call_write("RebootCompShareInstance", loc(h))
+    log("reboot", RetCode=r.get("RetCode"), Message=redact(r.get("Message")))
+    time.sleep(60)
+    h = wait_running(h, timeout=900)
+    ok = False
+    if h:
+        c = login(h)
+        p = ssh(c, "uptime; nvidia-smi --query-gpu=name,memory.used --format=csv,noheader", timeout=120)
+        ok = bool(p is not None and p.returncode == 0)
+        log("rebooted", ssh_ok=ok, out=(p.stdout or "").strip()[-300:] if p else None)
+    return ok
+
+
 def conn():
     h = our_machine()
     if not h:
@@ -602,7 +621,7 @@ def do_fetch_tokenizer(a):
     log("fetch_tokenizer", files=got)
 
 
-ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "upload": do_upload,
+ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "upload": do_upload,
            "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "destroy": do_destroy}
 
 
