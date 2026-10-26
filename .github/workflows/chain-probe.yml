@@ -9,7 +9,8 @@
 #   mode "train": ops/train_relay.py runs the request's actions on the one training machine
 #     (grab, heartbeat = platform shutdown 2 h after the request, upload, run, wait/sync, image, destroy).
 #   mode "keepalive": same as "train" but in its own concurrency group, for short status/heartbeat
-#     requests while a long "train" request is still running (never upload/run here).
+#     requests while a long "train" request is still running: foreground checks, sync, exposure,
+#     token_check and the custom image (never upload or background jobs here).
 #   mode "teacher": DeepSeek V4 Pro teacher trajectories on this runner (roommate.train.teacher);
 #     the request cache and results go to the m2pilot-data branch so a rerun never pays twice.
 # Results go to the chain-results branch and, if a PR number is given, a PR comment.

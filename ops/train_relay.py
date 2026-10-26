@@ -702,8 +702,16 @@ def do_image(a):
         if time.time() - last_hb > SYNC_EVERY:      # 长等待：兜底关机始终在前面
             heartbeat(h)
             last_hb = time.time()
-    info = {"image_id": img, "seconds": round(time.time() - t0, 1), "final": {k: v for k, v in (final or {}).items()
-                                                                              if k not in ("request_uuid",)}}
+    info = {"image_id": img, "name": a.get("name", "m2pilot-env"), "from_machine": h.get("Name"), "created_at": now_iso(t0),
+            "seconds": round(time.time() - t0, 1),
+            "final": {k: v for k, v in (final or {}).items() if k not in ("request_uuid",)}}
+    try:      # 镜像的大小、状态和其他字段（报告里的每月存储费要用）
+        r2, _ = api.call("DescribeCompShareCustomImages", {"Region": h["_region"], "Zone": h["Zone"], "Limit": 100, "Offset": 0})
+        for i in r2.get("ImageSet") or r2.get("CustomImageSet") or []:
+            if i.get("CompShareImageId") == img:
+                info["describe"] = {k: v for k, v in i.items() if not isinstance(v, (dict, list)) or k in ("Tag",)}
+    except Exception as e:
+        info["describe_error"] = redact(f"{type(e).__name__}: {e}")[:200]
     data_write("relay/image.json", info)
     summary["image"] = info
     return final is not None
@@ -1009,7 +1017,7 @@ def main():
             heartbeat(h)
         for a in REQ.get("actions", []):
             log("action", **{k: v for k, v in a.items() if k != "cmd"}, cmd=(a.get("cmd") or "")[:200])
-            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check") or
+            if os.environ.get("RELAY_KEEPALIVE") and not (a["do"] in ("sync", "wait", "exposure", "token_check", "image") or
                                                          (a["do"] == "run" and a.get("background") is False)):
                 log("skipped_in_keepalive", do=a["do"])     # 和长请求并行时只做查看、同步、心跳
                 continue
