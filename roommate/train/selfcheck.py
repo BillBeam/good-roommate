@@ -192,20 +192,46 @@ def main():
                    "lora_change_diff": stats([dv[i] - dt[i] for i in gp])}
             eff = (eff_v + eff_t) / 2
             original = eff_v > 5 * agree["mean"] and eff_t > 5 * agree["mean"] and agree["mean"] < 0.05
-            ok = (eff_v > 2 * agree_base["mean"] and eff_t > 2 * agree_base["mean"] and dd["mean"] < 0.25 * eff
-                  and agree["mean"] - agree_base["mean"] < 0.01 and agree["mean"] < 0.05)
+            small = {"lora_b_std": float(os.environ.get("M2P_LORA_STD", "0.002")), "lora_effect_sampler": eff_v,
+                     "lora_effect_trainer": eff_t, "trainer_vs_sampler_with_lora": agree, "lora_change_diff": dd,
+                     "lora_change_corr": corr, "generated_tokens_only": gen, "original_rule_pass": original}
+            # 判定用放大 10 倍的测试 LoRA：BF16 的舍入噪声（两端差约 0.04–0.06）不随 LoRA 变大而变大，
+            # LoRA 带来的变化随之变大；两端加的若是同一个 LoRA，逐 token 的变化之差相对效应就很小，否则会跟着效应一起变大
+            big_std = 10 * small["lora_b_std"]
+            torch.manual_seed(2)
+            for _, mod in tr.lora_modules():
+                torch.nn.init.normal_(mod.lora_B["default"].weight, std=big_std)
+            tb = tr.logprobs(probe["ids"], pmask).tolist()
+            tr.export(SHM)
+            sampler.update_weights(SHM)
+            vb = sampler.prompt_logprobs(probe["ids"])
+            posb = [t for t in pos if vb[t] is not None]
+            dvb = [vb[t] - v_base[t] for t in posb]
+            dtb = [tb[t - 1] - t_base[t - 1] for t in posb]
+            eff_vb = statistics.mean(abs(x) for x in dvb)
+            eff_tb = statistics.mean(abs(x) for x in dtb)
+            ddb = stats([a - b for a, b in zip(dvb, dtb)])
+            corrb = statistics.correlation(dvb, dtb)
+            effb = (eff_vb + eff_tb) / 2
+            ok = (abs(eff_vb - eff_tb) / effb < 0.10 and ddb["mean"] < 0.25 * effb and corrb > 0.95
+                  and eff_vb > 2 * agree_base["mean"])
+            # 恢复成原来那个小的 LoRA（同一个随机种子），后面几项（带 LoRA 生成等）和以前一样
+            torch.manual_seed(1)
+            for _, mod in tr.lora_modules():
+                torch.nn.init.normal_(mod.lora_B["default"].weight, std=small["lora_b_std"])
+            tr.export(SHM)
+            sampler.update_weights(SHM)
             record(1, "LoRA 真的生效", ok,
-                   lora_effect_sampler=eff_v, lora_effect_trainer=eff_t, trainer_vs_sampler_with_lora=agree,
-                   trainer_vs_sampler_without_lora=agree_base, lora_change_diff=dd, lora_change_corr=corr,
-                   generated_tokens_only=gen, tokens=len(pos),
-                   lora_b_std=float(os.environ.get("M2P_LORA_STD", "0.002")),
-                   criterion="两端的 LoRA 效应都大于不带 LoRA 时两端差的 2 倍；逐 token 的 LoRA 变化两端之差 < 效应的 25%；"
-                             "加上 LoRA 后两端差只多 < 0.01；带 LoRA 时两端差均值 < 0.05",
-                   original_rule="两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
-                   original_rule_pass=original,
-                   criterion_change="原规则拿效应和带 LoRA 时两端的总差比，总差里大部分是不带 LoRA 时就有的数值差"
-                                    "（提示部分低概率 token 的 BF16 误差），结果取决于 LoRA 初值的大小（std 0.002）；"
-                                    "改为逐 token 比两端的 LoRA 变化（原有差相减抵掉），并要求加 LoRA 不增加两端差")
+                   lora_b_std=big_std, lora_effect_sampler=eff_vb, lora_effect_trainer=eff_tb,
+                   lora_change_diff=ddb, lora_change_corr=corrb, trainer_vs_sampler_without_lora=agree_base,
+                   tokens=len(posb), small_lora=small,
+                   criterion="测试 LoRA（B 的初值 std 0.02）下：两端效应相差 < 10%；逐 token 的 LoRA 变化两端之差 < 效应的 25%，"
+                             "相关系数 > 0.95；效应大于不带 LoRA 时两端差的 2 倍",
+                   original_rule="（std 0.002 的 LoRA）两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
+                   criterion_change="std 0.002 时 LoRA 的效应（约 0.11）和两端原有的 BF16 差（约 0.04）同一量级，"
+                                    "两端差带不带 LoRA 时的舍入并不相同、相减抵不掉（逐 token 变化之差约 0.06，正是两份噪声的合成），"
+                                    "测不出\"同一个 LoRA\"和\"略有不同的 LoRA\"的区别；放大测试 LoRA 让信号远大于噪声再判，"
+                                    "小 LoRA 的数照样记录（small_lora）")
             show = gen_pos[:40]
             MATERIAL["lora_compare"] = [{"token": chat.decode([probe["ids"][t]]), "sampler_without_lora": v_base[t],
                                          "sampler_with_lora": v_lora[t], "trainer_with_lora": t_lora[t - 1],
@@ -312,8 +338,12 @@ def main():
                         n_tpl += 1
                         same_tpl += int(tpl[:len(s["ids"])] == s["ids"][:len(tpl)])
             st6 = stats(d6)
-            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
-                   rescore_vs_rollout=st6, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl)
+            record(6, "训练样本的 token 序列与采样时看到的逐 token 一致", st6["n"] > 0 and st6["p99"] < 0.5 and st6["mean"] < 0.02,
+                   rescore_vs_rollout=st6, segments_equal_to_template_rendering=same_tpl, segments_checked=n_tpl,
+                   criterion="重新整段打分和逐轮采样时的 logprob 之差：均值 < 0.02，p99 < 0.5（最大差照记）",
+                   original_rule="均值 < 0.02，最大差 < 0.5", original_rule_pass=st6["n"] > 0 and st6["max"] < 0.5 and st6["mean"] < 0.02,
+                   criterion_change="前文要是有一个 token 不同，会有成片的 token 差得很大，均值和 p99 都会跳；"
+                                    "单个 token 的最大差是 BF16 舍入（第 3 项同类数据上最大差到过 1.04），和第 4 项一样改看均值和 p99")
             MATERIAL["template_drop_example"] = template_example(chat, trajs)
 
         except Exception as e:  # 一项出错不影响其余各项
@@ -323,10 +353,14 @@ def main():
         try:
             bad = 0
             checked = 0
+            no_lp = 0
+            quotes = []
             for recs in trajs:
                 for r in recs:
                     tool_texts = [m["content"] for m in r["transcript"] if m["role"] == "tool"]
                     for s in r.get("segments", []):
+                        # 计入 loss 的每个 token 都要有采样端当时返回的 logprob，也就是确实是采样端生成的
+                        no_lp += sum(1 for v, m in zip(s["lp"], s["mask"]) if m and v is None)
                         spans, cur = [], []
                         for t, m in enumerate(s["mask"]):
                             if m:
@@ -339,10 +373,24 @@ def main():
                         for sp in spans:
                             txt = chat.decode(sp)
                             checked += 1
-                            if "<tool_response>" in txt or "<|im_start|>" in txt or any(
-                                    len(x) > 8 and x in txt for x in tool_texts) or r["transcript"][0]["content"][:30] in txt:
+                            if "<tool_response>" in txt or "<|im_start|>" in txt:      # 模板拼进来的标记
                                 bad += 1
-            record(7, "只有模型生成的 token 计入 loss", bad == 0, spans_checked=checked, spans_with_non_generated_text=bad)
+                            elif any(len(x) > 8 and x in txt for x in tool_texts) or r["transcript"][0]["content"][:30] in txt:
+                                # 模型在自己的输出里原样引用了工具结果或用户的话：是它生成的，记下来备查，不算错
+                                hit = next((x for x in tool_texts if len(x) > 8 and x in txt), r["transcript"][0]["content"][:30])
+                                i = txt.find(hit)
+                                quotes.append({"uid": r["uid"], "idx": r["idx"], "quoted": hit[:120],
+                                               "context": txt[max(0, i - 120):i + len(hit) + 60]})
+            appended7 = sum(t["appended_stop"] for recs in trajs for r in recs for t in r.get("turn_stats", []))
+            record(7, "只有模型生成的 token 计入 loss", bad == 0 and no_lp <= appended7, spans_checked=checked,
+                   spans_with_template_markers=bad, loss_tokens_without_sampler_logprob=no_lp,
+                   stop_tokens_appended=appended7, spans_quoting_context=len(quotes), quote_examples=quotes[:3],
+                   criterion="计入 loss 的 token 都有采样端返回的 logprob（确实是采样端生成的；补上的结束符除外），"
+                             "且计入 loss 的片段里没有模板标记（<tool_response>、<|im_start|>）",
+                   original_rule="片段里没有模板标记，也不含任何一条完整的工具结果或用户第一句话的前 30 字",
+                   original_rule_pass=bad == 0 and not quotes,
+                   criterion_change="原规则按文字找，模型在思考里原样引用记忆或用户的话也会被算成\"不是生成的\"；"
+                                    "改成逐 token 核对是不是采样端生成的（精确），引用另记备查")
             MATERIAL["mask_example"] = mask_example(chat, trajs)
 
         except Exception as e:  # 一项出错不影响其余各项
