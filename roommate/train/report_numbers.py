@@ -89,8 +89,37 @@ def tijian_subset():
     return keys, recs
 
 
+def teacher_numbers(teacher_dir=os.path.join(ROOT, "teacher"), seeds=(101, 102, 103, 104)):
+    """老师轨迹：每条规则（1–4、6）筛掉多少，三个阶段的捷径①、②比例；第 5 条（模板）的数取自 SFT 的 data_stats.json。"""
+    from .sft import rule_drop, shortcut_rates, teacher_rows
+    if not all(os.path.exists(os.path.join(teacher_dir, f"seed{s}", "world.json")) for s in seeds):
+        return None
+    dropped, stage = defaultdict(int), {"all": [], "after_rule4": [], "after_rule6": []}
+    examples = []
+    for s in seeds:
+        for r, sess, info in teacher_rows(teacher_dir, s):
+            row = session_row(r, sess, info)
+            stage["all"].append((s, r["uid"], row))
+            why = rule_drop(r, row)
+            if why in (None, "6_捷径①"):
+                stage["after_rule4"].append((s, r["uid"], row))
+            if why is None:
+                stage["after_rule6"].append((s, r["uid"], row))
+            else:
+                dropped[why] += 1
+                if why == "6_捷径①":
+                    examples.append([s, r["uid"], r["idx"], r["week"]])
+    out = {"sessions": len(stage["all"]), "dropped_rules_1_4_6": dict(dropped), "rule6_sessions": examples,
+           "shortcuts": {k: shortcut_rates(v) for k, v in stage.items()}}
+    ds = os.path.join(M, "sft", "data_stats.json")
+    if os.path.exists(ds):
+        out["sft_data_stats"] = jload(ds)
+    return out
+
+
 def main():
     out = {}
+    out["teacher"] = teacher_numbers()
     # 联合基线表
     joint = {}
     for pol in BASELINES:

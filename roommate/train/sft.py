@@ -48,54 +48,66 @@ def teacher_messages(transcript, config):
     return msgs
 
 
+def teacher_rows(teacher_dir, seed):
+    """一个老师世界：[(记录, 会话, 回放出的 told 等信息)]，按 (用户, 第几次) 排序。"""
+    d = os.path.join(teacher_dir, f"seed{seed}")
+    sp = os.path.join(d, "policies", "llm_deepseek-v4-pro", "sessions.jsonl")
+    wp = os.path.join(d, "world.json")
+    assert_trainable(sp)
+    assert_trainable(wp)
+    with open(wp, encoding="utf-8") as f:
+        w = json.load(f)
+    recs = [json.loads(x) for x in open(sp, encoding="utf-8")]
+    out = []
+    for plan in w["users"]:
+        rs = sorted((r for r in recs if r["uid"] == plan["uid"]), key=lambda r: r["idx"])
+        info = replay_told(plan, rs, w["config"]["repeat_mode"])
+        sess = {x["idx"]: x for x in plan["sessions"]}
+        out += [(r, sess[r["idx"]], info[r["idx"]]) for r in rs]
+    return out
+
+
+def rule_drop(r, row):
+    """规则 1、2、3、4、6（按这个顺序判）：返回筛掉的原因，留下返回 None。第 5 条（模板）要分词，另判。"""
+    if r.get("error") or r["chosen"] is None or r.get("hit_max_turns"):
+        return "1_未正常结束"
+    if not r["grade"]["success"]:
+        return "2_选错"
+    if r.get("format_issues"):
+        return "3_格式问题"
+    if any(st == "told_before" for q in r["questions"] for st in q["status"].values()):
+        return "4_重问"
+    if row["s1_num"] == 1:
+        return "6_捷径①"
+    return None
+
+
 def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
-    stats = {"sessions": 0, "kept": 0, "dropped": {}, "tokens": 0, "by_seed": {}, "after_rule4_rows": [],
-             "kept_rows": []}
+    stats = {"sessions": 0, "kept": 0, "dropped": {}, "tokens": 0, "by_seed": {}, "all_rows": [],
+             "after_rule4_rows": [], "kept_rows": []}
     data = []
 
     def drop(reason):
         stats["dropped"][reason] = stats["dropped"].get(reason, 0) + 1
 
     for seed in seeds:
-        d = os.path.join(teacher_dir, f"seed{seed}", "policies", "llm_deepseek-v4-pro")
-        sp, tp = os.path.join(d, "sessions.jsonl"), os.path.join(d, "transcripts.jsonl.gz")
-        assert_trainable(sp)
+        tp = os.path.join(teacher_dir, f"seed{seed}", "policies", "llm_deepseek-v4-pro", "transcripts.jsonl.gz")
         assert_trainable(tp)
-        recs = {(r["uid"], r["idx"]): r for r in map(json.loads, open(sp, encoding="utf-8"))}
         with gzip.open(tp, "rt", encoding="utf-8") as f:
             trans = {(t["uid"], t["idx"]): t["messages"] for t in map(json.loads, f)}
-        wp = os.path.join(teacher_dir, f"seed{seed}", "world.json")
-        assert_trainable(wp)
-        with open(wp, encoding="utf-8") as f:
-            w = json.load(f)
-        plans = {u["uid"]: u for u in w["users"]}
-        info, sessmap = {}, {}
-        for uid, plan in plans.items():
-            rs = sorted((r for (u, _), r in recs.items() if u == uid), key=lambda r: r["idx"])
-            for idx, v in replay_told(plan, rs, w["config"]["repeat_mode"]).items():
-                info[(uid, idx)] = v
-            for x in plan["sessions"]:
-                sessmap[(uid, x["idx"])] = x
         kept = 0
-        for key, r in sorted(recs.items()):
+        for r, sess, info in teacher_rows(teacher_dir, seed):
+            key = (r["uid"], r["idx"])
             stats["sessions"] += 1
-            if r.get("error") or r["chosen"] is None or r.get("hit_max_turns"):
-                drop("1_未正常结束")
-                continue
-            if not r["grade"]["success"]:
-                drop("2_选错")
-                continue
-            if r.get("format_issues"):
-                drop("3_格式问题")
-                continue
-            if any(st == "told_before" for q in r["questions"] for st in q["status"].values()):
-                drop("4_重问")
-                continue
-            row = session_row(r, sessmap[key], info[key])
-            stats["after_rule4_rows"].append((seed, r["uid"], row))
-            if row["s1_num"] == 1:
-                drop("6_捷径①")
-                stats.setdefault("rule6_examples", []).append([seed, r["uid"], r["idx"], r["week"]])
+            row = session_row(r, sess, info)
+            stats["all_rows"].append((seed, r["uid"], row))
+            why = rule_drop(r, row)
+            if why is None or why == "6_捷径①":
+                stats["after_rule4_rows"].append((seed, r["uid"], row))
+            if why:
+                drop(why)
+                if why == "6_捷径①":
+                    stats.setdefault("rule6_examples", []).append([seed, r["uid"], r["idx"], r["week"]])
                 continue
             try:
                 ids, mask = assistant_spans(chat, teacher_messages(trans[key], config))
@@ -113,15 +125,17 @@ def load_teacher(chat, teacher_dir, seeds, config=DEFAULT_CONFIG):
         stats["by_seed"][str(seed)] = kept
     stats["kept"] = len(data)
     stats["loss_tokens"] = sum(sum(x["mask"]) for x in data)
-    # 捷径①、②的比例：前 4 条规则之后（加第 6 条之前）与最终留下的数据
-    for name in ("after_rule4_rows", "kept_rows"):
-        rows = stats.pop(name)
-        p = summarize_rows(rows, n_boot=0)["point"]
-        tot = {k: sum(r[k] for _, _, r in rows) for k in ("s1_num", "s1_den", "s2_num", "s2_den")}
-        stats[name.replace("_rows", "_shortcuts")] = {
-            "sessions": len(rows), "shortcut1_guess_unmentioned": p["shortcut1_guess_unmentioned"],
-            "shortcut2_reask_told": p["shortcut2_reask_told"], **tot}
+    # 捷径①、②的比例：老师的全部会话、前 4 条规则之后（加第 6 条之前）、最终留下的数据
+    for name in ("all_rows", "after_rule4_rows", "kept_rows"):
+        stats[name.replace("_rows", "_shortcuts")] = shortcut_rates(stats.pop(name))
     return data, stats
+
+
+def shortcut_rates(rows):
+    p = summarize_rows(rows, n_boot=0)["point"]
+    tot = {k: sum(r[k] for _, _, r in rows) for k in ("s1_num", "s1_den", "s2_num", "s2_den")}
+    return {"sessions": len(rows), "shortcut1_guess_unmentioned": p["shortcut1_guess_unmentioned"],
+            "shortcut2_reask_told": p["shortcut2_reask_told"], **tot}
 
 
 def main(argv=None):
