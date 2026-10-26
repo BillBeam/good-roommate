@@ -4,9 +4,12 @@ Runs on a GitHub Actions runner (push to chain-request with mode "train"). The r
 (ops/probe_request.json) lists actions, run in order:
   {"do": "dscheck"}                      DeepSeek key present? balance >= 60 CNY? (booleans only)
   {"do": "stock"}                        one stock sweep, appended to the stock log
-  {"do": "grab", "max_minutes": 300}     sweep at most every 30 s until a suitable machine is created
+  {"do": "grab", "max_minutes": 300}     sweep at most every 30 s until a suitable machine is created; after two machines
+                                         lost to unreachability it needs "diagnosis_comment" (cause + countermeasure first)
   {"do": "start"}                        start the machine if it is stopped
-  {"do": "reboot"}                       restart an unreachable machine (same machine and GPU); at most once per machine
+  {"do": "reboot"}                       restart an unreachable machine (same machine and GPU); at most once per machine;
+                                         the first connection after it starts netwatch and fetches its log + diag (one ssh)
+  {"do": "exposure"}                     from outside (no platform login): can the machine's JupyterLab be opened?
   {"do": "upload"}                       copy the code at the request commit to /root/work/repo
   {"do": "run", "name": n, "cmd": c, "background": true, "timeout_min": 30}
   {"do": "wait", "minutes": 80, "jobs": [n, ...]}   sync every SYNC_EVERY s until the jobs end
@@ -363,10 +366,21 @@ def do_stock(a):
     log("stock", in_stock=len(rec["in_stock"]), suitable=len(cands))
 
 
+def lost_machines():
+    """因为连不上而释放的机器（数据分支 relay/released_unreachable.json，一条或一个列表）。"""
+    r = data_json("relay/released_unreachable.json", [])
+    return r if isinstance(r, list) else [r]
+
+
 def do_grab(a):
     if our_machine():
         log("grab_skip_existing")
         return True
+    if len(lost_machines()) >= 2 and not a.get("diagnosis_comment"):
+        # 已经有两台因为连不上而释放：不再自动换第三台，先按取回的证据定位原因、写进 PR 评论，再由会话决定
+        log("grab_refused", reason="two machines lost to unreachability; diagnosis_comment required")
+        summary["grab_refused"] = "two machines lost to unreachability: write the cause and countermeasure first"
+        return False
     others = [h for h in machines()]
     if others:
         log("grab_abort_other_instances", count=len(others))
@@ -456,7 +470,7 @@ def do_reboot(a):
     rec = health.setdefault(h["UHostId"], {"reboots": [], "unreachable": []})
     if rec["reboots"]:           # 一台连不上的机器只重启一次；再连不上就换机器
         log("reboot_refused", reason="already rebooted once", at=rec["reboots"])
-        summary["reboot_refused"] = "already rebooted once: replace the machine"
+        summary["reboot_refused"] = "already rebooted once"
         return False
     r, _ = api.call_write("RebootCompShareInstance", loc(h))
     rec["reboots"].append(now_iso())
@@ -466,8 +480,9 @@ def do_reboot(a):
     h = wait_running(h, timeout=300)
     if not h:
         raise Unreachable("not Running within 5 minutes after reboot")
-    p = ssh(login(h), "uptime; nvidia-smi --query-gpu=name,memory.used --format=csv,noheader", timeout=120)
-    log("rebooted", ssh_ok=True, out=(p.stdout or "").strip()[-300:] if p else None)
+    # 重启后的第一次连接：拉起记录仪、取回记录仪日志（断连期间每分钟一行）和 diag，一次 ssh 做完
+    p = fetch_evidence(login(h), "after_reboot")
+    log("rebooted", ssh_ok=True, rc=p.returncode if p else None)
     return True
 
 
@@ -671,6 +686,96 @@ def do_image(a):
     return final is not None
 
 
+class _NoRedirect(__import__("urllib.request").request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kw):
+        return None
+
+
+def _http(url, timeout=8):
+    """不带任何登录信息访问 url：返回 (状态码, 跳转到哪类地址, 前 400 字节)。不跟随跳转。"""
+    import urllib.error
+    import urllib.request
+    op = urllib.request.build_opener(_NoRedirect)
+    try:
+        r = op.open(urllib.request.Request(url, headers={"User-Agent": "exposure-check"}), timeout=timeout)
+        return r.status, None, r.read(400).decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        loc = e.headers.get("Location") or ""
+        kind = None
+        if loc:
+            from urllib.parse import urlparse
+            kind = "login" if "login" in loc.lower() else ("same_host" if urlparse(loc).netloc in ("", urlparse(url).netloc)
+                                                            else "other_host")
+        return e.code, kind, ""
+    except Exception as e:
+        return None, None, type(e).__name__
+
+
+def _jupyter_open(base):
+    """base 下 Jupyter 的接口不带口令能不能用：/api/status、/api/contents 返回 200 且是 JSON。"""
+    res = {}
+    for path in ("/api/status", "/api/contents", "/lab"):
+        code, redir, body = _http(base.rstrip("/") + path)
+        res[path] = {"status": code, "redirect": redir,
+                     "json": body.strip().startswith("{") or body.strip().startswith("["),
+                     "jupyter_page": "jupyter" in body.lower()}
+    res["open_without_auth"] = bool(res["/api/contents"]["status"] == 200 and res["/api/contents"]["json"])
+    return res
+
+
+def do_exposure(a):
+    """从外网（GitHub 运行器，不经平台登录）看这台机器的 JupyterLab 能不能直接打开。
+    试三类地址：平台接口给的软件地址（GetSoftwareURL / DescribeCompShareSoftwarePort）、实例信息里出现的 IP、SSH 登录地址；
+    每个地址试 8888 端口和平台给的端口。结果只记地址的类别，不记地址本身。"""
+    import socket
+    h = our_machine()
+    out = {"instance_fields": sorted(h.keys()), "api": {}, "targets": []}
+    urls, hosts = [], []
+    for action, extra in (("DescribeCompShareSoftwarePort", {}), ("GetSoftwareURL", {"SoftwareName": "JupyterLab"}),
+                          ("GetSoftwareURL", {"Software": "JupyterLab"})):
+        try:
+            r, _ = api.call(action, {**loc(h), **extra})
+            out["api"][action + (":" + ",".join(extra) if extra else "")] = {
+                "RetCode": r.get("RetCode"), "Message": redact(r.get("Message"))[:120], "fields": sorted(r.keys())}
+            text = json.dumps(r, ensure_ascii=False)
+            urls += re.findall(r"https?://[^\s\"'\\]+", text)
+            ports = [int(x) for x in re.findall(r'"(?:Port|ExternalPort|PublicPort|HostPort)"\s*:\s*"?(\d+)', text)]
+            out["api"][action + (":" + ",".join(extra) if extra else "")]["ports_found"] = len(ports)
+            out.setdefault("_ports", []).extend(ports)
+        except Exception as e:
+            out["api"][action] = {"error": redact(f"{type(e).__name__}: {e}")[:120]}
+    hosts += [("instance_ip", ip) for ip in sorted(set(re.findall(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", json.dumps(h))))]
+    c = login(h)
+    hosts.append(("ssh_host", c["host"]))
+    for hst in {x for _, x in hosts}:
+        mask(hst)
+    ports = sorted(set([8888] + out.pop("_ports", [])))
+    for i, u in enumerate(sorted(set(urls))):
+        mask(u)
+        code, redir, body = _http(u)
+        t = {"target": f"software_url#{i + 1}", "status": code, "redirect": redir, "jupyter_page": "jupyter" in body.lower()}
+        if code == 200:
+            from urllib.parse import urlparse
+            q = urlparse(u)
+            t["jupyter"] = _jupyter_open(f"{q.scheme}://{q.netloc}{q.path}")
+        out["targets"].append(t)
+    for kind, hst in hosts:
+        for port in ports:
+            t = {"target": f"{kind}:{'8888' if port == 8888 else 'platform_port'}", "tcp_open": False}
+            try:
+                socket.create_connection((hst, port), timeout=5).close()
+                t["tcp_open"] = True
+                t["jupyter"] = _jupyter_open(f"http://{hst}:{port}")
+            except Exception as e:
+                t["error"] = type(e).__name__
+            out["targets"].append(t)
+    out["open_without_auth_anywhere"] = any((t.get("jupyter") or {}).get("open_without_auth") for t in out["targets"])
+    summary["exposure"] = out
+    data_write("relay/exposure.json", {"at": now_iso(), **out})
+    log("exposure", open_without_auth_anywhere=out["open_without_auth_anywhere"], targets=len(out["targets"]))
+    return True
+
+
 def do_destroy(a):
     h = our_machine()
     rec = data_json("relay/machine_health.json", {}).get(h["UHostId"], {}) if h else {}
@@ -681,7 +786,7 @@ def do_destroy(a):
             summary["destroy_refused"] = True
             return False
         summary["release_evidence"] = {"machine": h["UHostId"], "health": rec, "confirm": a["confirm_nothing_unsynced"]}
-        data_write("relay/released_unreachable.json", {"at": now_iso(), **summary["release_evidence"]})
+        data_write("relay/released_unreachable.json", lost_machines() + [{"at": now_iso(), **summary["release_evidence"]}])
     if h:     # 释放过的机器另记一份（开机时间、释放时间、单价），流水线估算花费时把它们也算进去
         m = data_json("relay/machine.json", {})
         data_append("relay/machines_past.jsonl", {"name": h.get("Name"), "uhost": h["UHostId"], "gpu": m.get("gpu"),
@@ -724,11 +829,42 @@ def do_fetch_tokenizer(a):
     log("fetch_tokenizer", files=got)
 
 
-ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "upload": do_upload,
+ACTIONS = {"fetch_tokenizer": do_fetch_tokenizer, "dscheck": do_dscheck, "stock": do_stock, "grab": do_grab, "start": do_start, "reboot": do_reboot, "exposure": do_exposure, "upload": do_upload,
            "run": do_run, "wait": do_wait, "sync": do_sync, "kill": do_kill, "image": do_image, "destroy": do_destroy}
 
 
 NEEDS_SSH = {"upload", "run", "wait", "sync", "kill"}
+# 断连后的第一次连接（重启后、或连不上之后又连上）：同一条命令里拉起记录仪、跑 diag、取回记录仪日志。
+# 那次连接可能是唯一的一次（旧机器重启后只连上过一次，3 秒后又被挡），所以三件事放进一次 ssh。
+EVIDENCE_CMD = (f"f={REMOTE}/repo/ops/remote/netwatch.sh; "
+                f"if [ -f $f ]; then pgrep -f ops/remote/netwatch.sh >/dev/null || (nohup setsid bash $f >/dev/null 2>&1 < /dev/null &); "
+                f"echo '== netwatch restarted:' $(pgrep -fc ops/remote/netwatch.sh); else echo '== netwatch.sh missing'; fi; "
+                f"echo '== netwatch log (last 400 lines)'; tail -n 400 {REMOTE}/out/diag/netwatch.jsonl 2>/dev/null; "
+                f"[ -f {REMOTE}/repo/ops/remote/diag.sh ] && bash {REMOTE}/repo/ops/remote/diag.sh")
+
+
+def fetch_evidence(c, why):
+    """一次 ssh 拉起记录仪并取回证据，存进数据分支 relay/evidence/<轮次>_<why>.txt（diag 已打码 IP）。"""
+    p = ssh(c, EVIDENCE_CMD, timeout=180)
+    text = re.sub(r"(\d{1,3}\.){3}\d{1,3}", "<ip>", (p.stdout or "") if p else "")
+    for m in _mask:
+        text = text.replace(m, "***")
+    path = os.path.join(data_checkout(), DATA_PREFIX, "relay", "evidence", f"{RUN_ID}_{why}.txt")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write(text)
+    summary.setdefault("evidence", []).append({"why": why, "bytes": len(text), "rc": p.returncode if p else None,
+                                               "file": f"relay/evidence/{RUN_ID}_{why}.txt"})
+    log("evidence", why=why, bytes=len(text))
+    return p
+
+
+def had_outage(h):
+    """这台机器最近一次连不上之后，还没有成功同步过（说明这是断连后的第一次连接）。"""
+    rec = data_json("relay/machine_health.json", {}).get(h["UHostId"], {})
+    if not rec.get("unreachable"):
+        return False
+    return rec.get("last_sync_ok", "") < rec["unreachable"][-1]["at"]
 
 
 def first_ssh_on_this_machine(actions):
@@ -771,9 +907,13 @@ def main():
         h = our_machine()
         if h and h.get("State") == "Running" and first_ssh_on_this_machine(REQ.get("actions", [])):
             CUR["id"] = h["UHostId"]
-            # 先确认连得上（连不上在两分钟内收尾）；顺手确认网络观察在跑（重启后要重新起）
-            ssh(login(h), f"f={REMOTE}/repo/ops/remote/netwatch.sh; [ -f $f ] && ! pgrep -f ops/remote/netwatch.sh >/dev/null "
-                          f"&& (nohup setsid bash $f >/dev/null 2>&1 < /dev/null &); true", timeout=60)
+            # 先确认连得上（连不上在两分钟内收尾）；顺手确认网络观察在跑（重启后要重新起）；
+            # 断连之后的第一次连接：同时取回断连期间的证据
+            if had_outage(h):
+                fetch_evidence(login(h), "after_outage")
+            else:
+                ssh(login(h), f"f={REMOTE}/repo/ops/remote/netwatch.sh; [ -f $f ] && ! pgrep -f ops/remote/netwatch.sh >/dev/null "
+                              f"&& (nohup setsid bash $f >/dev/null 2>&1 < /dev/null &); true", timeout=60)
         if h and h.get("State") in ("Running", "Starting", "Initializing"):
             heartbeat(h)
         for a in REQ.get("actions", []):

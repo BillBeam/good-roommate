@@ -27,6 +27,8 @@ READ_ONLY = frozenset({
     "GetCompShareInstancePrice",
     "GetCompShareImageCreateProgress",
     "DescribeCompShareCustomImages",
+    "GetSoftwareURL",
+    "DescribeCompShareSoftwarePort",
 })
 WRITE = frozenset({
     "CreateCompShareInstance",
