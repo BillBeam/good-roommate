@@ -1,5 +1,5 @@
 {
- "t": "2026-10-26T19:23:20Z",
- "phase": "pipeline",
- "stage": "selfcheck"
+ "t": "2026-10-26T19:28:05Z",
+ "phase": "eval:pre",
+ "stage": "start"
 }

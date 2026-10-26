@@ -16,12 +16,12 @@
    "no": 3,
    "name": "第 0 步采样端与训练端 logprob 之差",
    "pass": true,
-   "n": 37478,
-   "mean": 0.014978033309125444,
-   "p99": 0.12512660026550293,
-   "max": 1.0370557308197021,
+   "n": 35373,
+   "mean": 0.014898318483501058,
+   "p99": 0.12636137008666992,
+   "max": 0.6070001125335693,
    "segments": 24,
-   "mean_len": 2950.4583333333335
+   "mean_len": 2833.4583333333335
   },
   {
    "no": 4,
@@ -30,82 +30,121 @@
    "bs1_repeat_mean_abs_diff": 0.0,
    "bs1_repeat_p99_abs_diff": 0.0,
    "bs1_repeat_max_abs_diff": 0.0,
-   "bs2_vs_bs1_mean_abs_diff": 0.011407268136542014,
-   "bs2_vs_bs1_max_abs_diff": 0.32122039794921875,
-   "bs2_vs_bs1_p99_abs_diff": 0.11825823783874512,
-   "bs4_vs_bs1_mean_abs_diff": 0.010515137984186202,
-   "bs4_vs_bs1_max_abs_diff": 0.19936120510101318,
-   "bs4_vs_bs1_p99_abs_diff": 0.12002801895141602,
-   "grad_cosine_two_orders": 0.9999065399169922,
-   "grad_rel_diff": 0.013676784001290798,
+   "bs2_vs_bs1_mean_abs_diff": 0.008805690489969311,
+   "bs2_vs_bs1_max_abs_diff": 0.3496389389038086,
+   "bs2_vs_bs1_p99_abs_diff": 0.12130475044250488,
+   "bs4_vs_bs1_mean_abs_diff": 0.00874527791738827,
+   "bs4_vs_bs1_max_abs_diff": 0.5364599227905273,
+   "bs4_vs_bs1_p99_abs_diff": 0.11825323104858398,
+   "grad_cosine_two_orders": 0.999889075756073,
+   "grad_rel_diff": 0.014902682043612003,
    "criterion": "bs2、bs4 与 bs1 的平均差 < 0.02，且两种累加顺序的梯度余弦 > 0.999",
    "criterion_change": "原先看最大差（< 0.02）；BF16 下填充成批次后个别 token 的差可到 0.2 以上（第 3 项采样端与训练端的最大差也在 0.5 左右），最大差只反映个别 token 的舍入，改看平均差，最大差、p99 照样记录"
   },
   {
    "no": 1,
    "name": "LoRA 真的生效",
-   "pass": false,
-   "lora_effect_sampler": 0.10857782345872119,
-   "lora_effect_trainer": 0.1080709506943538,
-   "trainer_vs_sampler_with_lora": {
-    "n": 3735,
-    "mean": 0.04509496144309855,
-    "p99": 0.6891367435455322,
-    "max": 5.99943146109581
-   },
-   "trainer_vs_sampler_without_lora": {
-    "n": 3735,
-    "mean": 0.03821296495806989,
-    "p99": 0.5813257694244385,
-    "max": 1.9996709823608398
-   },
-   "lora_change_diff": {
-    "n": 3735,
-    "mean": 0.06022168658785379,
-    "p99": 0.935767412185669,
-    "max": 5.1344995200634
-   },
-   "lora_change_corr": 0.8523782303982255,
-   "generated_tokens_only": {
-    "tokens": 2434,
-    "lora_effect_sampler": 0.03227001230171388,
-    "trainer_vs_sampler_without_lora": {
-     "n": 2434,
-     "mean": 0.014017101485630854,
-     "p99": 0.12110686302185059,
-     "max": 0.30195093154907227
+   "pass": true,
+   "sigma_no_lora": 0.05433679369548704,
+   "tokens": 3479,
+   "test_lora_std": 0.02,
+   "correct": {
+    "effect_sampler": 0.9272225057695056,
+    "effect_trainer": 0.9257624472603269,
+    "effect_rel_diff": 0.0015771416452455959,
+    "change_diff": {
+     "n": 3479,
+     "mean": 0.10952727731721919,
+     "p99": 1.7673567533493042,
+     "max": 14.854586392641068
     },
-    "trainer_vs_sampler_with_lora": {
-     "n": 2434,
-     "mean": 0.014885016712593273,
-     "p99": 0.12056970596313477,
-     "max": 0.3488175868988037
+    "change_diff_over_sigma": 2.0157110839301513,
+    "corr": 0.9809039713223957,
+    "pass": true
+   },
+   "injected_faults": {
+    "fault_sampler_without_lora": {
+     "effect_sampler": 0.0,
+     "effect_trainer": 0.9257624472603269,
+     "effect_rel_diff": 1.0,
+     "change_diff": {
+      "n": 3479,
+      "mean": 0.9257624472603269,
+      "p99": 10.710243672132492,
+      "max": 20.866008043289185
+     },
+     "change_diff_over_sigma": 17.03748757146884,
+     "corr": null,
+     "pass": false
     },
-    "lora_change_diff": {
-     "n": 2434,
-     "mean": 0.022198298531137407,
-     "p99": 0.18916702270507812,
-     "max": 0.3795955181121826
+    "fault_wrong_layer": {
+     "effect_sampler": 0.946026319581997,
+     "effect_trainer": 0.9257624472603269,
+     "effect_rel_diff": 0.02188884673561607,
+     "change_diff": {
+      "n": 3479,
+      "mean": 1.0225729000981543,
+      "p99": 10.923202038946329,
+      "max": 19.502648173598573
+     },
+     "change_diff_over_sigma": 18.81916157638658,
+     "corr": 0.48356040392259036,
+     "pass": false
+    },
+    "fault_scale_x2": {
+     "effect_sampler": 2.2292581426448344,
+     "effect_trainer": 0.9257624472603269,
+     "effect_rel_diff": 1.4080239474414122,
+     "change_diff": {
+      "n": 3479,
+      "mean": 2.001286328814656,
+      "p99": 16.68756440281868,
+      "max": 26.300616189837456
+     },
+     "change_diff_over_sigma": 36.83114502541716,
+     "corr": 0.43242962644357347,
+     "pass": false
     }
    },
-   "tokens": 3735,
-   "lora_b_std": 0.002,
-   "criterion": "两端的 LoRA 效应都大于不带 LoRA 时两端差的 2 倍；逐 token 的 LoRA 变化两端之差 < 效应的 25%；加上 LoRA 后两端差只多 < 0.01；带 LoRA 时两端差均值 < 0.05",
-   "original_rule": "两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
-   "original_rule_pass": false,
-   "criterion_change": "原规则拿效应和带 LoRA 时两端的总差比，总差里大部分是不带 LoRA 时就有的数值差（提示部分低概率 token 的 BF16 误差），结果取决于 LoRA 初值的大小（std 0.002）；改为逐 token 比两端的 LoRA 变化（原有差相减抵掉），并要求加 LoRA 不增加两端差"
+   "faults_caught": {
+    "fault_sampler_without_lora": true,
+    "fault_wrong_layer": true,
+    "fault_scale_x2": true
+   },
+   "small_lora": {
+    "std": 0.002,
+    "effect_sampler": 0.14499475532606912,
+    "effect_trainer": 0.14949073092246173,
+    "effect_rel_diff": 0.030075280043446975,
+    "change_diff": {
+     "n": 3479,
+     "mean": 0.08934384073399802,
+     "p99": 1.5115752220153809,
+     "max": 21.163851585704833
+    },
+    "change_diff_over_sigma": 1.6442604478044223,
+    "corr": 0.6563916791882483,
+    "pass": false
+   },
+   "generated_tokens_only": {
+    "tokens": 2012,
+    "sigma_no_lora": 0.01663370518171835
+   },
+   "criterion": "σ = 不带 LoRA 时采样端与训练端 logprob 之差的均值（BF16 噪声）。测试 LoRA（B 初值 std 0.02）下：两端效应都 > 5σ，两端效应相差 ≤ 15%，逐 token 的 LoRA 变化两端之差的均值 ≤ 4σ；并且同一规则对注入的三种故障（采样端没带 LoRA、LoRA 对错层、比例 ×2）都判不通过",
+   "original_rule": "（std 0.002 的 LoRA）两端效应都大于带 LoRA 时两端差均值的 5 倍，且该均值 < 0.05",
+   "criterion_change": "std 0.002 时 LoRA 效应（约 0.11）和 BF16 噪声（σ 约 0.04）同一量级，两端差带不带 LoRA 时的舍入并不相同、相减抵不掉（逐 token 变化之差 0.060 ≈ √(0.045²+0.038²)），按原规则这个大小的LoRA 永远过不了，也分不出对错；改为放大测试 LoRA 并以 σ 为尺度判，同时在自检里注入三种故障，证明规则判得出来"
   },
   {
    "no": 2,
    "name": "2–3k token 真实 prompt 带 LoRA 生成：无 NaN、无乱码",
    "pass": true,
-   "prompt_tokens": 2291,
+   "prompt_tokens": 2300,
    "T1.0": {
-    "tokens": 687,
+    "tokens": 545,
     "nan": 0,
     "replacement_chars": 0,
     "printable_frac": 1.0,
-    "distinct_8gram_frac": 0.9727427597955707,
+    "distinct_8gram_frac": 0.8595890410958904,
     "has_think_end": true
    },
    "T0.0": {
@@ -113,7 +152,7 @@
     "nan": 0,
     "replacement_chars": 0,
     "printable_frac": 1.0,
-    "distinct_8gram_frac": 0.6829745596868885,
+    "distinct_8gram_frac": 0.6541554959785523,
     "has_think_end": false
    }
   },
@@ -122,73 +161,115 @@
    "name": "优势符号单步测试；逐 token logprob；温度没被改写",
    "pass": true,
    "adv+1": {
-    "before": -1.3024497032165527,
-    "after": -0.9988679885864258,
-    "delta": 0.30358171463012695,
+    "before": -0.9278476238250732,
+    "after": -0.6559342741966248,
+    "delta": 0.2719133496284485,
     "lora_dtype": "torch.float32"
    },
    "adv-1": {
-    "before": -1.3024497032165527,
-    "after": -2.9379987716674805,
-    "delta": -1.6355490684509277,
+    "before": -0.9278476238250732,
+    "after": -2.581285238265991,
+    "delta": -1.653437614440918,
     "lora_dtype": "torch.float32"
    },
-   "generated_tokens": 39034,
-   "with_sampler_logprob": 39034,
+   "generated_tokens": 36776,
+   "with_sampler_logprob": 36776,
    "stop_token_appended": 0,
    "temperature_test": {
     "T1.0": {
-     "n": 1135,
-     "top1_freq": 0.7964757709251101,
-     "mean_p_top1": 0.7979136977686251,
-     "z": -0.16415934389646125
+     "n": 850,
+     "top1_freq": 0.7670588235294118,
+     "mean_p_top1": 0.7754955126997128,
+     "z": -0.8026285178800912
     },
     "T0.6": {
-     "n": 859,
-     "top1_freq": 0.8975552968568102,
-     "mean_p_top1": 0.7886186389686549,
-     "z": 9.993832355432621
+     "n": 1007,
+     "top1_freq": 0.8887785501489573,
+     "mean_p_top1": 0.7909281595776458,
+     "z": 9.752252584629277
     }
    }
   },
   {
    "no": 6,
    "name": "训练样本的 token 序列与采样时看到的逐 token 一致",
-   "pass": false,
+   "pass": true,
+   "exact_calls_checked": 80,
+   "exact_calls_mismatched": 0,
    "rescore_vs_rollout": {
-    "n": 18246,
-    "mean": 0.012515100556414731,
-    "p99": 0.11919260025024414,
-    "max": 0.5420899391174316
+    "n": 15018,
+    "mean": 0.012848196546808518,
+    "p99": 0.11959457397460938,
+    "max": 0.291733980178833
    },
-   "segments_equal_to_template_rendering": 8,
-   "segments_checked": 24
+   "injected_faults": {
+    "inserted_token": {
+     "exact_mismatched_calls": 4,
+     "rescore": {
+      "n": 1460,
+      "mean": 0.01930654934178649,
+      "p99": 0.18268954753875732,
+      "max": 0.5732400417327881
+     },
+     "caught": true
+    },
+    "first_turn_thinking_deleted": {
+     "exact_mismatched_calls": 4,
+     "caught": true
+    },
+    "logprob_shifted_by_one": {
+     "rescore": {
+      "n": 1456,
+      "mean": 0.9932891763114247,
+      "p99": 8.163102984428406,
+      "max": 15.698104079812765
+     },
+     "caught": true
+    }
+   },
+   "segments_equal_to_template_rendering": 6,
+   "segments_checked": 24,
+   "criterion": "逐次调用核对：训练样本 = 发给采样端的序列 + 采样端返回的序列（指纹比对，零容差）；整段重新打分和采样时 logprob 之差：均值 < 0.02，p99 < 0.5（查 logprob 对错位置；最大差照记）；并且对注入的三种不一致（前文多一个 token、第一轮思考被删、logprob 错开一位）都判不通过",
+   "original_rule": "整段重新打分和采样时 logprob 之差：均值 < 0.02，最大差 < 0.5",
+   "original_rule_pass": true,
+   "criterion_change": "原规则只靠数值比：单个 token 的 BF16 舍入就能超过最大差门槛（17:44 那次 18246 个 token 里最大 0.54，均值 0.0125），而前文差一个 token 时数值不一定变大；改为指纹逐 token 核对（零容差）判序列一致，数值比只查 logprob 位置，用均值和 p99"
   },
   {
    "no": 7,
    "name": "只有模型生成的 token 计入 loss",
-   "pass": false,
-   "spans_checked": 98,
-   "spans_with_non_generated_text": 1
+   "pass": true,
+   "spans_checked": 80,
+   "loss_tokens_not_from_sampler": 0,
+   "injected_fault": {
+    "tool_response_tokens_marked_as_loss": 5,
+    "caught": true
+   },
+   "old_rule_flags": 0,
+   "old_rule_flags_not_all_from_sampler": 0,
+   "flag_examples": [],
+   "criterion": "计入 loss 的每个 token 都在采样端返回的范围里（按每次调用的指纹逐 token 核对；采样端停下但没返回的停止 token 除外）；并且把工具返回的 token 错算进 loss 时判不通过",
+   "original_rule": "计入 loss 的片段里没有模板标记，也不含任何一条完整的工具结果或用户第一句话的前 30 字",
+   "original_rule_pass": true,
+   "criterion_change": "原规则按文字找，模型在思考里原样引用工具结果或用户的话也会被标成\"不是生成的\"；改为逐 token 核对是不是采样端生成的（精确）；原规则标出的片段照记，并注明是否全是采样端生成的"
   },
   {
    "no": 8,
    "name": "1、8、32 路并发采样时吞吐随并发数上升",
    "pass": true,
    "c1": {
-    "seconds": 1.9304802417755127,
+    "seconds": 1.9369292259216309,
     "gen_tokens": 256,
-    "tokens_per_s": 132.60948983582975
+    "tokens_per_s": 132.16796802587865
    },
    "c8": {
-    "seconds": 2.303987741470337,
+    "seconds": 2.3080689907073975,
     "gen_tokens": 2048,
-    "tokens_per_s": 888.8936182850638
+    "tokens_per_s": 887.3218297397215
    },
    "c32": {
-    "seconds": 3.0582923889160156,
+    "seconds": 3.074645757675171,
     "gen_tokens": 8192,
-    "tokens_per_s": 2678.6189671366187
+    "tokens_per_s": 2664.3719783166857
    }
   },
   {
@@ -197,107 +278,107 @@
    "pass": true,
    "rewards": [
     [
-     0.85,
-     -0.44999999999999996
-    ],
-    [
-     -0.15,
-     0.85
-    ],
-    [
-     0.85,
-     0.55
-    ],
-    [
      0.7,
      0.85
     ],
     [
      0.85,
-     -0.15
+     -0.44999999999999996
     ],
     [
      0.85,
      -0.15
     ],
     [
-     0.85,
-     -0.75
+     0.7,
+     0.7
     ],
     [
      0.85,
-     0.55
+     -0.6
+    ],
+    [
+     0.85,
+     -0.44999999999999996
+    ],
+    [
+     0.85,
+     -0.15
+    ],
+    [
+     -0.15,
+     -0.44999999999999996
     ]
    ],
    "returns": [
+    [
+     1.5499999999999998,
+     0.85
+    ],
     [
      0.4,
      -0.44999999999999996
     ],
     [
      0.7,
-     0.85
+     -0.15
     ],
     [
      1.4,
-     0.55
+     0.7
     ],
     [
-     1.5499999999999998,
-     0.85
+     0.25,
+     -0.6
+    ],
+    [
+     0.4,
+     -0.44999999999999996
     ],
     [
      0.7,
      -0.15
     ],
     [
-     0.7,
-     -0.15
-    ],
-    [
-     0.09999999999999998,
-     -0.75
-    ],
-    [
-     1.4,
-     0.55
+     -0.6,
+     -0.44999999999999996
     ]
    ],
    "advantages": [
     [
-     -0.9556641090265453,
-     -1.0644612270682672
+     1.5009073892222866,
+     1.8026519985088068
     ],
     [
-     -0.3440390792495563,
-     1.1948034181378506
+     -0.3159805029941656,
+     -0.6970254394234052
     ],
     [
-     1.083085990230085,
-     0.6734346538595158
+     0.1579902514970828,
+     -0.12017679990058712
     ],
     [
-     1.3888985051185794,
-     1.1948034181378506
+     1.2639220119766625,
+     1.5142276787473976
     ],
     [
-     -0.3440390792495563,
-     -0.5430924627899322
+     -0.5529658802397899,
+     -0.9854497591848144
     ],
     [
-     -0.3440390792495563,
-     -0.5430924627899322
+     -0.3159805029941656,
+     -0.6970254394234052
     ],
     [
-     -1.5672891388035346,
-     -1.585829991346602
+     0.1579902514970828,
+     -0.12017679990058712
     ],
     [
-     1.083085990230085,
-     0.6734346538595158
+     -1.895883017964994,
+     -0.6970254394234052
     ]
    ],
-   "items": 16,
+   "items": 17,
    "memory": {
     "memory_entries": 8,
     "same_memory": true,
@@ -315,5 +396,5 @@
    }
   }
  ],
- "all_pass": false
+ "all_pass": true
 }
