@@ -1,0 +1,51 @@
+/root/work/models/Qwen3.5-4B/chat_template.jinja: OK
+/root/work/models/Qwen3.5-4B/tokenizer.json: OK
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+(MainProcess pid=2028) INFO 10-26 17:14:09 [api_utils.py:286] non-default args: {'dtype': 'bfloat16', 'max_model_len': 4096, 'gpu_memory_utilization': 0.5, 'disable_log_stats': True, 'generation_config': 'vllm', 'model': '/root/work/models/Qwen3.5-4B'}
+(MainProcess pid=2028) INFO 10-26 17:14:18 [model.py:699] Resolved architecture: Qwen3_5ForConditionalGeneration
+(MainProcess pid=2028) INFO 10-26 17:14:18 [model.py:2109] Using max model len 4096
+(MainProcess pid=2028) WARNING 10-26 17:14:18 [model.py:1069] Model does not support mm_device_do_normalize, forcing mm_device_do_normalize = False.
+(MainProcess pid=2028) INFO 10-26 17:14:19 [scheduler.py:308] Chunked prefill is enabled with max_num_batched_tokens=16384.
+(MainProcess pid=2028) INFO 10-26 17:14:19 [config.py:643] Mamba cache mode is set to 'align' for Qwen3_5ForConditionalGeneration by default when prefix caching is enabled
+(MainProcess pid=2028) INFO 10-26 17:14:19 [kernel.py:408] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])
+(MainProcess pid=2028) WARNING 10-26 17:14:28 [system_utils.py:152] We must use the `spawn` multiprocessing start method. Overriding VLLM_WORKER_MULTIPROC_METHOD to 'spawn'. See https://docs.vllm.ai/en/latest/usage/troubleshooting.html#python-multiprocessing for more information. Reasons: CUDA is initialized
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.10/multiprocessing/spawn.py", line 116, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/usr/lib/python3.10/multiprocessing/spawn.py", line 125, in _main
+    prepare(preparation_data)
+  File "/usr/lib/python3.10/multiprocessing/spawn.py", line 236, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/usr/lib/python3.10/multiprocessing/spawn.py", line 287, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+  File "/usr/lib/python3.10/runpy.py", line 288, in run_path
+    code, fname = _get_code_from_file(run_name, path_name)
+  File "/usr/lib/python3.10/runpy.py", line 252, in _get_code_from_file
+    with io.open_code(decoded_path) as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/root/work/repo/<stdin>'
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/entrypoints/llm.py", line 344, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/llm_engine.py", line 185, in from_engine_args
+    return cls(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/llm_engine.py", line 111, in __init__
+    self.engine_core = EngineCoreClient.make_client(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/core_client.py", line 126, in make_client
+    return SyncMPClient(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/tracing/otel.py", line 175, in sync_wrapper
+    return func(*args, **kwargs)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/core_client.py", line 917, in __init__
+    super().__init__(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/core_client.py", line 674, in __init__
+    with launch_core_engines(
+  File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+    next(self.gen)
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/utils.py", line 1268, in launch_core_engines
+    wait_for_engine_startup(
+  File "/root/work/venv/lib/python3.10/site-packages/vllm/v1/engine/utils.py", line 1348, in wait_for_engine_startup
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+[transformers] Qwen3VL video processing does not apply the per-frame pixel cap the reference implementation (qwen-vl-utils) applies, so some videos cost far more tokens than they would there. In v5.22 the capped behavior will become the default and `cap_pixels_per_frame` will be removed. Pass `cap_pixels_per_frame=True` to adopt the reference behavior now, or `False` to keep the current behavior and silence this warning.
+(MainProcess pid=2028) INFO 10-26 17:14:47 [base.py:255] Multi-modal warmup completed in 18.765s
