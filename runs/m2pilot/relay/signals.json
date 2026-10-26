@@ -1,11 +1,28 @@
 {
- "at": "2026-10-26T19:23:19+00:00",
+ "at": "2026-10-26T19:35:19+00:00",
  "state": "Running",
  "monitor_messages": {
   "CpuUsageRate": "",
   "MemUsageRate": "",
   "GpuInfo": null
  },
+ "monitor_param_forms": [
+  {
+   "form": "string",
+   "RetCode": 230,
+   "Message": "Params [api.GetCompShareInstanceMonitorRequest.UHostIds] not available"
+  },
+  {
+   "form": "json_array",
+   "RetCode": 230,
+   "Message": "Params [api.GetCompShareInstanceMonitorRequest.UHostIds] not available"
+  },
+  {
+   "form": "indexed",
+   "RetCode": 210,
+   "Message": "Missing params [UHostIds]"
+  }
+ ],
  "monitor_retcode": 210,
  "monitor_message": "Missing params [UHostIds]",
  "monitor_fields": [
