@@ -1,5 +1,5 @@
 {
- "at": "2026-10-26T19:36:50+00:00",
+ "at": "2026-10-26T19:37:57+00:00",
  "state": "Running",
  "monitor_messages": {
   "CpuUsageRate": "",
@@ -8,26 +8,96 @@
  },
  "monitor_param_forms": [
   {
-   "form": "json_body",
+   "form": "json_body_sig_flat",
    "RetCode": 171,
    "Message": "Signature VerifyAC Error"
   },
   {
-   "form": "indexed",
-   "RetCode": 210,
-   "Message": "Missing params [UHostIds]"
+   "form": "json_body_sig_json",
+   "RetCode": 171,
+   "Message": "Signature VerifyAC Error"
+  },
+  {
+   "form": "json_body_sig_join",
+   "RetCode": 0,
+   "Message": "None"
   }
  ],
- "monitor_retcode": 210,
- "monitor_message": "Missing params [UHostIds]",
+ "monitor_retcode": 0,
+ "monitor_message": null,
  "monitor_fields": [
-  "Message",
+  "Action",
+  "Data",
   "RetCode",
   "request_uuid"
  ],
- "metrics": {},
+ "metrics": {
+  "uhost_cpu_used": {
+   "points": 2,
+   "last": [
+    1793043478,
+    5.0
+   ],
+   "max": 5.0,
+   "min": 5.0,
+   "span_s": 60
+  },
+  "cloudwatch_memory_usage": {
+   "points": 2,
+   "last": [
+    1793043478,
+    6.0
+   ],
+   "max": 6.0,
+   "min": 6.0,
+   "span_s": 60
+  },
+  "cloudwatch_sys_disk_used_per": {
+   "points": 2,
+   "last": [
+    1793043478,
+    23.0
+   ],
+   "max": 23.0,
+   "min": 23.0,
+   "span_s": 60
+  },
+  "cloudwatch_data_disk_used_per": {
+   "points": 6,
+   "last": [
+    1793043478,
+    28.0
+   ],
+   "max": 28.0,
+   "min": 0.0,
+   "span_s": 60
+  },
+  "cloudwatch_gpu_memory_usage": {
+   "points": 2,
+   "last": [
+    1793043478,
+    86.0
+   ],
+   "max": 86.0,
+   "min": 86.0,
+   "span_s": 60
+  },
+  "cloudwatch_gpu_util": {
+   "points": 2,
+   "last": [
+    1793043478,
+    100.0
+   ],
+   "max": 100.0,
+   "min": 100.0,
+   "span_s": 60
+  }
+ },
+ "gpu_metric": "cloudwatch_gpu_util",
+ "gpu_util_max": 100.0,
+ "gpu_window_s": 60,
  "verdict": [
-  "unknown_before_end",
-  "no usable GPU signal; main line not past its expected end 2026-10-27T07:23:17+00:00"
+  "working",
+  "GPU utilisation up to 100% in the last 1 min"
  ]
 }
