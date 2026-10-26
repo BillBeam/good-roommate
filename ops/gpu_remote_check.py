@@ -75,6 +75,34 @@ def du(path):
     return total
 
 
+PY = "python3"
+
+
+def find_python():
+    """The image's real environment is often not on the non-login PATH."""
+    global PY
+    cands = sh("bash -lc 'command -v python python3'; ls -1 /usr/local/bin/python3 /opt/conda/bin/python "
+               "/root/miniconda3/bin/python /opt/venv/bin/python /root/venv/bin/python /usr/bin/python3 "
+               "2>/dev/null; ls -1d /opt/*/bin/python /root/*/bin/python 2>/dev/null")["stdout"].split()
+    seen, info = [], {}
+    for c in cands:
+        if c in seen:
+            continue
+        seen.append(c)
+        x = sh(f"{c} -c \"import importlib.util as u,sys;print(sys.version.split()[0],"
+               f"[m for m in ('torch','pip','jinja2','tokenizers','modelscope','transformers') if u.find_spec(m)])\"", 30)
+        info[c] = x["stdout"].strip() or x["stderr"][-200:]
+    with_torch = [c for c in seen if "'torch'" in info.get(c, "")]
+    with_pip = [c for c in seen if "'pip'" in info.get(c, "")]
+    PY = (with_torch or with_pip or ["python3"])[0]
+    r = {"candidates": info, "chosen": PY}
+    if PY not in with_pip:
+        r["ensurepip"] = sh(f"{PY} -m ensurepip --upgrade 2>&1 | tail -2", 120)
+        if sh(f"{PY} -m pip --version")["rc"] != 0:
+            r["apt_pip"] = sh("(apt-get update -qq && apt-get install -y -qq python3-pip) 2>&1 | tail -3", 300)
+    return r
+
+
 def gpu():
     r = {"nvidia_smi": sh("nvidia-smi"),
          "query": sh("nvidia-smi --query-gpu=name,driver_version,memory.total,compute_cap --format=csv,noheader"),
@@ -84,7 +112,7 @@ def gpu():
     for tok in ("Driver Version:", "CUDA Version:"):
         if tok in head:
             r[tok.split()[0].lower() + "_version"] = head.split(tok, 1)[1].split()[0]
-    r["torch"] = sh("python3 -c \"import torch,json;a=torch.randn(512,512,device='cuda',dtype=torch.bfloat16);"
+    r["torch"] = sh(f"{PY} -c \"import torch,json;a=torch.randn(512,512,device='cuda',dtype=torch.bfloat16);"
                     "b=(a@a).float().abs().mean().item();print(json.dumps({'torch':torch.__version__,"
                     "'cuda':torch.version.cuda,'device':torch.cuda.get_device_name(0),"
                     "'bf16_supported':torch.cuda.is_bf16_supported(),'bf16_matmul_ok':b==b}))\"", timeout=180)
@@ -97,11 +125,11 @@ def disk():
 
 
 def pydeps():
-    r = {"before": sh("python3 -c \"import importlib.util as u;print({m:bool(u.find_spec(m)) for m in "
+    r = {"before": sh(PY + " -c \"import importlib.util as u;print({m:bool(u.find_spec(m)) for m in "
                       "['modelscope','jinja2','tokenizers','transformers','huggingface_hub','torch']})\"")}
-    r["pip_install"] = sh(f"python3 -m pip install -q -i {PIP_MIRROR} modelscope jinja2 tokenizers 2>&1 | tail -5",
+    r["pip_install"] = sh(f"{PY} -m pip install -q -i {PIP_MIRROR} modelscope jinja2 tokenizers 2>&1 | tail -5",
                           timeout=600)
-    r["pip_config"] = sh("python3 -m pip config list; cat /etc/pip.conf ~/.pip/pip.conf ~/.config/pip/pip.conf 2>/dev/null")
+    r["pip_config"] = sh(f"{PY} -m pip config list; cat /etc/pip.conf ~/.pip/pip.conf ~/.config/pip/pip.conf 2>/dev/null")
     return r
 
 
@@ -109,39 +137,75 @@ def ms_download(patterns, local_dir, timeout):
     code = ("import json,time,sys\nfrom modelscope import snapshot_download\n"
             f"t=time.time();p=snapshot_download({MODEL!r},allow_patterns={patterns!r},local_dir={local_dir!r})\n"
             "print(json.dumps({'path':p,'seconds':round(time.time()-t,2)}))\n")
-    return sh(f"python3 - <<'PY'\n{code}PY", timeout=timeout)
+    return sh(f"{PY} - <<'PY'\n{code}PY", timeout=timeout)
+
+
+def curl(url, dest, timeout=120, tries=4):
+    for i in range(tries):
+        x = sh(f"curl -sSL --fail -m {timeout} -o {dest} -w '%{{http_code}} %{{size_download}} %{{time_total}}' '{url}'",
+               timeout + 30)
+        x["try"] = i + 1
+        if x["rc"] == 0 or "429" not in x["stdout"] + x["stderr"]:
+            break
+        time.sleep(10 * (i + 1))  # rate limited: back off
+    if x["rc"] != 0 and os.path.exists(dest):
+        os.remove(dest)  # never feed a partial file to the template check
+    x["sha256"] = sha256(dest) if x["rc"] == 0 else None
+    return x
+
+
+MS_URL = "https://www.modelscope.cn/models/{m}/resolve/master/{f}"
+HFM_URL = "https://hf-mirror.com/{m}/resolve/{rev}/{f}"
 
 
 def tokenizer_dl():
-    r = {}
-    d = os.path.join(WORK, "ms")
-    r["modelscope"] = ms_download(TOKENIZER_FILES, d, 300)
-    r["modelscope_files"] = {f: sha256(os.path.join(d, f)) for f in TOKENIZER_FILES if os.path.exists(os.path.join(d, f))}
-    h = os.path.join(WORK, "hfm")
+    r = {"cpu_reference_chat_template_sha256":
+         open(os.path.join(BUNDLE, "chat_template.jinja.sha256")).read().split()[0]}
+    d, h = os.path.join(WORK, "ms"), os.path.join(WORK, "hfm")
+    os.makedirs(d, exist_ok=True)
     os.makedirs(h, exist_ok=True)
-    r["hf_mirror_pinned"] = {}
-    for f in ("tokenizer.json", "chat_template.jinja", "tokenizer_config.json"):
-        url = f"https://hf-mirror.com/{MODEL}/resolve/{HF_SHA}/{f}"
-        x = sh(f"curl -sSL --fail -m 120 -o {h}/{f} -w '%{{http_code}} %{{size_download}} %{{time_total}}' {url}", 150)
-        x["sha256"] = sha256(os.path.join(h, f)) if x["rc"] == 0 else None
-        if x["rc"] != 0 and os.path.exists(os.path.join(h, f)):
-            os.remove(os.path.join(h, f))  # never feed a partial file to the template check
-        r["hf_mirror_pinned"][f] = x
-    r["cpu_reference_chat_template_sha256"] = open(os.path.join(BUNDLE, "chat_template.jinja.sha256")).read().split()[0]
+    t0 = time.time()
+    r["modelscope_curl"] = {f: curl(MS_URL.format(m=MODEL, f=f), os.path.join(d, f)) for f in TOKENIZER_FILES}
+    r["modelscope_curl_seconds"] = round(time.time() - t0, 2)
+    t0 = time.time()
+    r["hf_mirror_pinned"] = {f: curl(HFM_URL.format(m=MODEL, rev=HF_SHA, f=f), os.path.join(h, f))
+                             for f in ("tokenizer.json", "chat_template.jinja", "tokenizer_config.json")}
+    r["hf_mirror_seconds"] = round(time.time() - t0, 2)
+    if sh(f"{PY} -c 'import modelscope'")["rc"] == 0:
+        r["modelscope_sdk"] = ms_download(TOKENIZER_FILES, os.path.join(WORK, "ms_sdk"), 300)
     return r
 
 
 def weights_dl():
     d = os.path.join(WORK, "ms")
-    budget = max(60, int(left() - 420))  # leave time for the template check and teardown
-    r = {"budget_seconds": budget,
-         "modelscope": ms_download(["*.safetensors", "*.json", "*.jinja", "*.txt"], d, budget)}
-    r["bytes"] = du(d)
-    r["safetensors"] = sorted(f for f in os.listdir(d) if f.endswith(".safetensors")) if os.path.isdir(d) else []
+    budget = max(60, int(left() - 300))  # leave time for teardown
+    r = {"budget_seconds": budget, "files": {}}
     idx = os.path.join(d, "model.safetensors.index.json")
-    if os.path.exists(idx):
-        r["index_total_size"] = json.load(open(idx)).get("metadata", {}).get("total_size")
+    r["index"] = curl(MS_URL.format(m=MODEL, f="model.safetensors.index.json"), idx)
+    shards = []
+    if r["index"]["rc"] == 0:
+        meta = json.load(open(idx))
+        r["index_total_size"] = meta.get("metadata", {}).get("total_size")
+        shards = sorted(set(meta.get("weight_map", {}).values()))
+    t0 = time.time()
+    for f in shards:
+        per = max(60, int(budget - (time.time() - t0)))
+        if per <= 60 and r["files"]:
+            r["files"][f] = {"skipped": "out of time"}
+            continue
+        r["files"][f] = curl(MS_URL.format(m=MODEL, f=f), os.path.join(d, f), timeout=per, tries=2)
+    r["seconds"] = round(time.time() - t0, 2)
+    r["bytes"] = sum(os.path.getsize(os.path.join(d, f)) for f in shards if os.path.exists(os.path.join(d, f)))
+    r["all_shards_ok"] = bool(shards) and all(v.get("rc") == 0 for v in r["files"].values())
+    if r["seconds"]:
+        r["mb_per_s"] = round(r["bytes"] / r["seconds"] / 1e6, 1)
     return r
+
+
+def model_library():
+    """Compshare mounts a shared model library at /model; see whether Qwen3.5-4B is there."""
+    return {"ls": sh("ls /model 2>&1 | head -50"),
+            "find": sh("find /model -maxdepth 4 -iname '*qwen3.5*4b*' 2>/dev/null | head -20", 120)}
 
 
 def template_check():
@@ -153,7 +217,7 @@ def template_check():
         if not (os.path.exists(tpl) and os.path.exists(tok)):
             r[label] = {"skipped": "tokenizer files missing"}
             continue
-        x = sh(f"python3 {BUNDLE}/token_check.py {tpl} {tok} " + " ".join(probes), 300)
+        x = sh(f"{PY} {BUNDLE}/token_check.py {tpl} {tok} " + " ".join(probes), 300)
         try:
             gpu_rows = json.loads(x["stdout"])
             x["identical_to_cpu_result"] = gpu_rows == cpu
@@ -175,12 +239,14 @@ else:
 os.makedirs(WORK, exist_ok=True)
 
 result["started_unix"] = time.time()
+step("python", find_python)
 step("gpu", gpu)
 step("disk", disk)
 step("pydeps", pydeps)
 step("tokenizer_download", tokenizer_dl)
 step("template_check", template_check)
 step("weights_download", weights_dl)
+step("model_library", model_library)
 step("disk_after", disk)
 result["finished_unix"] = time.time()
 save()
