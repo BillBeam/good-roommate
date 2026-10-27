@@ -127,6 +127,13 @@ def main(argv=None):
     ap.add_argument("--gpu-util", type=float, default=0.40)
     ap.add_argument("--sleep-mode", action="store_true")
     args = ap.parse_args(argv)
+    if args.seed == 2:
+        # 种子 2 跑不跑，按 seed2_rule 的规则（种子 1 考试出结果之前定的）：GRPO 后不高于 SFT 后就不跑
+        from .seed2_rule import SKIP_RC, decide
+        d = decide()
+        if not d["run_seed2"]:
+            status("grpo_s2", stage="skipped_by_rule", diff=round(d["diff"], 4), sessions=d["sessions"])
+            raise SystemExit(SKIP_RC)
     from .trainer import Trainer
     tag = f"grpo_s{args.seed}"
     out = os.path.join(OUT, tag)

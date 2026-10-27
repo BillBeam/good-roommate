@@ -21,6 +21,7 @@ import sys
 import time
 
 from . import serve
+from .seed2_rule import SKIP_RC
 from .common import CKPT, OUT, dump, load, status
 
 STAGES = ["selfcheck", "eval_pre", "sft", "eval_sft", "grpo1", "eval_grpo1", "grpo2", "eval_grpo2"]
@@ -139,6 +140,10 @@ def main(argv=None):
         if rc == 0:
             state["done"].append(st)
         dump(sp, state)
+        if st == "grpo2" and rc == SKIP_RC:
+            # 按 seed2_rule（种子 1 考试出结果之前定的）：GRPO 种子 1 后不高于 SFT 后，种子 2 的训练和考试都不跑
+            status("pipeline", stage="seed2_skipped_by_rule", done=state["done"])
+            return
         if rc != 0:
             status("pipeline", stage="failed", failed=st, rc=rc)
             return
