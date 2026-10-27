@@ -40,23 +40,43 @@
   "artifact": "m2pilot-ckpt-40388710633"
  },
  "ckpt_export/grpo_s1_latest/adapter_model.safetensors": {
-  "v": "129927008:1793063363.8471371050",
-  "artifact": "m2pilot-ckpt-40414006612"
+  "v": "129927008:1793068405.6727955200",
+  "artifact": "m2pilot-ckpt-40425261226"
  },
  "ckpt_export/grpo_s1_latest/README.md": {
-  "v": "5180:1793063363.6591346260",
-  "artifact": "m2pilot-ckpt-40414006612"
+  "v": "5180:1793068405.5087945940",
+  "artifact": "m2pilot-ckpt-40425261226"
  },
  "ckpt_export/grpo_s1_latest/trainer_state.pt": {
-  "v": "260152661:1793063365.0151525060",
-  "artifact": "m2pilot-ckpt-40414006612"
+  "v": "260152661:1793068406.7848018030",
+  "artifact": "m2pilot-ckpt-40425261226"
  },
  "ckpt_export/grpo_s1_latest/extra.json": {
-  "v": "21608:1793063366.5871732360",
-  "artifact": "m2pilot-ckpt-40414006612"
+  "v": "25991:1793068408.3568106920",
+  "artifact": "m2pilot-ckpt-40425261226"
  },
  "ckpt_export/grpo_s1_latest/adapter_config.json": {
-  "v": "1386:1793063364.6631478660",
-  "artifact": "m2pilot-ckpt-40414006612"
+  "v": "1386:1793068406.4247997690",
+  "artifact": "m2pilot-ckpt-40425261226"
+ },
+ "ckpt_export/grpo_s1_final/adapter_model.safetensors": {
+  "v": "129927008:1793068409.0768147640",
+  "artifact": "m2pilot-ckpt-40425261226"
+ },
+ "ckpt_export/grpo_s1_final/README.md": {
+  "v": "5180:1793068408.9088138140",
+  "artifact": "m2pilot-ckpt-40425261226"
+ },
+ "ckpt_export/grpo_s1_final/trainer_state.pt": {
+  "v": "260152661:1793068409.4168166880",
+  "artifact": "m2pilot-ckpt-40425261226"
+ },
+ "ckpt_export/grpo_s1_final/extra.json": {
+  "v": "25991:1793068409.4168166880",
+  "artifact": "m2pilot-ckpt-40425261226"
+ },
+ "ckpt_export/grpo_s1_final/adapter_config.json": {
+  "v": "1386:1793068409.0768147640",
+  "artifact": "m2pilot-ckpt-40425261226"
  }
 }
