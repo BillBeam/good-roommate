@@ -255,6 +255,52 @@ def outage_numbers(relay=os.path.join(ROOT, "relay")):
     return out
 
 
+def spend(relay=os.path.join(ROOT, "relay"), teacher=os.path.join(ROOT, "teacher")):
+    """实际花费：显卡按每台机器的开机时长 × 开机时的单价（平台按秒计费）；DeepSeek 取老师轨迹的花费账本。
+    不读账户余额和扣费记录。"""
+    machines = []
+    for m in jl(os.path.join(relay, "machines_past.jsonl")):
+        h = (_ts(m["released"]) - _ts(m["created"])) / 3600
+        machines.append({"name": m["name"], "gpu": m["gpu"], "hourly": m["hourly"], "created": m["created"],
+                         "released": m["released"], "hours": round(h, 3), "cny": round(h * m["hourly"], 2)})
+    ds = jload(os.path.join(teacher, "costs.json"))["cumulative"]
+    return {"gpu": machines, "gpu_hours": round(sum(m["hours"] for m in machines), 2),
+            "gpu_cny": round(sum(m["cny"] for m in machines), 2),
+            "deepseek_cny": round(ds["deepseek_cny_total"], 2), "deepseek_calls": sum(
+                v["api_calls"] for v in ds["by_model_role"].values()), "claude_api_cny": 0.0}
+
+
+def formal_estimate(sp, outage, hourly=6.99, seeds=5, steps=30, meetings=(2, 4, 8)):
+    """正式实验（GRPO 轨迹 2 → 4 → 8 次见面各 steps 步，seeds 个种子，每段训完考一次全程 + 短程）的显卡时长和花费。
+    全部时长取自这次的日志；每步用时按每条轨迹的见面次数线性放大（8 次见面上下文更长，实际只会更慢）。
+    三档：低 = 思考受控（这次 GRPO 最初 5 步、SFT 后考试的用时）；中 = 这次 30 步的平均、训练前考试的用时；
+    高 = 思考失控（最后 5 步、GRPO 后考试的用时）。断连余量 = 这次平台断连占全部开机时长的比例（取上界），
+    外加一次换机（装环境 + 环境确认 + 自检）。"""
+    last = {}
+    for r in jl(os.path.join(M, "grpo_s1", "steps.jsonl")):
+        last[r["step"]] = r
+    t = [last[k]["t_step"] for k in sorted(last)]
+    runs = {r["stage"]: r["seconds"] for r in jload(os.path.join(M, "pipeline_state.json"))["runs"] if r["rc"] == 0}
+    setup = jl(os.path.join(M, "setup", "timing.jsonl"))[-1]["seconds"]
+    env = jload(os.path.join(M, "envcheck", "envcheck.json")).get("vllm_load_and_generate_s", 0)
+    replace_h = (setup + env + runs["selfcheck"]) / 3600
+    shared_h = (runs["selfcheck"] + runs["eval_pre"] + runs["sft"] + runs["eval_sft"]) / 3600
+    frac = outage["old_machine"]["outage_hours_max"] / sp["gpu_hours"] if outage and sp["gpu_hours"] else 0.0
+    cases = {"低": (sum(t[:5]) / 5, runs["eval_sft"]), "中": (sum(t) / len(t), runs["eval_pre"]),
+             "高": (sum(t[-5:]) / 5, runs["eval_grpo1"])}
+    out = {"assumptions": {"seeds": seeds, "steps_per_stage": steps, "meetings": list(meetings), "hourly": hourly,
+                           "outage_fraction": round(frac, 3), "replacement_hours": round(replace_h, 2),
+                           "shared_hours": round(shared_h, 2)}, "cases": {}}
+    for name, (t2, ev) in cases.items():
+        per_seed = (steps * t2 * sum(m / meetings[0] for m in meetings) + len(meetings) * ev) / 3600
+        base = shared_h + seeds * per_seed
+        total = base * (1 + frac) + replace_h
+        out["cases"][name] = {"step_seconds_2_meetings": round(t2, 1), "eval_seconds": round(ev, 1),
+                              "hours_per_seed": round(per_seed, 1), "hours_without_margin": round(base, 1),
+                              "hours_with_margin": round(total, 1), "cny": round(total * hourly)}
+    return out
+
+
 def main():
     out = {}
     out["outage"] = outage_numbers()
@@ -277,6 +323,8 @@ def main():
         if rows:
             short[tag] = summarize_rows(rows, n_boot=N_BOOT)
     out["short"] = short
+    out["spend"] = spend()
+    out["formal_estimate"] = formal_estimate(out["spend"], out["outage"])
     out["tijian"] = tijian_compare("pre")
     out["credit_mix"] = {f"grpo_s{k}": credit_mix(os.path.join(M, f"grpo_s{k}", "groups.jsonl")) for k in (1, 2)}
     sd = os.path.join(M, "seed2_decision.json")

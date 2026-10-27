@@ -1516,6 +1516,74 @@
    "n_boot": 2000
   }
  },
+ "spend": {
+  "gpu": [
+   {
+    "name": "gr-train-10261325",
+    "gpu": "4090_48G",
+    "hourly": 3.78,
+    "created": "2026-10-26T13:25:54+00:00",
+    "released": "2026-10-26T16:44:57+00:00",
+    "hours": 3.317,
+    "cny": 12.54
+   },
+   {
+    "name": "gr-train-10261645",
+    "gpu": "A800",
+    "hourly": 6.99,
+    "created": "2026-10-26T16:45:38+00:00",
+    "released": "2026-10-27T07:15:59+00:00",
+    "hours": 14.506,
+    "cny": 101.4
+   }
+  ],
+  "gpu_hours": 17.82,
+  "gpu_cny": 113.94,
+  "deepseek_cny": 22.9,
+  "deepseek_calls": 2007,
+  "claude_api_cny": 0.0
+ },
+ "formal_estimate": {
+  "assumptions": {
+   "seeds": 5,
+   "steps_per_stage": 30,
+   "meetings": [
+    2,
+    4,
+    8
+   ],
+   "hourly": 6.99,
+   "outage_fraction": 0.127,
+   "replacement_hours": 0.42,
+   "shared_hours": 2.59
+  },
+  "cases": {
+   "低": {
+    "step_seconds_2_meetings": 213.8,
+    "eval_seconds": 3017.7,
+    "hours_per_seed": 15.0,
+    "hours_without_margin": 77.5,
+    "hours_with_margin": 87.8,
+    "cny": 614
+   },
+   "中": {
+    "step_seconds_2_meetings": 522.7,
+    "eval_seconds": 4851.5,
+    "hours_per_seed": 34.5,
+    "hours_without_margin": 175.3,
+    "hours_with_margin": 197.9,
+    "cny": 1383
+   },
+   "高": {
+    "step_seconds_2_meetings": 1007.2,
+    "eval_seconds": 16730.5,
+    "hours_per_seed": 72.7,
+    "hours_without_margin": 366.1,
+    "hours_with_margin": 412.9,
+    "cny": 2886
+   }
+  }
+ },
  "tijian": {
   "n_keys": 78,
   "tijian_siliconflow": {
