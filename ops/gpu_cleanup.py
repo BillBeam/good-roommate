@@ -16,7 +16,10 @@ def ours():
     for region in REGIONS:
         r, _ = api.call("DescribeCompShareInstance", {"Region": region, "Limit": 100})
         found += [(region, h) for h in r.get("UHostSet") or [] if str(h.get("Name", "")).startswith("gr-probe-")]
-    return found
+    uniq = {}
+    for region, h in found:      # 接口不按 Region 过滤：去重，地域取自可用区
+        uniq.setdefault(h["UHostId"], (str(h.get("Zone") or region).rsplit("-", 1)[0], h))
+    return list(uniq.values())
 
 
 report = {"found": [], "actions": []}

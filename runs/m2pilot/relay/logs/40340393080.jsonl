@@ -1,0 +1,35 @@
+{"t": "2026-10-26T14:36:41+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T16:31:32+00:00"}
+{"t": "2026-10-26T14:36:41+00:00", "msg": "action", "do": "upload", "cmd": ""}
+{"t": "2026-10-26T14:40:55+00:00", "msg": "upload", "rc": 255, "bytes": 6281213}
+{"t": "2026-10-26T14:42:09+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T16:31:32+00:00"}
+{"t": "2026-10-26T14:42:09+00:00", "msg": "action", "do": "run", "name": "pipeline", "background": true, "cmd": ". /root/work/venv/bin/activate && python -m roommate.train.pipeline --until eval_pre"}
+{"t": "2026-10-26T14:44:54+00:00", "msg": "run_bg", "name": "pipeline", "rc": 255}
+{"t": "2026-10-26T14:44:58+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T16:31:32+00:00"}
+{"t": "2026-10-26T14:44:58+00:00", "msg": "action", "do": "wait", "minutes": 80, "jobs": ["pipeline"], "cmd": ""}
+{"t": "2026-10-26T14:47:43+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T14:50:27+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T14:54:08+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T14:57:48+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:01:29+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:04:15+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T15:07:55+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:11:36+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:15:17+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:18:03+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T15:21:43+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:25:24+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:29:05+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:31:51+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T15:35:33+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:39:14+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:42:55+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:45:39+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T15:49:20+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:53:01+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T15:56:42+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T16:00:01+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T16:03:42+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T16:07:23+00:00", "msg": "job_status_empty", "rc": 255, "err": "ssh: connect to host *** port 23745: Connection timed out\n"}
+{"t": "2026-10-26T16:13:48+00:00", "msg": "sync", "bytes": 0, "ckpt_bytes": 0}
+{"t": "2026-10-26T16:13:48+00:00", "msg": "wait_end", "jobs": {}, "minutes": 88.8}
+{"t": "2026-10-26T16:13:52+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T16:31:32+00:00"}

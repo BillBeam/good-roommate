@@ -1,0 +1,14 @@
+{
+ "source": "https://huggingface.co/Qwen/Qwen3.5-4B/tree/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+ "license": "Apache-2.0",
+ "files": {
+  "tokenizer.json": 12807982,
+  "tokenizer_config.json": 16710,
+  "chat_template.jinja": 7756,
+  "vocab.json": 6722759,
+  "merges.txt": 3353259,
+  "config.json": 3161,
+  "generation_config.json": "HTTP Error #: Not Found",
+  "special_tokens_map.json": "HTTP Error #: Not Found"
+ }
+}

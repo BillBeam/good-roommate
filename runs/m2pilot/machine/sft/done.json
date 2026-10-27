@@ -1,0 +1,7 @@
+{
+ "steps": 74,
+ "seconds": 1163.5,
+ "kept": 600,
+ "train_sequences": 584,
+ "val_sequences": 16
+}

@@ -1,0 +1,14 @@
+{
+ "versions": {
+  "vllm": "0.31.0",
+  "transformers": "5.17.0",
+  "peft": "0.21.2",
+  "fla": "0.6.0",
+  "safetensors": "0.8.0"
+ },
+ "torch": "2.13.0+cu130",
+ "gpu": "NVIDIA A800-SXM4-80GB",
+ "bf16_matmul_rel_err": 0.0020874515175819397,
+ "vllm_load_and_generate_s": 238.1,
+ "sample": "<think>\nThinking Process:\n\n1.  **Analyze the Input:**\n"
+}

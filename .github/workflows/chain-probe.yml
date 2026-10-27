@@ -6,6 +6,13 @@
 #   mode "probe" (default): read-only checks, results to chain-results.
 #   mode "grab": wait for a suitable GPU, run ops/gpu_remote_check.py on it, destroy it.
 #   mode "stop": no-op; a running grab notices it and ends its window early.
+#   mode "train": ops/train_relay.py runs the request's actions on the one training machine
+#     (grab, heartbeat = platform shutdown 2 h after the request, upload, run, wait/sync, image, destroy).
+#   mode "keepalive": same as "train" but in its own concurrency group, for short status/heartbeat
+#     requests while a long "train" request is still running: foreground checks, sync, exposure,
+#     token_check and the custom image (never upload or background jobs here).
+#   mode "teacher": DeepSeek V4 Pro teacher trajectories on this runner (roommate.train.teacher);
+#     the request cache and results go to the m2pilot-data branch so a rerun never pays twice.
 # Results go to the chain-results branch and, if a PR number is given, a PR comment.
 # Balance and charges are never written to either.
 name: chain-probe
@@ -49,7 +56,7 @@ jobs:
           import json
           d = json.load(open("ops/probe_request.json"))
           mode = d.get("mode", "probe")
-          assert mode in ("probe", "grab", "stop"), mode
+          assert mode in ("probe", "grab", "stop", "train", "keepalive", "teacher"), mode
           print("mode=" + mode)
           print("dispatched_at=" + d.get("requested_at", ""))
           print("pr_number=" + (str(int(d["pr_number"])) if d.get("pr_number") else ""))
@@ -165,3 +172,137 @@ jobs:
           COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
           COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
         run: python3 ops/gpu_cleanup.py
+
+  train:
+    needs: plan
+    if: needs.plan.outputs.mode == 'train'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    concurrency:
+      group: m2pilot-train
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get install -y -qq sshpass >/dev/null
+
+      - name: Relay actions
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ops/train_relay.py "$RUNNER_TEMP/relay"
+
+      - name: Keep checkpoints (artifact, 90 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2pilot-ckpt-${{ github.run_id }}
+          path: ${{ runner.temp }}/relay/ckpt
+          if-no-files-found: ignore
+          retention-days: 90
+
+  keepalive:
+    needs: plan
+    if: needs.plan.outputs.mode == 'keepalive'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90     # an image can take up to an hour
+    concurrency:
+      group: m2pilot-keepalive
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get install -y -qq sshpass >/dev/null
+
+      - name: Relay actions (status / heartbeat only)
+        env:
+          COMPSHARE_PUBLIC_KEY: ${{ secrets.COMPSHARE_PUBLIC_KEY }}
+          COMPSHARE_PRIVATE_KEY: ${{ secrets.COMPSHARE_PRIVATE_KEY }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+          RELAY_KEEPALIVE: "1"
+        run: python3 ops/train_relay.py "$RUNNER_TEMP/relay"
+
+  teacher:
+    needs: plan
+    if: needs.plan.outputs.mode == 'teacher'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    concurrency:
+      group: m2pilot-teacher
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore earlier teacher results and request cache
+        run: |
+          if git fetch -q --depth=1 origin m2pilot-data; then
+            git archive FETCH_HEAD runs/m2pilot/teacher 2>/dev/null | tar xf - || true
+          fi
+
+      - name: DeepSeek balance check (booleans only; stops below 60 CNY)
+        id: dscheck
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request
+          key = os.environ.get("DEEPSEEK_API_KEY", "")
+          res = {"deepseek_key_present": bool(key)}
+          if key:
+              d = json.load(urllib.request.urlopen(urllib.request.Request(
+                  "https://api.deepseek.com/user/balance", headers={"Authorization": f"Bearer {key}"}), timeout=30))
+              cny = sum(float(b.get("total_balance") or 0) for b in d.get("balance_infos") or [] if b.get("currency") == "CNY")
+              res["deepseek_available"] = bool(d.get("is_available"))
+              res["deepseek_balance_ge_60_cny"] = cny >= 60
+          os.makedirs("runs/m2pilot/teacher", exist_ok=True)
+          json.dump(res, open("/tmp/dscheck.json", "w"))
+          print(json.dumps(res))
+          sys.exit(0 if res.get("deepseek_balance_ge_60_cny") else 1)
+          PY
+
+      - name: Teacher trajectories (DeepSeek V4 Pro)
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          ( while sleep 900; do OUT=runs/m2pilot/teacher DEST=runs/m2pilot SRC=teacher bash ops/push_data.sh || true; done ) &
+          python3 -c "import json;d=json.load(open('ops/probe_request.json'));print(d.get('teacher_args',''))" > /tmp/targs
+          python3 -m roommate.train.teacher $(cat /tmp/targs)
+
+      - name: Push teacher results to m2pilot-data
+        if: always()
+        run: OUT=runs/m2pilot/teacher DEST=runs/m2pilot SRC=teacher bash ops/push_data.sh
+
+      - name: Comment on PR
+        if: always() && needs.plan.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.plan.outputs.pr_number }}
+        run: |
+          {
+            echo "teacher run ${GITHUB_RUN_ID} finished $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+            echo
+            echo "DeepSeek check: $(cat /tmp/dscheck.json 2>/dev/null || echo 'not run')"
+            echo
+            echo '```json'
+            python3 - <<'PY'
+          import glob, json, os
+          out = {}
+          for p in sorted(glob.glob("runs/m2pilot/teacher/seed*/policies/*/summary.json")):
+              s = json.load(open(p))
+              out[p.split("/")[3]] = {k: s[k] for k in ("n_sessions", "mean_score", "success_rate", "avg_questions")}
+          c = "runs/m2pilot/teacher/costs.json"
+          if os.path.exists(c):
+              d = json.load(open(c))
+              out["stopped"] = d.get("stopped")
+              out["api_calls_this_run"] = sum(v.get("api_calls", 0) for v in d["this_run"].values())
+          print(json.dumps(out, ensure_ascii=False, indent=1))
+          PY
+            echo '```'
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md

@@ -1,0 +1,10 @@
+{"t": "2026-10-26T19:11:12+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T21:11:10+00:00"}
+{"t": "2026-10-26T19:11:12+00:00", "msg": "action", "do": "reboot", "cmd": ""}
+{"t": "2026-10-26T19:11:15+00:00", "msg": "reboot", "RetCode": 0, "Message": "None"}
+{"t": "2026-10-26T19:12:40+00:00", "msg": "evidence", "why": "after_reboot", "bytes": 23771}
+{"t": "2026-10-26T19:12:40+00:00", "msg": "rebooted", "ssh_ok": true, "rc": 0}
+{"t": "2026-10-26T19:12:42+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T21:12:41+00:00"}
+{"t": "2026-10-26T19:12:42+00:00", "msg": "action", "do": "run", "name": "gpucheck", "background": false, "gate": true, "timeout_min": 3, "cmd": "nvidia-smi --query-gpu=name,memory.used,memory.total,utilization.gpu --format=csv,noheader && . /root/work/venv/bin/activate && python -c \"import torch; print(\\\"cuda_available\\\", torch.cuda.is_availab"}
+{"t": "2026-10-26T19:12:52+00:00", "msg": "run_fg", "name": "gpucheck", "seconds": 7.6, "rc": 0, "tail": "NVIDIA A800-SXM4-80GB, 0 MiB, 81920 MiB, 0 %\ncuda_available True 1\n"}
+{"t": "2026-10-26T19:12:54+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-26T21:12:53+00:00"}
+{"t": "2026-10-26T19:13:01+00:00", "msg": "sync", "bytes": 50447, "ckpt_bytes": 0}

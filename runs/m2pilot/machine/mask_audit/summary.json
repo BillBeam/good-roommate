@@ -1,0 +1,15 @@
+{
+ "trajectories": 48,
+ "segments": 100,
+ "loss_spans": 326,
+ "flagged": 2,
+ "flagged_by_reason": {
+  "template_marker": 0,
+  "tool_text": 2,
+  "user_text": 0
+ },
+ "flagged_not_all_from_sampler": 0,
+ "loss_tokens_not_from_sampler": 0,
+ "seconds": 81.2,
+ "vllm_boot_s": 114.1
+}

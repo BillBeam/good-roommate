@@ -1,0 +1,49 @@
+{
+ "cpod-1wy5u6w8gmjw": {
+  "reboots": [],
+  "unreachable": [
+   {
+    "at": "2026-10-26T16:41:44+00:00",
+    "run_id": "40361315805",
+    "action": "preflight",
+    "cause": "unknown_platform_or_network",
+    "counts_as_platform_outage": true
+   },
+   {
+    "at": "2026-10-26T16:44:36+00:00",
+    "run_id": "40361767453",
+    "action": "run",
+    "cause": "unknown_platform_or_network",
+    "counts_as_platform_outage": true
+   }
+  ]
+ },
+ "uhost-1wycymkt0g18": {
+  "reboots": [
+   "2026-10-26T19:11:15+00:00"
+  ],
+  "unreachable": [
+   {
+    "at": "2026-10-26T17:10:15+00:00",
+    "run_id": "40365006926",
+    "action": "run",
+    "cause": "self",
+    "cause_detail": "中转自身原因：netwatch_restart 里的 pkill -f ops/remote/netwatch.sh 也匹配到执行它的那条 ssh 命令，把自己的会话杀了（退出码 255、stderr 为空）；机器一直连得上。已改：按 PID 文件起停，ssh 255 先另开空连接确认",
+    "counts_as_platform_outage": false
+   },
+   {
+    "at": "2026-10-26T17:51:05+00:00",
+    "run_id": "40371326964",
+    "action": "wait",
+    "cause": "image_making",
+    "cause_detail": "在做自定义镜像：实例状态 ImageMaking，容器暂停 17:45:37–17:52:05（记录仪这段没有记录），恢复后容器里显卡不可见，19:10 重启后恢复",
+    "counts_as_platform_outage": false
+   }
+  ],
+  "last_job_started": {
+   "name": "pipeline",
+   "at": "2026-10-26T19:23:17+00:00"
+  },
+  "last_sync_ok": "2026-10-27T07:15:51+00:00"
+ }
+}
