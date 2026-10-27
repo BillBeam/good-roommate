@@ -1,8 +1,7 @@
 {
- "t": "2026-10-27T05:48:19Z",
- "phase": "eval:grpo1",
- "done": [
-  "short@201",
-  "short@202"
- ]
+ "t": "2026-10-27T07:12:28Z",
+ "phase": "pipeline",
+ "stage": "failed",
+ "failed": "grpo2",
+ "rc": 3
 }

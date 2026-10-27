@@ -4,7 +4,8 @@
   "eval_pre",
   "sft",
   "eval_sft",
-  "grpo1"
+  "grpo1",
+  "eval_grpo1"
  ],
  "runs": [
   {
@@ -54,6 +55,18 @@
    "rc": 0,
    "seconds": 16481.6,
    "end": "2026-10-27T02:33:31Z"
+  },
+  {
+   "stage": "eval_grpo1",
+   "rc": 0,
+   "seconds": 16730.5,
+   "end": "2026-10-27T07:12:25Z"
+  },
+  {
+   "stage": "grpo2",
+   "rc": 3,
+   "seconds": 0.3,
+   "end": "2026-10-27T07:12:28Z"
   }
  ]
 }
