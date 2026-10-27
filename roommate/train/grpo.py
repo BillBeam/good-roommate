@@ -99,7 +99,7 @@ def build_items(trajs, A, gi=0, max_len=MAX_TRAIN_LEN):
 
 
 def shortcut_stop(hist, window=5, min_steps=10):
-    """分数上涨主要来自捷径①：最近 window 步对比最初 window 步，分数涨了 0.05 以上，捷径①（不问就选）涨了 0.10 以上，
+    """分数上涨主要来自捷径①：最近 window 步对比最初 window 步，分数涨了 0.05 以上，捷径①（信息不够就选）涨了 0.10 以上，
     并且分数的涨幅里，少问省下的分（−0.15 × 提问数的变化）占一半以上。"""
     if len(hist) < min_steps:
         return False, None

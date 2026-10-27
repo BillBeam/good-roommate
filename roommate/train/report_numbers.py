@@ -1,5 +1,5 @@
 """试跑报告里的全部数字：只读仓库里的日志（runs/m2pilot/ 与 runs/m1v2/、runs/m2/），算好写进
-runs/m2pilot/report/numbers.json，图画进 reports/m2pilot_figs/。报告里引用的每个数都出自这里。
+runs/m2pilot/report/numbers.json。报告里引用的每个数都出自这里（图另由 python -m roommate.train.figures 画）。
 
     python -m roommate.train.report_numbers
 """
@@ -126,7 +126,17 @@ def tijian_compare(tag="pre"):
     diff = lambda us: sum(b[u] - a[u] for u in us) / sum(n[u] for u in us)
     rng = random.Random(0)
     boots = sorted(diff([rng.choice(users) for _ in users]) for _ in range(N_BOOT))
-    return {"n_keys": len(keys), "tijian_siliconflow": summarize_rows(hc, n_boot=N_BOOT),
+    hcr = {(s, r["uid"], r["idx"]): r for s, r in recs if (s, r["uid"], r["idx"]) in keys}
+    our = {}
+    for s in (1, 2, 3):
+        for r in jl(os.path.join(M, "eval", tag, "full", f"seed{s}", "sessions.jsonl")):
+            if (s, r["uid"], r["idx"]) in keys:
+                our[(s, r["uid"], r["idx"])] = r
+    disc = {"hc_right_ours_wrong": sum(hcr[k]["grade"]["success"] and not our[k]["grade"]["success"] for k in keys),
+            "ours_right_hc_wrong": sum(our[k]["grade"]["success"] and not hcr[k]["grade"]["success"] for k in keys),
+            "extra_questions_ours": sum(len(our[k]["questions"]) - len(hcr[k]["questions"]) for k in keys),
+            "ours_hit_max_turns": sum(bool(our[k].get("hit_max_turns")) for k in keys)}
+    return {"n_keys": len(keys), "discordance": disc, "tijian_siliconflow": summarize_rows(hc, n_boot=N_BOOT),
             f"{tag}_local_vllm": summarize_rows(ours, n_boot=N_BOOT),
             "paired_diff_mean_score": {"point": diff(users), "ci95": [boots[int(0.025 * N_BOOT)], boots[int(0.975 * N_BOOT) - 1]],
                                        "n_users": len(users)}}
@@ -173,14 +183,18 @@ def credit_mix(groups_file):
     for st in sorted(last):
         for g in last[st]["groups"]:
             m1 = sum(x[0] for x in g["rewards"]) / len(g["rewards"])
+            sd1 = (sum((x[0] - m1) ** 2 for x in g["rewards"]) / len(g["rewards"])) ** 0.5
+            a1_only = [0.0 if sd1 < 1e-9 else (x[0] - m1) / (sd1 + 1e-6) for x in g["rewards"]]
             for i in range(len(g["rewards"])):
                 r1, a1, q1 = g["rewards"][i][0], g["adv"][i][0], g["questions"][i][0]
                 if r1 <= 0:
                     c["s1_not_right"] += 1
                     c["s1_not_right_adv_pos"] += a1 > 0
-                    if q1 == 0:
-                        c["s1_guess_not_right"] += 1
-                        c["s1_guess_not_right_adv_pos"] += a1 > 0
+                    if q1 == 0:                         # 第 1 次一次没问、没选对（不是捷径①的口径）
+                        c["s1_zero_q_not_right"] += 1
+                        c["s1_zero_q_not_right_adv_pos"] += a1 > 0
+                    # 对照实验 A 的实验组：第 1 次的回报只用第 1 次得分，优势按组内标准化重算
+                    c["s1_not_right_adv_pos_if_r1_only"] += a1_only[i] > 0
                 else:
                     c["s1_right"] += 1
                     c["s1_right_adv_neg"] += a1 < 0
@@ -188,8 +202,10 @@ def credit_mix(groups_file):
                     c["s1_right_adv_neg_from_s2"] += a1 < 0 and r1 >= m1
     c = dict(c)
     c["rate_not_right_adv_pos"] = c["s1_not_right_adv_pos"] / c["s1_not_right"] if c.get("s1_not_right") else None
-    c["rate_guess_not_right_adv_pos"] = (c["s1_guess_not_right_adv_pos"] / c["s1_guess_not_right"]
-                                         if c.get("s1_guess_not_right") else None)
+    c["rate_zero_q_not_right_adv_pos"] = (c["s1_zero_q_not_right_adv_pos"] / c["s1_zero_q_not_right"]
+                                          if c.get("s1_zero_q_not_right") else None)
+    c["rate_not_right_adv_pos_if_r1_only"] = (c["s1_not_right_adv_pos_if_r1_only"] / c["s1_not_right"]
+                                              if c.get("s1_not_right") else None)
     c["rate_right_adv_neg"] = c["s1_right_adv_neg"] / c["s1_right"] if c.get("s1_right") else None
     return c
 
@@ -255,6 +271,83 @@ def outage_numbers(relay=os.path.join(ROOT, "relay")):
     return out
 
 
+def _sessions(tag, kind, seeds):
+    out = {}
+    for s in seeds:
+        p = os.path.join(M, "eval", tag, kind, f"seed{s}", "sessions.jsonl")
+        if os.path.exists(p):
+            for r in jl(p):
+                out[(s, r["uid"], r["idx"])] = r
+    return out
+
+
+def _boot_ratio(num, den, n_boot=N_BOOT, seed=0):
+    """按用户重抽样的比例区间：num、den 是 {用户: 计数}。"""
+    import random
+    users = sorted(den)
+    rng = random.Random(seed)
+    f = lambda us: sum(num.get(u, 0) for u in us) / max(1, sum(den[u] for u in us))
+    boots = sorted(f([rng.choice(users) for _ in users]) for _ in range(n_boot))
+    return {"point": f(users), "ci95": [boots[int(0.025 * n_boot)], boots[int(0.975 * n_boot) - 1]],
+            "num": sum(num.values()), "den": sum(den.values())}
+
+
+def action_turns(tag, kind, seeds):
+    """逐轮拆开格式问题：思考超限的轮次，和"没产出有效动作"的轮次（这一轮有思考超限以外的格式问题：
+    回答被截断、没调用工具、坏 JSON、未知工具等；思考超限后补上结束标记、正常调用了工具的不算）。按用户重抽样。"""
+    S = _sessions(tag, kind, seeds)
+    if not S:
+        return None
+    turns, run, noact = defaultdict(int), defaultdict(int), defaultdict(int)
+    for (s, uid, _), r in S.items():
+        u = (s, uid)
+        turns[u] += len(r.get("turn_stats") or [])
+        by = defaultdict(set)
+        for f in r.get("format_issues") or []:
+            by[f.get("turn")].add(f["kind"])
+        run[u] += sum("think_runaway" in ks for ks in by.values())
+        noact[u] += sum(bool(ks - {"think_runaway"}) for ks in by.values())
+    return {"think_over_limit": _boot_ratio(run, turns), "no_valid_action": _boot_ratio(noact, turns)}
+
+
+def sft_vs_grpo_sessions(seeds=(1, 2, 3)):
+    """全程考试同一批会话：SFT 后与 GRPO 种子 1 后对错翻转的次数；以及要用到没提过偏好的会话里，捷径①与思考超限同时出现的次数。"""
+    S, G = _sessions("sft", "full", seeds), _sessions("grpo1", "full", seeds)
+    if not S or not G:
+        return None
+    out = {"sft_right_grpo_wrong": 0, "of_which_no_choice": 0, "of_which_wrong_choice": 0, "grpo_right_sft_wrong": 0}
+    for k in S.keys() & G.keys():
+        s, g = S[k], G[k]
+        if s["domain"] == "util":
+            continue
+        if s["grade"]["success"] and not g["grade"]["success"]:
+            out["sft_right_grpo_wrong"] += 1
+            out["of_which_no_choice" if g["chosen"] is None else "of_which_wrong_choice"] += 1
+        if g["grade"]["success"] and not s["grade"]["success"]:
+            out["grpo_right_sft_wrong"] += 1
+    co = {}
+    for tag, D in (("sft", S), ("grpo1", G)):
+        c = defaultdict(int)
+        for (s, uid, idx), r in D.items():
+            w = world(s)
+            sess = {(u["uid"], x["idx"]): x for u in w["users"] for x in u["sessions"]}
+            row = session_row(r, sess[(uid, idx)])
+            if not row["s1_den"]:
+                continue
+            hit = any(t["think_hit"] for t in r.get("turn_stats") or [])
+            key = "shortcut1" if row["s1_num"] else "enough_info"
+            c[key] += 1
+            c[key + "_with_over_limit"] += hit
+        co[tag] = dict(c)
+    out["shortcut1_and_over_limit"] = co
+    nochoice = [r for k, r in G.items() if r["domain"] != "util" and r["chosen"] is None]
+    out["grpo1_no_choice"] = {"sessions": len(nochoice),
+                              "hit_max_turns": sum(bool(r.get("hit_max_turns")) for r in nochoice),
+                              "with_over_limit": sum(any(t["think_hit"] for t in r.get("turn_stats") or [])
+                                                     for r in nochoice)}
+    return out
+
+
 def spend(relay=os.path.join(ROOT, "relay"), teacher=os.path.join(ROOT, "teacher")):
     """实际花费：显卡按每台机器的开机时长 × 开机时的单价（平台按秒计费）；DeepSeek 取老师轨迹的花费账本。
     不读账户余额和扣费记录。"""
@@ -273,9 +366,11 @@ def spend(relay=os.path.join(ROOT, "relay"), teacher=os.path.join(ROOT, "teacher
 def formal_estimate(sp, outage, hourly=6.99, seeds=5, steps=30, meetings=(2, 4, 8)):
     """正式实验（GRPO 轨迹 2 → 4 → 8 次见面各 steps 步，seeds 个种子，每段训完考一次全程 + 短程）的显卡时长和花费。
     全部时长取自这次的日志；每步用时按每条轨迹的见面次数线性放大（8 次见面上下文更长，实际只会更慢）。
-    三档：低 = 思考受控（这次 GRPO 最初 5 步、SFT 后考试的用时）；中 = 这次 30 步的平均、训练前考试的用时；
-    高 = 思考失控（最后 5 步、GRPO 后考试的用时）。断连余量 = 这次平台断连占全部开机时长的比例（取上界），
-    外加一次换机（装环境 + 环境确认 + 自检）。"""
+    三档：低 = 思考受控（这次 GRPO 最初 5 步、SFT 后考试的用时）；中 = 这次 30 步的平均、三次考试用时的平均；
+    高 = 思考失控（最后 5 步、GRPO 后考试的用时）。
+    固定开销：初次装机（装环境 + 环境确认）、自检、训练前考试、SFT、SFT 后考试，各一次。
+    断连余量（依据只有这次 1 次平台断连）：开机时长按这次平台断连占全部开机时长的比例（取上界）放大；
+    换机按"每开这么久（这次的总开机时长）换一次"计次数，每次加装环境 + 环境确认 + 自检。"""
     last = {}
     for r in jl(os.path.join(M, "grpo_s1", "steps.jsonl")):
         last[r["step"]] = r
@@ -283,21 +378,27 @@ def formal_estimate(sp, outage, hourly=6.99, seeds=5, steps=30, meetings=(2, 4, 
     runs = {r["stage"]: r["seconds"] for r in jload(os.path.join(M, "pipeline_state.json"))["runs"] if r["rc"] == 0}
     setup = jl(os.path.join(M, "setup", "timing.jsonl"))[-1]["seconds"]
     env = jload(os.path.join(M, "envcheck", "envcheck.json")).get("vllm_load_and_generate_s", 0)
+    import math
     replace_h = (setup + env + runs["selfcheck"]) / 3600
-    shared_h = (runs["selfcheck"] + runs["eval_pre"] + runs["sft"] + runs["eval_sft"]) / 3600
+    shared_h = (setup + env + runs["selfcheck"] + runs["eval_pre"] + runs["sft"] + runs["eval_sft"]) / 3600
     frac = outage["old_machine"]["outage_hours_max"] / sp["gpu_hours"] if outage and sp["gpu_hours"] else 0.0
-    cases = {"低": (sum(t[:5]) / 5, runs["eval_sft"]), "中": (sum(t) / len(t), runs["eval_pre"]),
+    every_h = sp["gpu_hours"]           # 这次开了这么久，遇到 1 次要换机的断连
+    exams = [runs["eval_pre"], runs["eval_sft"], runs["eval_grpo1"]]
+    cases = {"低": (sum(t[:5]) / 5, runs["eval_sft"]), "中": (sum(t) / len(t), sum(exams) / len(exams)),
              "高": (sum(t[-5:]) / 5, runs["eval_grpo1"])}
     out = {"assumptions": {"seeds": seeds, "steps_per_stage": steps, "meetings": list(meetings), "hourly": hourly,
                            "outage_fraction": round(frac, 3), "replacement_hours": round(replace_h, 2),
-                           "shared_hours": round(shared_h, 2)}, "cases": {}}
+                           "one_replacement_every_hours": round(every_h, 2), "shared_hours": round(shared_h, 2),
+                           "outage_events_observed": 1}, "cases": {}}
     for name, (t2, ev) in cases.items():
         per_seed = (steps * t2 * sum(m / meetings[0] for m in meetings) + len(meetings) * ev) / 3600
         base = shared_h + seeds * per_seed
-        total = base * (1 + frac) + replace_h
+        n_rep = max(1, math.ceil(base / every_h))
+        total = base * (1 + frac) + n_rep * replace_h
         out["cases"][name] = {"step_seconds_2_meetings": round(t2, 1), "eval_seconds": round(ev, 1),
                               "hours_per_seed": round(per_seed, 1), "hours_without_margin": round(base, 1),
-                              "hours_with_margin": round(total, 1), "cny": round(total * hourly)}
+                              "replacements": n_rep, "hours_with_margin": round(total, 1),
+                              "cny": round(total * hourly)}
     return out
 
 
@@ -332,6 +433,17 @@ def main():
         from .seed2_rule import decide
         out["seed2_rule"] = decide(M, n_boot=N_BOOT, write=False)
         out["seed2_rule"]["machine_decision_file"] = jload(sd) if os.path.exists(sd) else None
+    out["action_turns"] = {kind: {tag: action_turns(tag, kind, seeds) for tag in TAGS if action_turns(tag, kind, seeds)}
+                           for kind, seeds in (("full", (1, 2, 3)), ("short", (201, 202)))}
+    out["sft_vs_grpo1"] = sft_vs_grpo_sessions()
+    # 两个捷径指标的分母随模型的做法变化（问到的、说过的不同），比较的是条件比例
+    out["shortcut_denominators"] = {}
+    for kind, seeds in (("full", (1, 2, 3)), ("short", (201, 202))):
+        for tag in TAGS:
+            rows = eval_rows(tag, kind, seeds)
+            if rows:
+                out["shortcut_denominators"].setdefault(kind, {})[tag] = {
+                    k: sum(r[k] for _, _, r in rows) for k in ("s1_num", "s1_den", "s2_num", "s2_den")}
     out["needs_first"] = {str(s): needs_first_rate(short_world(world(s), [0, 2, 4, 6])) for s in (201, 202)}
     out["needs_first_train_pool"] = {str(s): needs_first_rate(short_world(world(s))) for s in (301, 302)}
     os.makedirs(os.path.join(ROOT, "report"), exist_ok=True)

@@ -113,7 +113,7 @@ def grpo_curves(step_files, path):
                     r = json.loads(x)
                     last[r["step"]] = r
             series[lab] = [last[k] for k in sorted(last)]
-    panels = [("score", "平均分"), ("questions", "平均提问次数"), ("shortcut1", "捷径①：没提过的偏好不问就选"),
+    panels = [("score", "平均分"), ("questions", "平均提问次数"), ("shortcut1", "捷径①：信息不够就选（没问够）"),
               ("shortcut2", "捷径②：提过的偏好又问"), ("think_tokens_per_turn", "每轮思考 token 数"),
               ("think_over_limit", "思考超过上限的轮次比例"),
               ("mismatch_abs_mean", "采样端与训练端 logprob 之差（均值）"),
