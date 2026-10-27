@@ -3,7 +3,8 @@
   "selfcheck",
   "eval_pre",
   "sft",
-  "eval_sft"
+  "eval_sft",
+  "grpo1"
  ],
  "runs": [
   {
@@ -47,6 +48,12 @@
    "rc": 0,
    "seconds": 3017.7,
    "end": "2026-10-26T21:58:47Z"
+  },
+  {
+   "stage": "grpo1",
+   "rc": 0,
+   "seconds": 16481.6,
+   "end": "2026-10-27T02:33:31Z"
   }
  ]
 }

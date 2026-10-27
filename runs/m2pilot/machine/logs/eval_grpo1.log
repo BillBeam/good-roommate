@@ -1,0 +1,2 @@
+
+=== 2026-10-27T02:33:34Z /root/work/venv/bin/python -m roommate.train.evaluate --tag grpo1 --adapter /root/work/ckpt/grpo_s1/final
