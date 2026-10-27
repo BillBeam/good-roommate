@@ -1,1 +1,10 @@
-{"requested_at": "2026-10-26T05:43:13Z", "pr_number": 7}
+{
+ "mode": "train",
+ "actions": [
+  {
+   "do": "destroy"
+  }
+ ],
+ "requested_at": "2026-10-27T07:25:39Z",
+ "pr_number": 9
+}
