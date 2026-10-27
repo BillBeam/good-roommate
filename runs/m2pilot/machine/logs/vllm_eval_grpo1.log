@@ -6778,3 +6778,68 @@ INFO:     127.0.0.1:45082 - "POST /v1/completions HTTP/1.1" 200 OK
 (APIServer pid=13933) INFO 10-27 05:03:08 [loggers.py:320] Engine 000: Avg prompt throughput: 1972.0 tokens/s, Avg generation throughput: 1803.4 tokens/s, Running: 82 reqs, Waiting: 0 reqs, GPU KV cache usage: 58.8%, Prefix cache hit rate: 59.3%
 INFO:     127.0.0.1:57332 - "POST /v1/completions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:41008 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57252 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43910 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53034 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34884 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43928 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57268 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53044 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:03:18 [loggers.py:320] Engine 000: Avg prompt throughput: 4378.9 tokens/s, Avg generation throughput: 1462.4 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 58.6%, Prefix cache hit rate: 59.0%
+INFO:     127.0.0.1:36724 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36736 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58858 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58864 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36762 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:03:28 [loggers.py:320] Engine 000: Avg prompt throughput: 1507.2 tokens/s, Avg generation throughput: 1688.7 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 59.8%, Prefix cache hit rate: 58.7%
+INFO:     127.0.0.1:58886 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48326 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43680 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:03:38 [loggers.py:320] Engine 000: Avg prompt throughput: 4401.2 tokens/s, Avg generation throughput: 1578.0 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 60.3%, Prefix cache hit rate: 58.6%
+(APIServer pid=13933) INFO 10-27 05:03:48 [loggers.py:320] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 1959.1 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 61.4%, Prefix cache hit rate: 58.6%
+INFO:     127.0.0.1:35054 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:03:58 [loggers.py:320] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 1911.2 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 61.0%, Prefix cache hit rate: 58.5%
+INFO:     127.0.0.1:43666 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45406 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:08 [loggers.py:320] Engine 000: Avg prompt throughput: 302.1 tokens/s, Avg generation throughput: 1895.0 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 61.7%, Prefix cache hit rate: 58.5%
+INFO:     127.0.0.1:40992 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41002 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55634 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:18 [loggers.py:320] Engine 000: Avg prompt throughput: 3571.6 tokens/s, Avg generation throughput: 1553.7 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 62.5%, Prefix cache hit rate: 58.3%
+INFO:     127.0.0.1:54156 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44636 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44604 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:28 [loggers.py:320] Engine 000: Avg prompt throughput: 4977.9 tokens/s, Avg generation throughput: 1277.0 tokens/s, Running: 79 reqs, Waiting: 0 reqs, GPU KV cache usage: 63.0%, Prefix cache hit rate: 57.9%
+INFO:     127.0.0.1:44616 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58282 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58912 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:38 [loggers.py:320] Engine 000: Avg prompt throughput: 3183.1 tokens/s, Avg generation throughput: 1679.5 tokens/s, Running: 78 reqs, Waiting: 0 reqs, GPU KV cache usage: 63.4%, Prefix cache hit rate: 57.8%
+INFO:     127.0.0.1:49426 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49456 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:48 [loggers.py:320] Engine 000: Avg prompt throughput: 950.7 tokens/s, Avg generation throughput: 1730.6 tokens/s, Running: 78 reqs, Waiting: 0 reqs, GPU KV cache usage: 63.9%, Prefix cache hit rate: 57.6%
+INFO:     127.0.0.1:32850 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32856 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49470 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36344 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35058 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43654 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:04:58 [loggers.py:320] Engine 000: Avg prompt throughput: 5133.3 tokens/s, Avg generation throughput: 1213.7 tokens/s, Running: 78 reqs, Waiting: 0 reqs, GPU KV cache usage: 64.1%, Prefix cache hit rate: 57.2%
+INFO:     127.0.0.1:36382 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43694 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52426 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54650 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:05:08 [loggers.py:320] Engine 000: Avg prompt throughput: 6822.6 tokens/s, Avg generation throughput: 1245.5 tokens/s, Running: 77 reqs, Waiting: 0 reqs, GPU KV cache usage: 64.3%, Prefix cache hit rate: 56.9%
+INFO:     127.0.0.1:52374 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52386 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52392 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34896 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52418 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54680 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54684 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54978 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=13933) INFO 10-27 05:05:18 [loggers.py:320] Engine 000: Avg prompt throughput: 9281.8 tokens/s, Avg generation throughput: 862.1 tokens/s, Running: 78 reqs, Waiting: 0 reqs, GPU KV cache usage: 64.1%, Prefix cache hit rate: 56.4%
+INFO:     127.0.0.1:34184 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34198 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55016 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60746 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34204 - "POST /v1/completions HTTP/1.1" 200 OK
