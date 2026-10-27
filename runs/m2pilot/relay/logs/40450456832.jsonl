@@ -1,0 +1,5 @@
+{"t": "2026-10-27T04:34:37+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-27T06:34:35+00:00"}
+{"t": "2026-10-27T04:34:37+00:00", "msg": "action", "do": "run", "name": "deploy_seed2_rule", "background": false, "gate": true, "timeout_min": 5, "cmd": "echo H4sIAAAAAAACA+xc63MTx5bns/6K2UltZURkWTI2BNeKKjbh+lIhCQVk626pXFNjaSRPPNIoMyPbhHKVCAHbYPPI5f3IxUlIvEkwkHsTG0ziD/ufJBpZ/pR/YX+nu+ehl4HdJLW7haqCp7tPn9N9+rx7JhVtWi2a1phmquO6ltftHb/9L4Xf7t272V/82v9icHB"}
+{"t": "2026-10-27T04:34:43+00:00", "msg": "run_fg", "name": "deploy_seed2_rule", "seconds": 3.1, "rc": 0, "tail": "a24b9e3d78e9f0619806de8a86df42b43b4751adcc17e5652d890348852391f9  roommate/train/seed2_rule.py\n1bdd37f49c8325df1f0246ff5053f9d03d5224cbf35cddda6c9e2e1a05c14f39  roommate/train/grpo.py\n1c5cccb8829251c24687e0379c6afdfd6e1bfaa41d7c1b3db06e3fdce0582e85  roommate/train/pipeline.py\nimport_ok 3\n{\n \"t\": \"2026-10-27T02:33:34Z\",\n \"phase\": \"eval:grpo1\",\n \"stage\": \"start\"\n}"}
+{"t": "2026-10-27T04:34:45+00:00", "msg": "heartbeat", "RetCode": 0, "stop_at": "2026-10-27T06:34:44+00:00"}
+{"t": "2026-10-27T04:34:55+00:00", "msg": "sync", "bytes": 3406466, "ckpt_bytes": 0}
