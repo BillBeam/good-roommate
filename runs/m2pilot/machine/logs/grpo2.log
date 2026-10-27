@@ -1,0 +1,2 @@
+
+=== 2026-10-27T07:12:28Z /root/work/venv/bin/python -m roommate.train.grpo --seed 2 --adapter /root/work/ckpt/sft/final

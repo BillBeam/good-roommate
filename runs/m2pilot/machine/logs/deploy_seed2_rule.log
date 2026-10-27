@@ -1,0 +1,9 @@
+a24b9e3d78e9f0619806de8a86df42b43b4751adcc17e5652d890348852391f9  roommate/train/seed2_rule.py
+1bdd37f49c8325df1f0246ff5053f9d03d5224cbf35cddda6c9e2e1a05c14f39  roommate/train/grpo.py
+1c5cccb8829251c24687e0379c6afdfd6e1bfaa41d7c1b3db06e3fdce0582e85  roommate/train/pipeline.py
+import_ok 3
+{
+ "t": "2026-10-27T02:33:34Z",
+ "phase": "eval:grpo1",
+ "stage": "start"
+}

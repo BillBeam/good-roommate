@@ -1,0 +1,6 @@
+
+=== 2026-10-27T02:33:34Z /root/work/venv/bin/python -m roommate.train.evaluate --tag grpo1 --adapter /root/work/ckpt/grpo_s1/final
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+Loading weights:   0%|          | 0/426 [00:00<?, ?it/s]Loading weights: 100%|██████████| 426/426 [00:00<00:00, 10686.51it/s]
+/root/work/venv/lib/python3.10/site-packages/peft/tuners/tuners_utils.py:1090: UserWarning: You have passed exclude_modules=.*visual.* but no modules were excluded. Please check that exclude_modules was set correctly.
+  warnings.warn(

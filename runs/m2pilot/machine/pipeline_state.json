@@ -1,0 +1,72 @@
+{
+ "done": [
+  "selfcheck",
+  "eval_pre",
+  "sft",
+  "eval_sft",
+  "grpo1",
+  "eval_grpo1"
+ ],
+ "runs": [
+  {
+   "stage": "selfcheck",
+   "rc": 0,
+   "seconds": 488.7,
+   "end": "2026-10-26T17:30:13Z"
+  },
+  {
+   "stage": "selfcheck",
+   "rc": 0,
+   "seconds": 568.4,
+   "end": "2026-10-26T17:54:01Z"
+  },
+  {
+   "stage": "selfcheck",
+   "rc": 1,
+   "seconds": 13.6,
+   "end": "2026-10-26T18:52:56Z"
+  },
+  {
+   "stage": "selfcheck",
+   "rc": 0,
+   "seconds": 282.7,
+   "end": "2026-10-26T19:28:02Z"
+  },
+  {
+   "stage": "eval_pre",
+   "rc": 0,
+   "seconds": 4851.5,
+   "end": "2026-10-26T20:48:57Z"
+  },
+  {
+   "stage": "sft",
+   "rc": 0,
+   "seconds": 1166.0,
+   "end": "2026-10-26T21:08:26Z"
+  },
+  {
+   "stage": "eval_sft",
+   "rc": 0,
+   "seconds": 3017.7,
+   "end": "2026-10-26T21:58:47Z"
+  },
+  {
+   "stage": "grpo1",
+   "rc": 0,
+   "seconds": 16481.6,
+   "end": "2026-10-27T02:33:31Z"
+  },
+  {
+   "stage": "eval_grpo1",
+   "rc": 0,
+   "seconds": 16730.5,
+   "end": "2026-10-27T07:12:25Z"
+  },
+  {
+   "stage": "grpo2",
+   "rc": 3,
+   "seconds": 0.3,
+   "end": "2026-10-27T07:12:28Z"
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+{
+ "version": 2,
+ "seed": 104,
+ "n_users": 24,
+ "n_sessions_per_user": 8,
+ "n_sessions_total": 192,
+ "n_preference_sessions": 168,
+ "events_multi_attr": 31,
+ "events_single_attr": 4,
+ "temp_situations": 24,
+ "unrelated_sessions": 24,
+ "events_by_type": {
+  "开始健身": 7,
+  "家里添了宝宝": 4,
+  "体检血糖偏高": 3,
+  "换工作降薪": 6,
+  "搬家": 7,
+  "升职调岗": 6,
+  "养了狗": 1,
+  "怀孕": 1
+ },
+ "temps_by_type": {
+  "公司报销": 6,
+  "这次换个区聚": 10,
+  "嗓子发炎": 3,
+  "这顿想省点": 5
+ },
+ "sessions_by_domain": {
+  "dinner": 92,
+  "util": 24,
+  "lunch": 76
+ },
+ "near_miss_by_kind": {
+  "hyp_event": 51,
+  "stale": 37,
+  "temp_ignored": 24,
+  "temp_trap": 21,
+  "hyp_temp": 16,
+  "hyp_prior_temp": 11,
+  "hyp_prior_event": 8
+ },
+ "correct_is_post_share": 0.47619047619047616,
+ "events_allowed": [
+  "fitness",
+  "move",
+  "baby",
+  "dog",
+  "promotion",
+  "pregnancy",
+  "newjob",
+  "checkup"
+ ],
+ "config": {
+  "repeat_mode": "refuse_told",
+  "question_cost": 0.15
+ },
+ "world_hash": "ac9349e41f90a98e"
+}

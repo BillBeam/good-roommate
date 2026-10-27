@@ -1,0 +1,306 @@
+{
+ "at": "2026-10-26T17:25:45+00:00",
+ "instance_fields": [
+  "AppOnlyAccess",
+  "AutoRenew",
+  "BasicImageId",
+  "BasicImageName",
+  "CPU",
+  "ChargeType",
+  "CompShareImageAuthor",
+  "CompShareImageBillId",
+  "CompShareImageGroupId",
+  "CompShareImageId",
+  "CompShareImageName",
+  "CompShareImageOwnerAlias",
+  "CompShareImageStatus",
+  "CompShareImageTopOrganizationId",
+  "CompShareImageType",
+  "CompShareImageVersionName",
+  "CpuArch",
+  "CpuPlatform",
+  "CreateTime",
+  "DiskSet",
+  "ExpireTime",
+  "FileBrowserPassword",
+  "GPU",
+  "GPUTypeDesc",
+  "GpuType",
+  "GraphicsMemory",
+  "IPSet",
+  "InstanceType",
+  "IsExpire",
+  "IsSpot",
+  "LoginMode",
+  "MachineType",
+  "Memory",
+  "MonitorMessages",
+  "Name",
+  "OpenApplications",
+  "OsName",
+  "OsType",
+  "Password",
+  "Region",
+  "Remark",
+  "SchedulerStopTime",
+  "Softwares",
+  "SshLoginCommand",
+  "StartTime",
+  "State",
+  "SupportWithoutGpuStart",
+  "Tag",
+  "TotalDiskSpace",
+  "TotalVolumeSpace",
+  "UHostDomainSate",
+  "UHostId",
+  "UsageSeconds",
+  "Zone",
+  "_region"
+ ],
+ "api": {
+  "DescribeCompShareSoftwarePort": {
+   "RetCode": 0,
+   "Message": "None",
+   "fields": [
+    "Action",
+    "RetCode",
+    "SoftwarePort",
+    "request_uuid"
+   ],
+   "ports_found": 4
+  },
+  "GetSoftwareURL:SoftwareName": {
+   "RetCode": 230,
+   "Message": "Params [Action] not available",
+   "fields": [
+    "Message",
+    "RetCode",
+    "request_uuid"
+   ],
+   "ports_found": 0
+  },
+  "GetSoftwareURL:Software": {
+   "RetCode": 230,
+   "Message": "Params [Action] not available",
+   "fields": [
+    "Message",
+    "RetCode",
+    "request_uuid"
+   ],
+   "ports_found": 0
+  }
+ },
+ "targets": [
+  {
+   "target": "instance_ip:platform_port:SD-WebUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:platform_port:ComfyUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:8888",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:platform_port:FileBrowser",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:platform_port:SD-WebUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:platform_port:ComfyUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "instance_ip:8888",
+   "tcp_open": true,
+   "jupyter": {
+    "/api/status": {
+     "status": 403,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/api/contents": {
+     "status": 403,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/lab": {
+     "status": 302,
+     "redirect": "login",
+     "json": false,
+     "jupyter_page": false
+    },
+    "open_without_auth": false
+   },
+   "app": {
+    "status": 302,
+    "redirect": "same_host",
+    "title": "",
+    "app": null,
+    "login_form": false,
+    "filebrowser_api_unauth": 302
+   }
+  },
+  {
+   "target": "instance_ip:platform_port:FileBrowser",
+   "tcp_open": true,
+   "jupyter": {
+    "/api/status": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/api/contents": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/lab": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "open_without_auth": false
+   },
+   "app": {
+    "status": 200,
+    "redirect": null,
+    "title": "File Browser",
+    "app": "filebrowser",
+    "login_form": true,
+    "filebrowser_api_unauth": 401
+   }
+  },
+  {
+   "target": "ssh_host:platform_port:SD-WebUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "ssh_host:platform_port:ComfyUI",
+   "tcp_open": false,
+   "error": "TimeoutError"
+  },
+  {
+   "target": "ssh_host:8888",
+   "tcp_open": true,
+   "jupyter": {
+    "/api/status": {
+     "status": 403,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/api/contents": {
+     "status": 403,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/lab": {
+     "status": 302,
+     "redirect": "login",
+     "json": false,
+     "jupyter_page": false
+    },
+    "open_without_auth": false
+   },
+   "app": {
+    "status": 302,
+    "redirect": "same_host",
+    "title": "",
+    "app": null,
+    "login_form": false,
+    "filebrowser_api_unauth": 302
+   }
+  },
+  {
+   "target": "ssh_host:platform_port:FileBrowser",
+   "tcp_open": true,
+   "jupyter": {
+    "/api/status": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/api/contents": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "/lab": {
+     "status": 200,
+     "redirect": null,
+     "json": false,
+     "jupyter_page": false
+    },
+    "open_without_auth": false
+   },
+   "app": {
+    "status": 200,
+    "redirect": null,
+    "title": "File Browser",
+    "app": "filebrowser",
+    "login_form": true,
+    "filebrowser_api_unauth": 401
+   }
+  }
+ ],
+ "software_ports": [
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "ComfyUI"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "JupyterLab"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "SD-WebUI"
+   ]
+  },
+  {
+   "keys": [
+    "Port",
+    "Software"
+   ],
+   "names": [
+    "FileBrowser"
+   ]
+  }
+ ],
+ "open_without_auth_anywhere": false
+}

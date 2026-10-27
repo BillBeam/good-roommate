@@ -1,0 +1,63 @@
+== netwatch: netwatch_ctl.sh missing
+== netwatch log (last 400 lines)
+{"t":"2026-10-26T16:47:58Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.32,"mem_avail_mb":237089}
+{"t":"2026-10-26T16:48:58Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.00,"mem_avail_mb":237015}
+{"t":"2026-10-26T16:50:04Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.80,"mem_avail_mb":236907}
+{"t":"2026-10-26T16:51:05Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.52,"mem_avail_mb":236935}
+{"t":"2026-10-26T16:52:05Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"000000","out_github":"200","load1":0.57,"mem_avail_mb":236953}
+{"t":"2026-10-26T16:53:14Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.52,"mem_avail_mb":236860}
+{"t":"2026-10-26T16:54:15Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"000000","out_github":"200","load1":1.52,"mem_avail_mb":236762}
+{"t":"2026-10-26T16:55:23Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":1.74,"mem_avail_mb":236775}
+{"t":"2026-10-26T16:56:24Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.90,"mem_avail_mb":236843}
+{"t":"2026-10-26T16:57:24Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.45,"mem_avail_mb":236823}
+{"t":"2026-10-26T16:58:25Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.21,"mem_avail_mb":236822}
+{"t":"2026-10-26T16:59:26Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236812}
+{"t":"2026-10-26T17:00:28Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.25,"mem_avail_mb":236814}
+{"t":"2026-10-26T17:01:31Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236837}
+{"t":"2026-10-26T17:02:32Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.11,"mem_avail_mb":236859}
+{"t":"2026-10-26T17:03:33Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.44,"mem_avail_mb":236849}
+{"t":"2026-10-26T17:04:33Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.33,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:05:34Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.24,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:06:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:07:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236828}
+{"t":"2026-10-26T17:08:36Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":236842}
+{"t":"2026-10-26T17:09:37Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236738}
+== uptime
+ 17:13:17 up 27 min,  0 users,  load average: 0.19, 0.17, 0.26
+== boots
+== journal persistent
+/var/log/journal
+== running services
+== security-ish processes
+jupyter-lab     /usr/local/miniconda3/bin/python3.13 /usr/local/miniconda3/bin/jupyter-lab --ip=<ip> --port=8888 --no-browser --allow-root --ServerApp.token=
+== iptables -S
+no iptables
+== iptables drops
+== nft
+no nft
+== hosts.deny
+# You may wish to enable this to ensure any programs that don't
+# validate looked up hostnames still leave understandable logs. In past
+# versions of Debian this has been the default.
+# ALL: PARANOID
+
+== sshd settings
+Port 23
+PasswordAuthentication yes
+PasswordAuthentication yes
+== ssh version
+OpenSSH_8.9p1 Ubuntu-3ubuntu0.13, OpenSSL 3.0.2 15 Mar 2022
+== auth log tail
+== netwatch tail
+{"t":"2026-10-26T17:05:34Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.24,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:06:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.17,"mem_avail_mb":236775}
+{"t":"2026-10-26T17:07:35Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236828}
+{"t":"2026-10-26T17:08:36Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.02,"mem_avail_mb":236842}
+{"t":"2026-10-26T17:09:37Z","ssh_sessions":0,"sshd_lines":0,"fw_drop_pkts":0,"out_baidu":"200","out_github":"200","load1":0.06,"mem_avail_mb":236738}
+== mem
+               total        used        free      shared  buff/cache   available
+Mem:          241801        3323      213997           0       24481      236761
+Swap:              0           0           0
+== disk
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          79G   22G   54G  29% /

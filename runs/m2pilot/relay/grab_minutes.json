@@ -1,0 +1,17 @@
+{
+ "minutes": 1.08,
+ "runs": [
+  {
+   "run_id": "40330380126",
+   "minutes": 0.43,
+   "sweeps": 1,
+   "got": true
+  },
+  {
+   "run_id": "40361767453",
+   "minutes": 0.65,
+   "sweeps": 1,
+   "got": true
+  }
+ ]
+}

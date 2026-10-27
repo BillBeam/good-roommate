@@ -1,0 +1,30 @@
+== /etc/supervisor/conf.d/jupyterlab.conf (token masked)
+[program:jupyterlab]
+command=/bin/bash -c "/usr/local/miniconda3/bin/jupyter-lab --ip=<ip> --port=8888 --no-browser --allow-root --ServerApp.token=<masked> --notebook-dir=/ --ServerApp.terminado_settings='{\"shell_command\": [\"/bin/bash\",\"-l\"]}' > /usr/local/jupyterlab.log 2>&1"
+priority=1
+numprocs=1
+autostart=true
+autorestart=true
+startretries=10
+exitcodes=0
+stopsignal=KILL
+stopwaitsecs=10
+redirect_stderr=true
+== running token: length=137 sha8=aff0b580
+token source: literal in /etc/supervisor/conf.d/jupyterlab.conf (same for every machine from this image)
+== env vars mentioning TOKEN/JUPYTER (names only)
+JUPYTER_TOKEN
+== supervisor programs
+filebrowser                      RUNNING   pid 34, uptime 0:37:07
+jupyterlab                       RUNNING   pid 35, uptime 0:37:07
+-- /etc/supervisor/conf.d/filebrowser.conf
+[program:filebrowser]
+command=/bin/bash -c "/model/other/filebrowser/filebrowser -d /filebrowser/filebrowser.db users rm admin 2>/dev/null || true && /model/other/filebrowser/filebrowser -d /filebrowser/filebrowser.db users add admin ${JUPYTE
+autostart=true
+autorestart=true
+-- /etc/supervisor/conf.d/jupyterlab.conf
+[program:jupyterlab]
+command=/bin/bash -c "/usr/local/miniconda3/bin/jupyter-lab --ip=<ip> --port=8888 --no-browser --allow-root --ServerApp.token=<masked> --notebook-dir=/ --ServerApp.terminado_settings='{\"shell_command\": [\"/bin/bash\
+autostart=true
+autorestart=true
+== listening TCP ports and owners
