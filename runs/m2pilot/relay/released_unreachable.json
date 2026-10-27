@@ -1,20 +1,55 @@
-{
- "at": "2026-10-26T16:44:37+00:00",
- "machine": "cpod-1wy5u6w8gmjw",
- "health": {
-  "reboots": [],
-  "unreachable": [
-   {
-    "at": "2026-10-26T16:41:44+00:00",
-    "run_id": "40361315805",
-    "action": "preflight"
-   },
-   {
-    "at": "2026-10-26T16:44:36+00:00",
-    "run_id": "40361767453",
-    "action": "run"
-   }
-  ]
+[
+ {
+  "at": "2026-10-26T16:44:37+00:00",
+  "machine": "cpod-1wy5u6w8gmjw",
+  "health": {
+   "reboots": [],
+   "unreachable": [
+    {
+     "at": "2026-10-26T16:41:44+00:00",
+     "run_id": "40361315805",
+     "action": "preflight"
+    },
+    {
+     "at": "2026-10-26T16:44:36+00:00",
+     "run_id": "40361767453",
+     "action": "run"
+    }
+   ]
+  },
+  "confirm": "最后一次成功同步 2026-10-26T14:28:13Z（中转 40338685695，数据分支 a2ea06d），晚于流水线结束（status.json：selfcheck_failed @14:25:01Z，pids/pipeline.rc 已在）；之后没有起过任何任务（中转 40340393080 的 upload、run 都是 rc=255，40356687969 的 diag 无输出，40359231420 重启后 upload rc=255、run 未执行）；从未有检查点（数据分支没有 ckpt_manifest，各次同步 ckpt_bytes=0）；同步时排除的只有自检临时合并的 LoRA 权重（*.safetensors，重跑自检即重新生成），环境与模型由 ops/remote/setup.sh 重建（版本见 runs/m2pilot/machine/setup/env.json）。"
  },
- "confirm": "最后一次成功同步 2026-10-26T14:28:13Z（中转 40338685695，数据分支 a2ea06d），晚于流水线结束（status.json：selfcheck_failed @14:25:01Z，pids/pipeline.rc 已在）；之后没有起过任何任务（中转 40340393080 的 upload、run 都是 rc=255，40356687969 的 diag 无输出，40359231420 重启后 upload rc=255、run 未执行）；从未有检查点（数据分支没有 ckpt_manifest，各次同步 ckpt_bytes=0）；同步时排除的只有自检临时合并的 LoRA 权重（*.safetensors，重跑自检即重新生成），环境与模型由 ops/remote/setup.sh 重建（版本见 runs/m2pilot/machine/setup/env.json）。"
-}
+ {
+  "at": "2026-10-27T07:15:59+00:00",
+  "machine": "uhost-1wycymkt0g18",
+  "health": {
+   "reboots": [
+    "2026-10-26T19:11:15+00:00"
+   ],
+   "unreachable": [
+    {
+     "at": "2026-10-26T17:10:15+00:00",
+     "run_id": "40365006926",
+     "action": "run",
+     "cause": "self",
+     "cause_detail": "中转自身原因：netwatch_restart 里的 pkill -f ops/remote/netwatch.sh 也匹配到执行它的那条 ssh 命令，把自己的会话杀了（退出码 255、stderr 为空）；机器一直连得上。已改：按 PID 文件起停，ssh 255 先另开空连接确认",
+     "counts_as_platform_outage": false
+    },
+    {
+     "at": "2026-10-26T17:51:05+00:00",
+     "run_id": "40371326964",
+     "action": "wait",
+     "cause": "image_making",
+     "cause_detail": "在做自定义镜像：实例状态 ImageMaking，容器暂停 17:45:37–17:52:05（记录仪这段没有记录），恢复后容器里显卡不可见，19:10 重启后恢复",
+     "counts_as_platform_outage": false
+    }
+   ],
+   "last_job_started": {
+    "name": "pipeline",
+    "at": "2026-10-26T19:23:17+00:00"
+   },
+   "last_sync_ok": "2026-10-27T07:15:51+00:00"
+  },
+  "confirm": "主线已结束：eval_grpo1 于 2026-10-27T07:12:25Z 完成，grpo2 按种子 2 规则（seed2_rule，差 −0.118 ≤ 0）于 07:12:28Z 以退出码 3 退出、未训练；流水线结束后中转 40462643482 于 07:13:48Z 同步过一次，本轮释放前再同步一次（含检查点）；之后机器上没有任何任务。检查点 sft_final、grpo_s1_final 已存为 Actions artifact（m2pilot-ckpt-40388710633、m2pilot-ckpt-40425261226，保留 90 天）；同步排除的只有 *.safetensors / *.pt（自检临时合并的权重，可由代码重新生成）。健康记录里的两次'连不上'都已核实为非平台原因（17:10 中转自身、17:45 做镜像）。"
+ }
+]
