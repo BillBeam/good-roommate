@@ -160,6 +160,40 @@ def teacher_numbers(teacher_dir=os.path.join(ROOT, "teacher"), seeds=(101, 102, 
     return out
 
 
+def credit_mix(groups_file):
+    """GRPO 里第 1 次见面的优势被第 2 次的得分带偏的程度（讲解 4、报告"后续改进"的对照实验 A 的基线）。
+    第 1 次没选对 = 第 1 次得分 ≤ 0（选错或没选；选对至少得 1 − 0.15 × 提问数，问 7 次以上才会 ≤ 0）。
+    同一步记了两次（续跑演练）只取最后一次。"""
+    if not os.path.exists(groups_file):
+        return None
+    last = {}
+    for r in jl(groups_file):
+        last[r["step"]] = r
+    c = defaultdict(int)
+    for st in sorted(last):
+        for g in last[st]["groups"]:
+            m1 = sum(x[0] for x in g["rewards"]) / len(g["rewards"])
+            for i in range(len(g["rewards"])):
+                r1, a1, q1 = g["rewards"][i][0], g["adv"][i][0], g["questions"][i][0]
+                if r1 <= 0:
+                    c["s1_not_right"] += 1
+                    c["s1_not_right_adv_pos"] += a1 > 0
+                    if q1 == 0:
+                        c["s1_guess_not_right"] += 1
+                        c["s1_guess_not_right_adv_pos"] += a1 > 0
+                else:
+                    c["s1_right"] += 1
+                    c["s1_right_adv_neg"] += a1 < 0
+                    # 第 1 次得分不低于同组第 1 次的平均，优势却是负的：负号来自第 2 次的得分
+                    c["s1_right_adv_neg_from_s2"] += a1 < 0 and r1 >= m1
+    c = dict(c)
+    c["rate_not_right_adv_pos"] = c["s1_not_right_adv_pos"] / c["s1_not_right"] if c.get("s1_not_right") else None
+    c["rate_guess_not_right_adv_pos"] = (c["s1_guess_not_right_adv_pos"] / c["s1_guess_not_right"]
+                                         if c.get("s1_guess_not_right") else None)
+    c["rate_right_adv_neg"] = c["s1_right_adv_neg"] / c["s1_right"] if c.get("s1_right") else None
+    return c
+
+
 def _ts(x):
     from datetime import datetime
     return datetime.fromisoformat(x.replace("Z", "+00:00")).timestamp()
@@ -244,6 +278,12 @@ def main():
             short[tag] = summarize_rows(rows, n_boot=N_BOOT)
     out["short"] = short
     out["tijian"] = tijian_compare("pre")
+    out["credit_mix"] = {f"grpo_s{k}": credit_mix(os.path.join(M, f"grpo_s{k}", "groups.jsonl")) for k in (1, 2)}
+    sd = os.path.join(M, "seed2_decision.json")
+    if os.path.exists(os.path.join(M, "eval", "grpo1", "full")):
+        from .seed2_rule import decide
+        out["seed2_rule"] = decide(M, n_boot=N_BOOT, write=False)
+        out["seed2_rule"]["machine_decision_file"] = jload(sd) if os.path.exists(sd) else None
     out["needs_first"] = {str(s): needs_first_rate(short_world(world(s), [0, 2, 4, 6])) for s in (201, 202)}
     out["needs_first_train_pool"] = {str(s): needs_first_rate(short_world(world(s))) for s in (301, 302)}
     os.makedirs(os.path.join(ROOT, "report"), exist_ok=True)
