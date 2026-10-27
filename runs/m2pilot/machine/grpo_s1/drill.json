@@ -1,0 +1,12 @@
+{
+ "killed": {
+  "t": 1793053681.5198116,
+  "completed_steps_logged": 6,
+  "stage_when_killed": "train",
+  "step_in_progress": 7
+ },
+ "resumed_from_checkpoint_step": 5,
+ "resume_command": "roommate.train.grpo --seed 1 --resume",
+ "resume_rc": 0,
+ "resume_started": 1793053696.7102082
+}
